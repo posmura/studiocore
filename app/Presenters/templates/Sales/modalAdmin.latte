@@ -1,0 +1,49 @@
+<div class="modal fade" id="modalSaleAdminForm" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Prodej</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                {form salesForm}
+
+                    <div class="mb-3 mt-3">
+                        <div class="row mb-2">
+                            <div class="col-sm-12">{label permanentka_id /}{input permanentka_id}</div>                                
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="col-sm-12">{label user_id /}{input user_id}</div>                                
+                        </div>
+
+                        <div class="row mb-2">
+                            <div class="mb-3 mt-3">{label desc /}{input desc}</div>
+                        </div>
+                    </div>
+
+                    <div>
+                        {input send}
+                    </div>
+
+                {/form}
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function openNewSaleAdminForm() {
+        var modalSaleForm = new bootstrap.Modal(document.getElementById('modalSaleAdminForm'), {
+            keyboard: false,
+            backdrop: 'static'
+        });
+        $('#frm-salesForm-permanentka_id').val(0);
+        $('#frm-salesForm-user_id').val(0);
+        $('#frm-salesForm-desc').val('');
+        modalSaleForm.show();
+    }
+</script>
+

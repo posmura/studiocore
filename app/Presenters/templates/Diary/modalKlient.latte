@@ -1,0 +1,68 @@
+<div class="modal fade" id="modalDiaryKlientForm" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Registrace na lekci</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                <div id="frm-registerForm-lekce_info_text"></div>
+                <div class="p-3 text-center" style="text-align: center;">
+                    {form registerForm}
+                        {input send}
+                    {/form}
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+    function openUpdateDiaryKlientForm(id) {
+        var modalDiaryForm = new bootstrap.Modal(document.getElementById('modalDiaryKlientForm'), {
+            keyboard: false,
+            backdrop: 'static'
+        });
+        cleanDiaryForm();
+        loadDataLekce(id);
+        modalDiaryForm.show();
+    }
+
+    function cleanDiaryForm() {
+        $('#frm-registerForm-lekce_info_text').html('');
+        $('#frm-registerForm-diary_id').val('');
+        $('#frm-registerForm-aktivita_id').val('');
+        $('#frm-registerForm-date').val('');
+        $('#frm-registerForm-user_id').val('');
+        $('#frm-registerForm-akce_id').val('');
+        $('#frm-registerForm-akce_desc').val('');
+    }
+
+    function loadDataLekce(id) {
+        $.getJSON({
+            type: "POST",
+            url: {plink LoadDataLekce!},
+            data: {
+                ID: id
+            },
+            success: function (data) {
+                console.log(data);
+                const dataLekce = JSON.parse(data);
+                console.log(dataLekce);
+                $('#frm-registerForm-lekce_info_text').html(dataLekce.lekce_info_text);
+                $('#frm-registerForm-diary_id').val(dataLekce.diary_id);
+                $('#frm-registerForm-aktivita_id').val(dataLekce.aktivita_id);
+                $('#frm-registerForm-date').val(dataLekce.date);
+                $('#frm-registerForm-user_id').val(dataLekce.user_id);
+                $('#frm-registerForm-akce_id').val(dataLekce.akce_id);
+                $('#frm-registerForm-akce_desc').val(dataLekce.akce_desc);
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                alert('LEKCE\nCHYBA - Načtení údajů selhalo.');
+            }
+        });
+    }
+
+</script>

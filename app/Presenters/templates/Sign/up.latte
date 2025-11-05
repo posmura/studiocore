@@ -1,0 +1,39 @@
+{block content}
+<div id="banner">
+    <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+        <strong>REGISTRACE</strong></div>
+</div>
+
+<div id="content" class="text-center mt-3">
+    <p>Vyplňte registrační formulář.</p>
+</div>
+
+<div id="form">
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class="alert alert-light border border-warning">
+            {form signupForm}
+                <div class="mb-3 mt-3">{label username /}{input username}</div>
+                <div class="mb-3 mt-3">{label surname /}{input surname}</div>
+                <div class="mb-3 mt-3">{label firstname /}{input firstname}</div>
+                <div class="mb-3 mt-3">
+                    {label password /}{input password}
+                    <div class="text-danger">{inputError password}</div>
+                </div>
+                <div class="mb-3 mt-3">{label password_verify /}{input password_verify}</div>
+                <div class="mb-3 mt-3">{label email /}{input email}</div>
+                <div class="mb-3 mt-3">{label email_verify /}{input email_verify}</div>
+                <div class="mb-3 mt-3">{label mobil_number /}{input mobil_number}</div>
+                <div class="mb-3 mt-3">{label mobil_number_verify /}{input mobil_number_verify}</div>
+                <div class="mb-3 mt-3">{label benefit_card /}{input benefit_card}</div>
+                <div class="text-center">{input send}</div>
+            {/form}
+            </div>
+            <div class="alert alert-warning text-center mb-5">
+                Pokud máte vytvořený uživatelský účet,<br><a n:href="Sign:in" style="color: #e67c2f !important;">přihlášte se</a> do rezervačního systému.
+            </div>
+        </div>
+        <div class="col-sm-4"></div>        
+    </div>
+</div>

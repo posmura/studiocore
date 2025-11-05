@@ -1,0 +1,83 @@
+<nav class="border border-bottom-1 navbar navbar-expand-sm XXXnavbar-dark XXXbg-light d-print-none fixed-top" style="background-color: #02386c; border-radius: 0;">
+
+    <div class="container-fluid">
+        <a class="navbar-brand" href="https://studiocore.cz" target="_blank">
+            <img 
+                class='logo-image d-none d-lg-inline-block'
+                src='/images/rs_logo_50.png'
+                alt='Studio Core'
+                >
+        </a>
+
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar" style="color: #fff !important;">
+            <span class="navbar-toggler-icon" style="color: #fff !important;"></span>
+        </button>
+
+        <div class="collapse navbar-collapse" id="mynavbar">
+            <ul class="navbar-nav me-auto" style="font-size: 110%;">
+                <li class="nav-item mx-2">
+                    <a n:href="Diary:default" class="nav-link nav-rs">ROZVRH</a>
+                </li>
+
+
+                {if $user->isLoggedIn()}                
+                    {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                        <li class="nav-item mx-2">
+                            <a n:href="Sales:default" class="nav-link nav-rs">PRODEJ</a>
+                        </li>
+                    {/if}
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link  nav-rs dropdown-toggle mx-2" href="#" role="button" data-bs-toggle="dropdown">ADMINISTRACE</a>
+
+                        <ul class="dropdown-menu" style="background-color: #02386c;">
+                            {if $user->identity->role == "klient"}
+                                <li>
+                                    <a class="dropdown-item" n:href="User:user $user->identity->id" class="nav-link">Uživatel</a>
+                                </li>
+                            {/if}
+                            {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                                <li>
+                                    <a class="dropdown-item" n:href="User:default" class="nav-link">Uživatel</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" n:href="MembershipCard:default" class="nav-link">Permanentky</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" n:href="Activity:default" class="nav-link">Aktivity</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" href="https://portal.bulkgate.com/dashboard/" target="_blank" class="nav-link">BulkGate - správa SMS</a>
+                                </li>
+                                <li>
+                                    <a class="dropdown-item" n:href="EventLog:default" class="nav-link">EventLog</a>
+                                </li>                    
+                            {/if}
+                        </ul>
+                    </li>
+                {/if}
+
+                <li class="nav-item mx-2">
+                    <a href="/docs/rezervacni_rad.pdf" target="_blank" class="nav-link nav-rs">REZERVAČNÍ ŘÁD</a>
+                </li>
+
+            </ul>
+
+            {if $user->isLoggedIn()}
+                <span class="padding-right-20 text-white" title="{$user->identity->email}">Uživatel: <strong>{$user->identity->username}</strong></span>
+                <span class="padding-right-20 text-white">Vstupy: <strong>
+                        {foreach $kredity as $key => $items}
+                            {if $iterator->first}{else}, {/if}
+                            {$items['kredity']} ({$items['aktivita_nazev']})
+                        {/foreach}
+                </strong></span>
+                <a n:href="Sign:out" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-left pe-2"></i> Odhlášení</a>
+            {else}
+                <a n:href="Sign:in" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-in-right pe-2"></i> Přihlášení</a>
+                <a n:href="Sign:up" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-person-circle pe-2"></i> Registrace</a>
+            {/if}
+        </div>
+
+    </div>
+
+</nav>

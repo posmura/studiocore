@@ -1,0 +1,28 @@
+<div class="modal fade" id="modalDiaryErrorForm" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content bg-danger text-white">
+            <div class="modal-header">
+                <h5 class="modal-title">Upozornění</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            
+            <div class="modal-body">
+                <div id="err-text"></div>
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+
+function openUpdateDiaryErrorForm(errText) {
+    var modalDiaryForm = new bootstrap.Modal(document.getElementById('modalDiaryErrorForm'), {
+        keyboard: false,
+        backdrop: 'static'
+    });
+    $('#err-text').text(errText);
+    modalDiaryForm.show();
+}
+    
+</script>

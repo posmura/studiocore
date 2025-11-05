@@ -1,0 +1,10 @@
+parameters:
+
+
+database:
+	dsn: 'mysql:host=md390.wedos.net;dbname=d332845_studioc'
+	user: 'a332845_studioc'
+	password: 'svkQpA6t'
+	options:
+		charset: 'utf8mb4'
+		collation: 'utf8mb4_czech_ci'

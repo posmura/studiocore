@@ -1,0 +1,18 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        {*<h3 class="text-warning border-bottom border-warning" n:block=title>Úvod</h3>*}
+    {/if}
+</div>
+
+<div id="content" class="text-center">
+    <h4 class="text-warning">Vítejte v STUDIO CORE Rezervačním systému</h4>
+    {if $user->isLoggedIn()}
+        <div>Přihlášení do STUDIO CORE Rezervačního systému bylo úspěšné.</div>
+
+    {else}
+        <div>Pro přihlášní klikněte na tlačítko <strong>Přihlásit</strong> nebo na tento odkaz <a n:href="Sign:in">Přihlásit</a>.</div>
+        <div>Pro registraci klikněte na tlačítko <strong>Registrace</strong> nebo na tento odkaz <a n:href="Sign:up">Registrace</a>.</div>
+        </div>
+    {/if}
+</div>	

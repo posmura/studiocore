@@ -1,0 +1,32 @@
+{block content}
+<div id="banner">
+    <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+        <strong>OBNOVA HESLA - ODESLÁNÍ POŽADAVKU</strong></div>
+</div>
+
+<div id="content" class="text-center mt-3">
+    <p>
+        Zadejte vaše přihlašovací jméno a číslo mobilního telefonu tak, jak bylo zadáno při registraci do Rezervačního systému.<br>
+        Pokud oba údaje jsou platné, bude na uvedené číslo mobilního telefonu zaslán SMS zpráva s PIN pro obnovu hesla.<br>
+    </p>
+</div>
+
+<div id="form">
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class="alert alert-light border border-warning">
+                {form signrecoveryForm}
+                    <div class="mb-3 mt-3">{label username /}{input username}</div>
+                    <div class="mb-3 mt-3">{label mobil_number /}{input mobil_number}</div>
+                    <div class="text-center">{input send}</div>
+                {/form}
+            </div>
+            <div class="alert alert-warning text-center mb-5">
+                Pokud jste obdrželi PIN,<br><a n:href="Sign:recoverypassword" style="color: #e67c2f !important;">pokračujte</a> v obnovení hesla.
+            </div>
+        </div>
+        <div class="col-sm-4"></div>        
+    </div>
+</div>
+

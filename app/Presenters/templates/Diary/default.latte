@@ -1,0 +1,268 @@
+{block content}
+<div id="banner">
+    <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+        {if $user->isLoggedIn()}
+            {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                <strong>ROZVRH: Správa</strong>
+            {else}
+                <strong>ROZVRH: Registrace</strong>
+            {/if}
+        {else}
+            <strong>ROZVRH</strong>
+        {/if}
+    </div>
+</div>
+
+
+<div id="content">
+    <p></p>
+
+    {if $user->isLoggedIn()}
+        {* panel s tlačítky *}
+        <div class="m-3 d-print-none ">
+
+            {* řadka nový záznam *}
+            <div class="row mb-3 p-0">
+                <div class="col-sm-6" style="padding: 2px;">
+                    {form diaryDateForm}
+                        {*label date /*}{input date} &nbsp; {input send}
+                    {/form}
+                </div>
+
+                <div class="col-sm-6" style="padding: 2px;">
+                    <div style="text-align: right;">
+                        {if $user->identity->role == "admin"}
+                            <button type="button" class="btn btn-success btn-sm" onclick="openNewDiaryAdminForm();">
+                                <i class="bi bi-plus-square  padding-right-10"></i> Vložit lekci
+                            </button>
+                        {/if}
+                    </div>
+                </div>
+            </div>
+
+            {* řadka tlačítek pro pohyb po datech *}
+            <div class="row" style="background-color:#f3f3f3;">
+                <div class="col-sm-4" style="padding: 2px;">
+                    {*if $user->identity->role == "admin" && $user->identity->role == "lektor"*}
+                    <div style="text-align: left;">
+                        <a n:href="Diary:default $diaryPrevWeek" type="button" class="btn btn-primary btn-sm">
+                            <i class="bi bi-caret-left-fill padding-right-10"></i> Předchozí</a>
+                    </div>
+                    {*/if*}
+                </div>
+                <div class="col-sm-4" style="padding: 2px;">
+                    <div style="text-align: center;">
+                        <a n:href="Diary:default" type="button" class="btn btn-primary btn-sm">
+                            <i class="bi bi-calendar-event padding-right-10"></i> Tento týden</a>
+                    </div>
+                </div>
+                <div class="col-sm-4" style="padding: 2px;">
+                    <div style="text-align: right;">
+                        <a n:href="Diary:default $diaryNextWeek" type="button" class="btn btn-primary btn-sm">
+                            <i class="bi bi-caret-right-fill padding-right-10"></i> Následující</a>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+    {/if}        
+
+    <div class="row">
+        {for $i=1; $i <= 7; $i++}
+            <div class="col-xl border m-1 p-0 mb-5" style="background-color:#fafafa;">
+                <table style="width: 100%;">
+                    <tr class="td_diary_nameday">
+                        <th class="td_diary td_diary_nameday td_diary_{$i|noescape} td_diary_header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
+                            <span style="font-size: 75%;">{$diaryWeek[$i]['diaryNameDay']}</span>
+                        </th>
+                    </tr>
+
+                    <tr class="td_diary_date">
+                        <td class="td_diary td_diary_date td_diary_{$i|noescape} td_diary_header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
+                            {$diaryWeek[$i]['diaryDateFormat']}
+                        </td>
+                    </tr>
+
+                    <tr class="tr_diary_event">
+                        <td class="td_diary td_diary_event small p-1" style="">
+                            {foreach $diaryEvents as $key => $items}
+                                {if $items['diaryDate'] == $diaryWeek[$i]['diaryDate']}
+                                                                                    
+                                    {* NASTAVENÍ AKCE PRO onClick NA BUŇKU LEKCE *}
+                                    {if $user->isLoggedIn()}
+                                        {if $user->identity->role == "admin"}
+                                            {var $onClick = "openUpdateDiaryAdminForm('{$items['diaryID']}')"}
+                                        {elseif $user->identity->role == "lektor"}
+                                            {var $onClick = "openUpdateDiaryAdminForm('{$items['diaryID']}')"}
+                                        {elseif $user->identity->role == "klient"}
+                                            {var $onClick = "openUpdateDiaryKlientForm('{$items['diaryID']}')"}
+                                        {else}
+                                            {var $onClick = "openUpdateDiaryErrorForm('NEMÁTE OPRÁVNĚNÍ PRO TUTO AKCI.')"}
+                                        {/if}
+                                    {/if}
+                                   
+                                    <div class="alert small mt-2 mb-3 px-2 pt-2 pb-23" 
+                                         style="{if $user->isLoggedIn()}cursor:pointer;{/if}
+                                            background-color:{$items['color']|noescape};
+                                            border-color: #aaa;"
+                                            {if $user->isLoggedIn()}onclick="{$onClick|noescape};"{/if}>
+                                        
+                                        <div class="row">
+                                            <div class="col-12-sm mb-3">
+                                                <span><strong>{$items['diaryTimeFrom']}{if $items['diaryTimeTo']} - {$items['diaryTimeTo']}{/if}</strong></span>
+                                                <span style='float: right;'><strong>{$items['aktivita_vstupy_aktualni']}/{$items['aktivita_vstupy_max']}</strong></span>
+                                            </div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-12-sm mb-1" style='text-align: center;' title='{$items['diaryID']} - {$presenter->aktivita[$items['aktivita_id']]}'>
+                                                 <span style="font-size: 135%;"><strong>{$items['nazev']}</strong></span>
+                                            </div>
+                                        </div>
+
+                                        {if $items['lektor_id']}
+                                        <div class="row mb-3" style='text-align: center;'>
+                                            <div class="col-12-sm">
+                                                {$presenter->lektorName[$items['lektor_id']]}
+                                            </div>
+                                        </div>
+                                        {/if}
+
+
+                                        {if $items['popis']}
+                                        <div class="row">
+                                            <div class="col-12-sm">
+                                                {$items['popis']}
+                                            </div>
+                                        </div>
+                                        {/if}
+                                        
+                                        {if $items['diaryEvent']}
+                                        <div class="row">
+                                            <div class="col-12-sm">
+                                                <em>{$items['diaryEvent']|breakLines}</em>
+                                            </div>
+                                        </div>
+                                        {/if}
+                                        
+                                        {ifset $userRegistered[$items['diaryID']]}
+                                            <div class="border border-2 border-white rounded p-1 text-center small" style="color: #fff; background-color: #e67c2f; letter-spacing: 1px;">
+                                                <strong>REGISTRACE</strong>
+                                            </div>
+                                        {/ifset}
+                                        
+                                
+                                    </div>
+                                {/if}
+                            {/foreach}
+                        </td>
+                    </tr>
+                </table>
+            </div>
+        {/for}
+    </div>
+
+</div>
+
+{* ZOBRAZENÍ MODÁLU PODLE ROLE PŘIHLÁŠENÉHO UŽIVATELE *}
+{if $user->isLoggedIn()}
+    {if $user->identity->role == "admin"}
+        {include 'modalAdmin.latte'} 
+    {elseif $user->identity->role == "lektor"}
+        {include 'modalAdmin.latte'}
+    {elseif $user->identity->role == "klient"}
+        {include 'modalKlient.latte'}
+    {else}
+        {include 'modalError.latte'}
+    {/if}
+{/if}
+
+{*
+->setHtmlAttribute('data-source', $this->link('Search:suggest'));
+->setHtmlAttribute('data-source', $this->link('Search:suggest', ['type' => 'users']));
+
+
+          <input id="userSearch"
+                 class="form-control"
+                 type="text"
+                 placeholder="Zadej aspoň 2 znaky…"
+                 data-source="{link Search:suggest}">
+          <input type="hidden" id="userId"> {# sem si uložíš vybraný ID #}
+*}
+
+{*
+<!-- jQuery + jQuery UI (autocomplete) musí být načtené -->
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+  const modalEl = document.getElementById('userModal');
+
+  modalEl.addEventListener('shown.bs.modal', function () {
+    const $input = $('#userSearch');
+
+    // inicializuj autocomplete jen jednou
+    if (!$input.data('ui-autocomplete-initialized')) {
+      $input.autocomplete({
+        minLength: 2,
+        delay: 150,
+        source: $input.data('source'),
+        appendTo: '#userModal',
+        select: function (event, ui) {
+          // co se stane při výběru návrhu
+          $('#userId').val(ui.item.id);
+          $(this).val(ui.item.value); // jméno do inputu
+          return false; // nechceme defaultní chování, když renderujeme vlastní šablonu
+        }
+      })
+      // volitelné: hezčí řádek v menu
+      .autocomplete('instance')._renderItem = function (ul, item) {
+        return $('<li>')
+          .append('<div><strong>' + item.value + '</strong><br><small>' + item.email + '</small></div>')
+          .appendTo(ul);
+      };
+
+      $input.data('ui-autocomplete-initialized', true);
+    }
+
+    // volitelně focus rovnou do pole
+    $input.trigger('focus');
+  });
+});
+</script>
+
+*}
+
+{*
+/* jQuery UI menu nad modalem */
+.ui-autocomplete {
+  z-index: 2000; /* bootstrap modal ~1050; 2000 je safe */
+  max-height: 240px;
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* volitelně: šířka stejně jako input */
+  width: inherit;
+}
+
+#userModal .ui-menu {
+  font-size: 0.95rem;
+}
+
+*}
+
+{*
+//5) Bonus: práce s vybraným záznamem
+//Potřebuješ hodnotu ID? Už ji máš v #userId. Potvrzovací tlačítko může něco odeslat, vyplnit formulář apod.:
+
+
+document.getElementById('confirmUser').addEventListener('click', function () {
+  const id = document.getElementById('userId').value;
+  const name = document.getElementById('userSearch').value;
+  if (!id) {
+    alert('Nejprve vyberte položku ze seznamu.');
+    return;
+  }
+  // TODO: udělej, co potřebuješ (odeslat form, zavřít modal, atd.)
+  const modal = bootstrap.Modal.getInstance(document.getElementById('userModal'));
+  modal.hide();
+});
+
+*}

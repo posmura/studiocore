@@ -1,0 +1,111 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+            <strong>ADMINISTRACE: Aktivita</strong>
+            <a n:href="Activity:default" class="btn btn-sm btn-success" style="float: right;">
+                <i class="bi bi-arrow-left-circle-fill"></i> Zpět
+            </a>
+        </div>
+    {/if}
+</div>
+
+<div id="content">
+	
+{if $user->isLoggedIn()}
+    
+    {* hlavní blok *}
+    <div class="row"> 
+        
+        {* levý sloupec *}
+        <div class="col-md-4"> 
+            
+            {* *** AKTIVITA *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Aktivita</div>
+                {form aktivitaForm}
+                    <div class="mb-3 mt-3">{label id /}{input id}</div>
+                    <div class="mb-3 mt-3">{label nazev /}{input nazev}</div>
+                    <div class="mb-3 mt-3">{label vstupy_min /}{input vstupy_min}</div>
+                    <div class="mb-3 mt-3">{label vstupy_max /}{input vstupy_max}</div>
+                    <div class="mb-3 mt-3">{label zruseni_zdarma /}{input zruseni_zdarma}</div>
+                    <div class="mb-3 mt-3">{label zruseni_neucast /}{input zruseni_neucast}</div>
+                    <div class="mb-3 mt-3">{label registrace_konec /}{input registrace_konec}</div>
+                    <div class="text-center">{input send}</div>
+                {/form}
+            </div> 
+                        
+        {* levý sloupec - konec*}
+        </div> 
+        
+        {* prostřední sloupec *}
+        <div class="col-md-4"> 
+            {* *** TEST *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Prázdné pole</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+
+
+
+        {* prostřední sloupec - konec*}
+        </div> 
+        
+        {* pravý sloupec *}
+        <div class="col-md-4"> 
+            {* *** TEST *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Prázdné pole</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+
+        {* pravý sloupec - konec*}
+        </div> 
+    
+    {* hlavní blok - konec *}
+    </div> 
+        
+{/if}
+</div>
+
+{if $user->isLoggedIn()}
+    <script>
+        let dataTableContact = new DataTable('#tbl-activity', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
+                "search": "Vyhledávání v tabulce:",
+                "searchPlaceholder": "zadejte hledaný text"
+            },
+            order: [[0, 'desc']]
+        });
+        
+    {ifset $data}
+        function setDataToForm() {
+            // uživatel
+            $('#frm-aktivitaForm-id').val({$data->id});
+            $('#frm-aktivitaForm-nazev').val({$data->nazev});
+            $('#frm-aktivitaForm-vstupy_min').val({$data->vstupy_min});
+            $('#frm-aktivitaForm-vstupy_max').val({$data->vstupy_max});
+            $('#frm-aktivitaForm-zruseni_zdarma').val({$data->zruseni_zdarma});
+            $('#frm-aktivitaForm-zruseni_neucast').val({$data->zruseni_neucast});
+            $('#frm-aktivitaForm-registrace_konec').val({$data->registrace_konec});
+        }       
+        
+        setDataToForm();
+    {/ifset}
+    </script>
+{/if}
+
+            

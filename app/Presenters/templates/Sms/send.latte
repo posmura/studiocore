@@ -1,0 +1,12 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        <h2 class="text-bg-primary p-3 center" n:block=title>Odesílání SMS</h2>
+    {else}
+        <div class="alert alert-info" style="text-align: center;"><strong>Pro vstup do aplikace ORDINACE klikněte na tlačítko Přihlášení.</strong></div>
+    {/if}
+</div>
+
+<div id="content">
+	<p>Odeslané.</p>
+</div>

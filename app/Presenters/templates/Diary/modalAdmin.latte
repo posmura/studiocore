@@ -1,0 +1,138 @@
+<div class="modal fade" id="modalDiaryAdminForm" data-bs-backdrop="static" data-bs-keyboard="false">
+    <div class="modal-dialog modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Lekce</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+
+            <div class="modal-body">
+                {form diaryForm}
+                    
+                    <div class="mb-3 mt-3">
+                        <div class="row mb-2">
+                            <div class="col-sm-6">{label aktivita_id /}{input aktivita_id}</div>                                
+                            <div class="col-sm-6">{label lektor_id /}{input lektor_id}</div>                                
+                        </div>
+                            
+                        <div class="row mb-2">
+                            <div class="col-sm-12">{label nazev /}{input nazev}</div>                                
+                        </div>
+                            
+                        <div class="row mb-2">
+                            <div class="col-sm-12">{label popis /}{input popis}</div>                                
+                        </div>
+                            
+                        <div class="row mb-2">
+                            <div class="col-sm-6">{label date /}{input date}</div>
+                            <div class="col-sm-3">{label from /}{input from}</div>
+                            <div class="col-sm-3">{label to /}{input to}</div>
+                        </div>
+                        
+                        <div class="row mb-2">
+                            <div class="col-sm-12">{label color /}{input color}</div>
+                        </div>
+                    </div>
+                        
+                    <div class="mb-3 mt-3">{label desc /}{input desc}</div>
+ 
+                    <div class="mb-3 mt-3">
+                        <div class="row mb-2">
+                            <div class="col-sm-12 text-bg-secondary">
+                                <div id="frm-diaryForm-opakovat-div" class="form-check">
+                                    {input opakovat}
+                                    <label for="frm-diaryForm-opakovat" class="form-check-label" id="frm-diaryForm-opakovat-label-text"></label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                        
+                    <div>
+                        {input send}
+                        {input sendAsNew}
+                        {input sendDelete}
+                    </div>
+                    
+                {/form}
+            </div>
+            
+        </div>
+    </div>
+</div>
+
+<script>
+                                
+    
+function openNewDiaryAdminForm() {
+    var modalDiaryForm = new bootstrap.Modal(document.getElementById('modalDiaryAdminForm'), {
+        keyboard: false,
+        backdrop: 'static'
+    });
+    cleanDiaryForm();
+    {var $dateDiaryForm = date('d.m.Y')}
+    $('#frm-diaryForm-date').val({$dateDiaryForm});
+    $('#frm-diaryForm-send_as_new').hide();
+    $('#frm-diaryForm-send_delete').hide();
+    modalDiaryForm.show();
+}
+    
+function openUpdateDiaryAdminForm(id) {
+    var modalDiaryForm = new bootstrap.Modal(document.getElementById('modalDiaryAdminForm'), {
+        keyboard: false,
+        backdrop: 'static'
+    });
+    cleanDiaryForm();
+    $('#frm-diaryForm-send_as_new').show();
+    $('#frm-diaryForm-send_delete').show();
+    loadDataDiaryForm(id);
+    modalDiaryForm.show();
+    setOpakovatLabelText();
+}
+    
+function cleanDiaryForm() {
+    $('#frm-diaryForm-date').val(null);
+    $('#frm-diaryForm-ID').val(0);
+    $('#frm-diaryForm-lekce_id').val(0);
+    $('#frm-diaryForm-aktivita_id').val(0);
+    $('#frm-diaryForm-lektor_id').val(0);
+    $('#frm-diaryForm-nazev').val('');
+    $('#frm-diaryForm-popis').val('');
+    $('#frm-diaryForm-from').val('');
+    $('#frm-diaryForm-to').val('');
+    $('#frm-diaryForm-desc').val('');        
+    $('#frm-diaryForm-opakovat-label-text').text('Vytvořit opakování této lekce');
+    $('#frm-diaryForm-opakovat').prop('checked', false);
+}
+    
+function loadDataDiaryForm(ID) {
+    $.getJSON({
+        type: "POST",
+        url: {plink LoadDataFormOrder!},
+        data: {
+            id_diary: ID
+        },
+        success: function (data) {
+            console.log(data);
+            const dataForm = JSON.parse(data);
+            $('#frm-diaryForm-ID').val(dataForm.ID);
+            $('#frm-diaryForm-lekce_id').val(dataForm.lekce_id);
+            $('#frm-diaryForm-aktivita_id').val(dataForm.aktivita_id);
+            $('#frm-diaryForm-lektor_id').val(dataForm.lektor_id);
+            $('#frm-diaryForm-nazev').val(dataForm.nazev);
+            $('#frm-diaryForm-popis').val(dataForm.popis);
+            $('#frm-diaryForm-date').val(dataForm.date);
+            $('#frm-diaryForm-from').val(dataForm.from);
+            $('#frm-diaryForm-to').val(dataForm.to);
+            $('#frm-diaryForm-desc').val(dataForm.desc);
+            $('#frm-diaryForm-color').val(dataForm.color);
+            $('#frm-diaryForm-opakovat-label-text').text('Provést úpravy pro všechna následující opakování této lekce');
+            $('#frm-diaryForm-opakovat').prop('checked', false);
+        },
+        error: function (jqXHR, textStatus, errorThrown) {
+            alert('Formulář ROZVRH\nCHYBA - Načtení údajů selhalo.');
+        }
+    });
+}
+
+</script>
+

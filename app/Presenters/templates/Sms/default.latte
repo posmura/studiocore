@@ -1,0 +1,107 @@
+{block content}
+
+   
+    <div id="banner">
+        {if $user->isLoggedIn()}
+            <h2 class="text-bg-primary p-3 center" n:block=title>Odeslat SMS pro objednávky na den {$formDate}</h2>
+        {else}
+            <div class="alert alert-info" style="text-align: center;">
+                <strong>Pro vstup do aplikace ORDINACE klikněte na tlačítko Přihlášení.</strong>
+            </div>
+        {/if}
+    </div>
+
+
+    <div id="content">
+
+        {if $showForm}
+            
+            <p></p>
+            
+            {if $user->isLoggedIn()}
+                <script>
+                    $(function () {
+                        $('#datepicker_form').datepicker();
+                    });
+                </script>
+            
+                <div class="m-3 d-print-none">
+                    <div class="row">
+                        <div class="col-sm-6" style="padding: 2px;">
+                            {form orderDateForm}
+                                {label date /} &nbsp; {input date} &nbsp; {input send}
+                            {/form}
+                        </div>
+                    
+                        <div class="col-sm-6" style="padding: 2px;">
+                            <div style="text-align: right;">
+                                <a n:href="Ambulance:default $orderDate" type="button" class="btn btn-primary">
+                                    <i class="bi bi-calendar padding-right-10"></i> Přejít na objednávky</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                            
+                {if $showTable}
+                    <div class="mt-3" style="text-align: center;">
+                        
+                        {if $smsRecipients}
+                            {form smsRecipientsForm}
+                                <div></div>
+                                
+                                <div class="table-responsive">
+                                    <table class="table small table-bordered table-hover">
+                                        <tr style="background-color: #ccc;">
+                                            <td colspan="4"><strong>{label text_sms/}</strong> (maximální velikost zprávy je 160 znaků)</td>  
+                                        </tr>
+                                        
+                                        <tr>
+                                            <td colspan="4">{input text_sms}</td>  
+                                        </tr>
+                                    
+                                        <tr style="background-color: #ccc;">
+                                            <th>Čas</th>  
+                                            <th>Příjmení a jméno</th>  
+                                            <th>Telefon</th>  
+                                            <th>Vybrat</th>  
+                                        </tr>
+                                    
+                                        {foreach $smsRecipients as $key => $items}
+                                            <tr>
+                                                <td>{input "time_{$key}"}</td>
+                                                <td>{input "name_{$key}"}</td>
+                                                <td>{input "phone_{$key}"}</td>
+                                                <td>{input "check_{$key}"}</td>
+                                            </tr>
+                                        {/foreach}
+                                   
+                                        <tr>
+                                            <td colspan="4">{input send}</td>
+                                        </tr>
+                                    
+                                    </table>
+                                </div>
+                            {/form}
+                        {else}
+                           <div class="alert alert-danger">Pro tento den nebyla nalezena žádná objednávka.</div>
+                        {/if}
+                   
+                </div>
+            {/if}
+    
+        {/if}
+    
+    {else}
+        <div class="m-3 d-print-none">
+            <div class="row" style="padding:5px;background-color:#f3f3f3;">
+                <div class="col-sm-12" style="padding: 2px;">
+                    <div style="text-align: center;">
+                        <button class="btn btn-primary" onclick="history.back();">
+                            <i class="bi bi-caret-left-fill padding-right-10"></i> Zpět</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {/if}
+    
+</div>        

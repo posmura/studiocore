@@ -1,0 +1,58 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+            <strong>ADMINISTRACE: EventLog</strong>
+        </div>
+    {/if}
+</div>
+
+
+<div id="content">
+
+    {if $user->isLoggedIn() and $user->identity->role == "admin"}
+
+        <div class="mt-3 mb-5">
+            <table id="tbl-eventlog" class="display" style="width:100%;">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Čas události</th>
+                        <th>Uživatel</th>
+                        <th>Presenter</th>
+                        <th>Akce</th>
+                        <th>Vzdálená IP</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {foreach $eventlog as $item}
+                        {if $user->isLoggedIn()}
+                            <tr>
+                                <td>{$item->ID}</td>
+                                <td>{$item->datetime}</td>
+                                <td>{$item->username}</td>
+                                <td>{$item->presenter}</td>
+                                <td>{$item->action}</td>
+                                <td>{$item->remote_ip}</td>
+                            </tr>
+                        {/if}
+                    {/foreach}
+                </tbody>
+            </table>
+        </div>
+
+        <script>
+            let dataTableContact = new DataTable('#tbl-eventlog', {
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
+                    "search": "Vyhledávání v tabulce:",
+                    "searchPlaceholder": "zadejte hledaný text"
+                },
+                order: [[0, 'desc']]
+            });
+        </script>
+
+    {/if}
+
+</div>

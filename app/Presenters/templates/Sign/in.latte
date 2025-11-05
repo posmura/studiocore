@@ -1,0 +1,33 @@
+{block content}
+<div id="banner">
+    <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+        <strong>PŘIHLÁŠENÍ</strong></div>
+</div>
+
+<div id="content" class="text-center mt-3">
+    <p>Zadejte přihlašovací údaje.</p>
+</div>
+
+<div id="form">
+    <div class="row">
+        <div class="col-sm-4"></div>
+        <div class="col-sm-4">
+            <div class="alert alert-light border border-warning">
+                {form signinForm}
+                    <div class="mb-3 mt-3">{label username /}{input username}</div>
+                    <div class="mb-3 mt-3">{label password /}{input password}</div>
+                    <div class="form-check">
+                        <div class="mb-3 mt-3">{input remember}</div>
+                    </div>
+                    <div class="text-center">{input send}</div>
+                    <div class="text-center"><a n:href="Sign:recovery" style="color: #e67c2f !important;">Zapoměli jste heslo?</a></div>
+                {/form}
+            </div>
+            <div class="alert alert-warning text-center mb-5">
+                Pokud nemáte vytvořený uživatelský účet,<br><a n:href="Sign:up" style="color: #e67c2f !important;">registrujte se</a> do rezervačního systému.
+            </div>
+        </div>
+        <div class="col-sm-4"></div>        
+    </div>
+</div>
+

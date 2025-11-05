@@ -1,0 +1,197 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+            <strong>ADMINISTRACE: Uživatel</strong>
+            {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                <a n:href="User:default" class="btn btn-sm btn-success" style="float: right;">
+            {else}
+                <a n:href="Diary:default" class="btn btn-sm btn-success" style="float: right;">
+            {/if}
+                <i class="bi bi-arrow-left-circle-fill"></i> Zpět
+            </a>
+        </div>
+    {/if}
+</div>
+
+<div id="content">
+	
+{if $user->isLoggedIn()}
+    
+    {* hlavní blok *}
+    <div class="row"> 
+        
+        {* levý sloupec *}
+        <div class="col-md-4"> 
+            
+            {* *** UŽIVATEL *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Uživatel</div>
+                {form userForm}
+                    <div class="mb-3 mt-3 small">{label id /}{input id}</div>
+                    <div class="mb-3 mt-3 small">{label username /}{input username}</div>
+                    <div class="mb-3 mt-3 small">{label surname /}{input surname}</div>
+                    <div class="mb-3 mt-3 small">{label firstname /}{input firstname}</div>
+                    <div class="mb-3 mt-3 small">{label role /}{input role}</div>
+                    <div class="mb-3 mt-3 small">{label email /}{input email}</div>
+                    <div class="mb-3 mt-3 small">{label email_verify /}{input email_verify}</div>
+                    <div class="mb-3 mt-3 small">{label mobil_number /}{input mobil_number}</div>
+                    <div class="mb-3 mt-3 small">{label mobil_number_verify /}{input mobil_number_verify}</div>
+                    <div class="mb-3 mt-3 small">{label benefit_card /}{input benefit_card}</div>
+                    <div class="text-center small">{input send}</div>
+                {/form}
+            </div> 
+
+                {* *** HESLO *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Změna hesla</div>
+                {form userpasswordForm}
+                    <div class="mb-3 mt-3 small">{label id /}{input id}</div>
+                    <div class="mb-3 mt-3 small">{label username /}{input username}</div>
+                    <div class="mb-3 mt-3 small">{label password /}{input password}</div>
+                    <div class="text-danger small">{inputError password}</div>
+                    <div class="mb-3 mt-3 small">{label password_verify /}{input password_verify}</div>
+                    <div class="text-center small">{input send}</div>
+                {/form}
+            </div>
+            
+                        
+        {* levý sloupec - konec*}
+        </div> 
+        
+        {* prostřední sloupec *}
+        <div class="col-md-4"> 
+            {* *** VSTUPY *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Registrace</div>
+                <div>&nbsp;</div>
+                {ifset $registrace_data}
+                    {foreach $registrace_data as $item}
+                        {if $iterator->first}
+                            <table class="table">
+                                <tr class="small">
+                                    <td>Datum</td>
+                                    <td>Čas</td>
+                                    <td>Lekce</td>
+                                    <td>Lektor</td>
+                                </tr>
+                        {/if}
+
+                        <tr class="small">
+                            <td>
+                                <a n:href="Diary:default $item->lekce_ts" style="color: #e67c2f !important;">
+                                <strong>{$item->lekce_datum}</strong>
+                                </a>
+                            </td>
+                            <td>{$item->lekce_cas}</td>
+                            <td><strong>{$item->lekce_nazev}</strong></td>
+                            <td>{$lektor[$item->lektor_id]}</td>
+                        </tr>
+                        {if $iterator->last}
+                            </table>
+                        {/if}
+
+                        {else}
+                            <div>Nebyla nalezena žádná položka.</div>
+                    {/foreach}
+                {else}
+                    <div>Nebyla nalezena žádná položka.</div>
+                {/ifset}
+                 <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+
+
+        {* prostřední sloupec - konec*}
+        </div> 
+        
+        {* pravý sloupec *}
+        <div class="col-md-4"> 
+            {* *** NÁKUPY *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Nákupy</div>
+                <div>&nbsp;</div>
+                {ifset $nakup_data}
+                    {foreach $nakup_data as $item}
+                        {if $iterator->first}
+                            <table class="table">
+                                <tr class="small">
+                                    <td>Název</td>
+                                    <td>Datum prodeje</td>
+                                    <td>Konec platnosti</td>
+                                    <td>Zbývá vstupů</td>
+                                </tr>
+                        {/if}
+
+                        <tr class="small">
+                            <td><strong>{$item->aktivita_name}</strong></td>
+                            <td>{$item->datum_prodeje|date('d.m.Y')}</td>
+                            {var $style_datum_konce = time()}
+                            {if $item->datum_konce < $style_datum_konce}
+                                {var $style_datum_konce = "color: red;"}
+                            {elseif $item->datum_konce == $style_datum_konce}
+                                {var $style_datum_konce = "color: orange;"}
+                            {else}
+                                {var $style_datum_konce = "color: green;"}
+                             {/if}
+                            <td style="{$style_datum_konce|noescape}"><strong>{$item->datum_konce|date('d.m.Y')}</strong></td>
+                            <td class="text-right"><strong>{$item->vstupy_aktualni}</strong></td>
+                        </tr>
+                        {if $iterator->last}
+                            </table>
+                        {/if}
+
+                        {else}
+                            <div>Nebyla nalezena žádná položka.</div>
+                    {/foreach}
+                {else}
+                    <div>Nebyla nalezena žádná položka.</div>
+                {/ifset}
+   
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+                <div>&nbsp;</div>
+            </div>
+
+        {* pravý sloupec - konec*}
+        </div> 
+    
+    {* hlavní blok - konec *}
+    </div> 
+        
+{/if}
+</div>
+
+{if $user->isLoggedIn()}
+    <script>
+        let dataTableContact = new DataTable('#tbl-users', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
+                "search": "Vyhledávání v tabulce:",
+                "searchPlaceholder": "zadejte hledaný text"
+            },
+            order: [[0, 'desc']]
+        });
+        
+        function setDataToForm() {
+            // uživatel
+            $('#frm-userForm-id').val({$user_data->id});
+            $('#frm-userForm-username').val({$user_data->username});
+            $('#frm-userForm-surname').val({$user_data->surname});
+            $('#frm-userForm-firstname').val({$user_data->firstname});
+            $('#frm-userForm-role').val({$user_data->role});
+            $('#frm-userForm-email').val({$user_data->email});
+            $('#frm-userForm-email-verify').val({$user_data->email});
+            $('#frm-userForm-mobil_number').val({$user_data->mobil_number});
+            $('#frm-userForm-benefit_card').val({$user_data->benefit_card});
+            // uživatel- heslo
+            $('#frm-userpasswordForm-id').val({$user_data->id});
+            $('#frm-userpasswordForm-username').val({$user_data->username});
+        }       
+        
+        setDataToForm();
+    </script>
+{/if}
+
+            

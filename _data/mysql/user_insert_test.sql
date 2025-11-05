@@ -1,0 +1,15 @@
+INSERT INTO `blog_users` (`id`, `username`, `surname`, `firstname`, `password_hash`, `email`, `mobil_number`, `benefit_card`, `role`, `vstupy`, `registered_at`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`, `password_recovery_pin`) VALUES
+(0, 'user1', 'Uživatel', 'První', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'multisport', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user2', 'Uživatel', 'Druhý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'multisport', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user3', 'Uživatel', 'Třetí', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user4', 'Uživatel', 'Čtrvrtý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y.', 'posmura@outlook.com', '602649374', 'ne', 'klient',0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user5', 'Uživatel', 'Pátý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user6', 'Uživatel', 'Šestý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '+420602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user7', 'Uživatel', 'Sedmý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user8', 'Uživatel', 'Osmý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@posmura.cz', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user9', 'Uživatel', 'Devátý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'multisport', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user10', 'Uživatel', 'Desátý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '+420602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user11', 'Uživatel', 'Jedenáctý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user12', 'Uživatel', 'Dvanáctý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user13', 'Uživatel', 'Třináctý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@outlook.com', '602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL),
+(0, 'user14', 'Uživatel', 'Čtrnáctý', '$2y$10$jY8NT447hJBkgtxDRaiDgeoGn3ip4BssurneMOy16opoawykhU4Y', 'posmura@posmura.cz', '+420602649374', 'ne', 'klient', 0, NOW(), NULL, NULL, 0, NULL, NULL, NULL);

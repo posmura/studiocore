@@ -1,0 +1,76 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "admin")}
+        <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+            <strong>ADMINISTRACE: Aktivity</strong></div>
+    {/if}
+</div>
+
+<div id="content">
+
+    {if $user->isLoggedIn()}
+        <div class="mt-3">
+            <div class="text-right pb-3" style="text-align: right;">
+                <a n:href="Activity:edit 0" class="btn btn-sm btn-success">
+                    <i class="bi bi-plus"></i> Přidat novou aktivitu
+                </a>
+            </div>
+
+            <div class="border border-1 p-2">
+                <table id="tbl-activitypCard" class="display" style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Název</th>
+                            <th>Počet vstupů<br>min</th>
+                            <th>Počet vstupů<br>max</th>
+                            <th>Doba zrušení<br>klientem zdarma<br>[hod]</th>
+                            <th>Doba zrušení<br>pro neúčast<br>[hod]</th> 
+                            <th>Konec registace<br>před lekcí<br>[hod]</th> 
+                            <th></th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {foreach $data as $item}
+                            <tr>
+                                <td>{$item->id}</td>
+                                <td>{$item->nazev}</td>
+                                <td>{$item->vstupy_min}</td>
+                                <td>{$item->vstupy_max}</td>
+                                <td>{$item->zruseni_zdarma}</td>
+                                <td>{$item->zruseni_neucast}</td>
+                                <td>{$item->registrace_konec}</td>
+                                <td style="text-align: right;">
+                                    {if $user->isLoggedIn() && $user->identity->role == "admin"}
+                                        <a n:href="Activity:edit $item->id" class="btn btn-sm btn-success">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a n:href="Activity:delete $item->id" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    {/if}
+                                </td>
+                            </tr>
+                        {/foreach}
+                    </tbody>
+                </table>
+            </div> 
+                    
+        </div> 
+    {/if}
+</div>
+
+{if $user->isLoggedIn()}
+    <script>
+        let dataTable = new DataTable('#tbl-activitypCard', {
+            language: {
+                url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
+                "search": "Vyhledávání v tabulce:",
+                "searchPlaceholder": "zadejte hledaný text"
+            },
+            order: [[0, 'desc']]
+        });
+    </script>
+{/if}
+

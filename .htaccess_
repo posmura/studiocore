@@ -1,0 +1,8 @@
+AuthType Basic
+AuthName "Restricted Area"
+AuthBasicProvider file
+AuthUserFile "/data/web/virtuals/332845/virtual/auth/.htpasswd_ordinace"
+Require user ordinace
+
+RewriteEngine On
+RewriteRule (.*) www/$1 [L]

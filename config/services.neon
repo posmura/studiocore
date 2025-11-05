@@ -1,0 +1,24 @@
+search:
+	default:
+		in: %appDir%
+		classes:
+			- *Factory
+			- *Facade
+
+extensions:
+	sdk: BulkGate\Sdk\DI\Extension
+
+sdk:
+	application_id: 35659
+	application_token: AfkLx0iIJiAPwiQxjIg1zLwe5OmFbQSKv02g3Xo6t7noBPJ0kn
+
+services:
+	- App\Router\RouterFactory::createRouter
+	- App\Model\FactoryManager
+	- App\Model\ActivityManager
+	- App\Model\UserManager
+	- App\Model\MembershipCardManager
+	- App\Model\SalesManager
+	- App\Security\DbAuthenticator
+	- App\Model\LogManager
+

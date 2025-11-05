@@ -1,0 +1,10 @@
+parameters:
+
+
+database:
+	dsn: 'mysql:host=127.0.0.1;dbname=d373504_rezerva'
+	user: 'a373504_rezerva'
+	password: 'jn527Q7R'
+	options:
+		charset: 'utf8mb4'
+		collation: 'utf8mb4_czech_ci'

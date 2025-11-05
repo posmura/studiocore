@@ -1,0 +1,105 @@
+{block content}
+<div id="banner">
+    {if $user->isLoggedIn()}
+        <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+            <strong>ADMINISTRACE: Uživatelé</strong></div>
+    {/if}
+</div>
+
+<div id="content">
+	
+{if $user->isLoggedIn()}
+    <div class="border border-1 p-2 mt-4">
+        <table id="tbl-users" class="display" style="width:100%;">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Uživatelské jméno</th>
+                    <th>Celé jméno</th>
+                    <th>Role</th>
+                    <th>Vstupy</th>
+                    <th>Datum a čas registrace</th>
+                    <th></th>
+                </tr>
+            </thead>
+            
+            <tbody>
+                {foreach $users as $item}
+                    {if $user->isLoggedIn() and ($user->identity->role == "admin" or $user->identity->username == $item->username)}
+
+                        <tr>
+                            <td>{$item->id}</td>
+                            <td>{$item->username}</td>
+                            <td>{$item->surname} {$item->firstname}</td>
+                            <td>
+                                {if $item->role == 'admin'} 
+                                    {var $rstyle='color: red;'} 
+                                {elseif $item->role == 'lektor'} 
+                                    {var $rstyle='color: blue;'}
+                                {else} 
+                                    {var $rstyle=''}
+                                {/if}
+                                <span style="{$rstyle|noescape}">{$item->role}</span>
+                            </td>
+                            <td>
+                                {ifset $item->kredity}
+                                    {foreach $item->kredity as $akey => $aitems}
+                                        {if $aitems['kredity'] < 0} 
+                                            {var $astyle='color: red;'} 
+                                        {elseif $aitems['kredity'] == 0} 
+                                            {var $astyle='color: blue;'}
+                                        {else} 
+                                            {var $astyle='color: green;'}
+                                        {/if}
+                                        <div>
+                                            {$aktivita[$akey]} - <span style="{$astyle|noescape}"><strong>{$aitems['kredity']}</strong></span>
+                                        </div>
+                                    {/foreach}
+                                {/ifset}
+                            </td>
+                            <td>{$item->registered_at|date:'d.m.Y, H:i:s'}</td>
+                            <td style="text-align: right;">
+                                
+                                {if $user->isLoggedIn() and $user->identity->role == "admin" and $user->identity->username != $item->username}
+                                    {*if $item->role != "admin"*}
+                                        <a n:href="User:user $item->id" class="btn btn-sm btn-success">
+                                            <i class="bi bi-pencil-square"></i>
+                                        </a>
+                                        <a n:href="User:delete $item->id,$user->identity->username" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
+                                            <i class="bi bi-trash"></i>
+                                        </a>
+                                    {*/if*}
+                                {/if}
+                                
+                                {if $user->isLoggedIn() and $user->identity->username == $item->username}
+                                    <a n:href="User:user $item->id" class="btn btn-sm btn-success">
+                                        <i class="bi bi-pencil-square"></i>
+                                    </a>
+                                {/if}
+                                
+                            </td>
+                        </tr>
+
+                    {/if}
+                {/foreach}
+            </tbody>
+        </table>
+    </div>
+{/if}
+</div>
+
+{if $user->isLoggedIn()}
+    <script>
+            let dataTable = new DataTable('#tbl-users', {
+                language: {
+                    url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
+                    "search": "Vyhledávání v tabulce:",
+                    "searchPlaceholder": "zadejte hledaný text"
+                },
+                order: [[2, 'asc']]
+            });
+    </script>
+                    
+{/if}
+
+            
