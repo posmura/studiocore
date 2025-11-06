@@ -1612,6 +1612,26 @@ SQL;
 
 
     /**
+     * REGISTRACE: Vrací ID permanentky
+     *
+     * @return string
+     */
+    public static function getSalesId(): string
+    {
+      return <<<SQL
+SELECT
+  `sales_id`
+FROM
+  `blog_registration`
+WHERE
+  `user_id`=?
+  AND `diary_id`=?
+  AND `deleted` = 0
+SQL;
+    }
+
+
+    /**
      * REGISTRACE: Vrací seznam registrací klienta podle jeho user ID
      *
      * @return string

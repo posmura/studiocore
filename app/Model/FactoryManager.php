@@ -512,29 +512,15 @@
     {
       // vložím registraci
       if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id))
-      {
-        //dump(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id);
-        //die;
         return false;
-      }
 
       // upravím kredity (-1)
       if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
-      {
-        //dump(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id);
-        //die;
         return false;
-      }
-
 
       // upravím kredity v aktivní permanentce
       if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
-      {
-        //dump(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
-        //die;
         return false;
-      }
-
 
       return true;
     }
@@ -549,7 +535,7 @@
     public function deleteRegistrace($data)
     {
       // zruším registraci
-      if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id,$data->created_by))
+      if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id))
         return false;
 
       // upravím kredity(+1)
@@ -557,11 +543,7 @@
         return false;
 
       // upravím kredity v aktivní permanentce
-      if ($data->aktivni_permanentka)
-      {
-        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
-        return false;
-      }
+      if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
 
       return true;
     }
@@ -612,6 +594,18 @@
 
 
     /**
+     * REGISTRACE: Vrací ID permanentky
+     *
+     * @param object $data Data pro registraci
+     * @return bool
+     */
+    public function getSalesId($data)
+    {
+      return $this->database->fetch(SqlCommands::getSalesId(),$data->user_id,$data->diary_id);
+    }
+
+
+    /**
      * Převede pole na objekt
      *
      * @param array $params Pole s parametry
@@ -624,5 +618,4 @@
 
       return $data;
     }
-
   }

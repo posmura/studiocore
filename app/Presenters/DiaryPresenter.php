@@ -593,7 +593,7 @@
     {
       $operace = $data->akce_id;
 
-      $data['aktivni_permanentka'] = $this->aktivniPermanentkyID[$data->aktivita_id];
+      //$data['aktivni_permanentka'] = $this->aktivniPermanentkyID[$data->aktivita_id];
 
       try
       {
@@ -756,22 +756,6 @@
       $rst['aktivita_id'] = $data['aktivita_id'];
       $rst['date'] = $data['date'];
       $rst['user_id'] = $this->userID;
-      $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? null;
-
-      $data['sales_id_text'] = $rst['sales_id'] ?? '-';
-
-      $rst['lekce_info_text'] = <<<TEXT
-        <div id="lekce-infotext">
-          <div><strong>Název lekce:</strong> {$data['nazev']}</div>
-          <div><strong>Lektor:</strong> {$this->lektorName[$data['lektor_id']]}</div>
-          <div><strong>Datum a čas:</strong> {$data['aktivita_date']}, {$data['aktivita_from']} - {$data['aktivita_to']}</div>
-          <div><strong>Bezplatné storno do:</strong> {$data['aktivita_zruseni_zdarma']}</div>
-          <div><strong>Registrace možná do:</strong> {$data['aktivita_registrace_konec']}</div>
-          <div><strong>Minimální počet klientů pro otevření lekce:</strong> {$data['aktivita_vstupy_min']}</div>
-          <div><strong>Obsazenost lekce:</strong> {$data['aktivita_vstupy_aktualni']}/{$data['aktivita_vstupy_max']}</div>
-          <div><strong>ID permanentky:</strong> {$data['sales_id_text']}</div>
-        </div>
-TEXT;
 
       // nastavení akce
       $_data = self::array_to_object(
@@ -815,6 +799,9 @@ TEXT;
             // lze registrovat - jsou kredity
             $rst['akce_id'] = 'registrovat';
             $rst['akce_desc'] = 'REGISTROVAT';
+
+            // zjistím aktuální permanentku
+            $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
           }
         }
         elseif ($is_registered > 0)
@@ -822,6 +809,11 @@ TEXT;
           // klient je již registrován - nedovolím další registraci
           $rst['akce_id'] = 'odregistrovat';
           $rst['akce_desc'] = 'ZRUŠIT REGISTRACI';
+
+          // zjistím permanentku při registraci klientem
+          $_sales = $this->factoryManager->getSalesId($_data);
+          $rst['sales_id'] = $_sales['sales_id'] ?? 0;
+
         }
         else
         {
@@ -830,6 +822,21 @@ TEXT;
           $rst['akce_desc'] = '???';
         }
       }
+
+      $data['sales_id_text'] = $rst['sales_id'] ?? '-';
+
+      $rst['lekce_info_text'] = <<<TEXT
+        <div id="lekce-infotext">
+          <div><strong>Název lekce:</strong> {$data['nazev']}</div>
+          <div><strong>Lektor:</strong> {$this->lektorName[$data['lektor_id']]}</div>
+          <div><strong>Datum a čas:</strong> {$data['aktivita_date']}, {$data['aktivita_from']} - {$data['aktivita_to']}</div>
+          <div><strong>Bezplatné storno do:</strong> {$data['aktivita_zruseni_zdarma']}</div>
+          <div><strong>Registrace možná do:</strong> {$data['aktivita_registrace_konec']}</div>
+          <div><strong>Minimální počet klientů pro otevření lekce:</strong> {$data['aktivita_vstupy_min']}</div>
+          <div><strong>Obsazenost lekce:</strong> {$data['aktivita_vstupy_aktualni']}/{$data['aktivita_vstupy_max']}</div>
+          <div><strong>ID permanentky:</strong> {$data['sales_id_text']}</div>
+        </div>
+TEXT;
 
       $dataJson = json_encode($rst);
 
