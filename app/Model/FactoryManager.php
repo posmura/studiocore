@@ -511,19 +511,30 @@
     public function insertRegistrace($data)
     {
       // vložím registraci
-      if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by))
+      if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id))
+      {
+        //dump(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id);
+        //die;
         return false;
+      }
 
       // upravím kredity (-1)
       if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
-        return false;
-
-      // upravím kredity v aktivní permanentce
-      if ($data->aktivni_permanentka)
       {
-        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->aktivni_permanentka))
+        //dump(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id);
+        //die;
         return false;
       }
+
+
+      // upravím kredity v aktivní permanentce
+      if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
+      {
+        //dump(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
+        //die;
+        return false;
+      }
+
 
       return true;
     }
@@ -538,7 +549,7 @@
     public function deleteRegistrace($data)
     {
       // zruším registraci
-      if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id))
+      if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id,$data->created_by))
         return false;
 
       // upravím kredity(+1)
@@ -548,7 +559,7 @@
       // upravím kredity v aktivní permanentce
       if ($data->aktivni_permanentka)
       {
-        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->aktivni_permanentka))
+        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
         return false;
       }
 

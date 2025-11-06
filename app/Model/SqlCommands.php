@@ -29,7 +29,6 @@ SQL;
     }
 
 
-
     /**
      * KREDITY: Seznam aktivních permanentek pro načtení a úpravu kreditů
      *
@@ -132,7 +131,6 @@ SET
    AND deleted=0
 SQL;
     }
-
 
 
     /**
@@ -1563,10 +1561,12 @@ INSERT INTO blog_registration
   `diary_id`,
   `aktivita_id`,
   `created_at`,
-  `created_by`
+  `created_by`,
+  `sales_id`
+
 )
 VALUES
-  (?,?,?,NOW(),?);
+  (?,?,?,NOW(),?,?);
 SQL;
     }
 

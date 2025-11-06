@@ -1,11 +1,11 @@
 -- phpMyAdmin SQL Dump
--- version 5.2.0
+-- version 5.2.1
 -- https://www.phpmyadmin.net/
 --
 -- Počítač: localhost
--- Vytvořeno: Stř 05. lis 2025, 20:01
--- Verze serveru: 10.6.5-MariaDB
--- Verze PHP: 8.1.1
+-- Vytvořeno: Čtv 06. lis 2025, 15:15
+-- Verze serveru: 10.11.13-MariaDB-0ubuntu0.24.04.1
+-- Verze PHP: 8.1.33
 
 SET SQL_MODE = "NO_AUTO_VALUE_ON_ZERO";
 START TRANSACTION;
@@ -45,7 +45,7 @@ CREATE TABLE `blog_activity` (
   `deleted` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_activity`
@@ -73,17 +73,17 @@ CREATE TABLE `blog_credits` (
   `deleted` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_credits`
 --
 
 INSERT INTO `blog_credits` (`ID`, `user_id`, `aktivita_id`, `kredity`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
-(1, 43, 1, -1, '2025-11-05 19:48:03', 'system', '2025-11-05 19:58:15', 'cassie', 0, NULL, NULL),
-(2, 43, 2, -1, '2025-11-05 19:48:03', 'system', '2025-11-05 19:58:15', 'cassie', 0, NULL, NULL),
-(3, 46, 1, 0, '2025-11-05 19:49:33', 'system', '2025-11-05 19:59:40', 'admin', 0, NULL, NULL),
-(4, 46, 2, 0, '2025-11-05 19:49:33', 'system', '2025-11-05 19:59:40', 'admin', 0, NULL, NULL);
+(1, 46, 1, 0, '2025-11-06 07:25:57', 'system', '2025-11-06 13:53:27', 'admin', 0, NULL, NULL),
+(2, 46, 2, 0, '2025-11-06 07:25:57', 'system', '2025-11-06 13:53:27', 'admin', 0, NULL, NULL),
+(3, 43, 1, 0, '2025-11-06 07:26:15', 'system', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL),
+(4, 43, 2, 1, '2025-11-06 07:26:15', 'system', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -113,7 +113,7 @@ CREATE TABLE `blog_diary` (
   `deleted` tinyint(1) UNSIGNED DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_diary`
@@ -718,7 +718,7 @@ CREATE TABLE `blog_eventlog` (
   `presenter` varchar(50) DEFAULT NULL,
   `action` varchar(255) DEFAULT NULL,
   `remote_ip` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_eventlog`
@@ -1480,26 +1480,50 @@ INSERT INTO `blog_eventlog` (`ID`, `datetime`, `username`, `presenter`, `action`
 (752, '2025-10-31 23:35:10', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
 (753, '2025-10-31 23:35:53', 'cassie', 'sign', 'Uživatel byl odhlášen.', '::1'),
 (754, '2025-10-31 23:36:07', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
-(755, '2025-11-03 18:12:40', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(756, '2025-11-04 18:04:01', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(757, '2025-11-05 16:25:42', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(758, '2025-11-05 17:08:29', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(759, '2025-11-05 17:09:03', 'cassie', 'sign', 'Uživatel byl odhlášen.', '::1'),
-(760, '2025-11-05 17:09:07', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(761, '2025-11-05 17:19:00', 'cassie', 'sign', 'Uživatel byl odhlášen.', '::1'),
-(762, '2025-11-05 17:19:06', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
-(763, '2025-11-05 17:19:53', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(764, '2025-11-05 17:20:44', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(765, '2025-11-05 19:43:18', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(766, '2025-11-05 20:27:01', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
-(767, '2025-11-05 20:27:14', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
-(768, '2025-11-05 20:43:02', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(769, '2025-11-05 20:44:26', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(770, '2025-11-05 20:45:11', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(771, '2025-11-05 20:49:43', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(772, '2025-11-05 20:51:23', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(773, '2025-11-05 20:53:01', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
-(774, '2025-11-05 20:59:40', 'admin', 'sign', 'Uživatel byl odhlášen.', '::1');
+(755, '2025-11-03 07:08:53', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(756, '2025-11-03 07:09:02', 'admin', 'sign', 'Uživatel byl odhlášen.', '::1'),
+(757, '2025-11-03 07:09:08', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(758, '2025-11-03 07:38:04', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(759, '2025-11-04 13:47:36', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(760, '2025-11-04 14:26:09', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(761, '2025-11-05 07:48:02', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(762, '2025-11-05 10:00:52', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(763, '2025-11-05 11:55:07', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(764, '2025-11-05 14:30:00', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(765, '2025-11-06 07:10:43', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(766, '2025-11-06 07:43:41', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(767, '2025-11-06 07:57:47', NULL, 'sign', 'Heslo není platné!', '::1'),
+(768, '2025-11-06 07:58:01', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(769, '2025-11-06 07:58:09', 'cassie', 'sign', 'Uživatel byl odhlášen.', '::1'),
+(770, '2025-11-06 07:58:21', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(771, '2025-11-06 07:58:46', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(772, '2025-11-06 08:06:44', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(773, '2025-11-06 08:07:19', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(774, '2025-11-06 08:27:56', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(775, '2025-11-06 09:15:53', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(776, '2025-11-06 09:43:03', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(777, '2025-11-06 09:45:19', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(778, '2025-11-06 09:45:33', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(779, '2025-11-06 10:17:29', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(780, '2025-11-06 10:17:53', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(781, '2025-11-06 10:18:48', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(782, '2025-11-06 10:28:59', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(783, '2025-11-06 10:29:16', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(784, '2025-11-06 10:32:22', 'admin', 'sale', 'Prodej ID=3 byl smazán.', '::1'),
+(785, '2025-11-06 10:32:25', 'admin', 'sale', 'Prodej ID=2 byl smazán.', '::1'),
+(786, '2025-11-06 12:26:43', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(787, '2025-11-06 14:12:21', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(788, '2025-11-06 14:13:13', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(789, '2025-11-06 14:13:25', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(790, '2025-11-06 14:14:06', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(791, '2025-11-06 14:42:05', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(792, '2025-11-06 14:53:25', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(793, '2025-11-06 14:58:30', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(794, '2025-11-06 15:02:38', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(795, '2025-11-06 15:02:48', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(796, '2025-11-06 15:03:16', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(797, '2025-11-06 15:03:39', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
+(798, '2025-11-06 15:06:42', 'cassie', 'diary', 'Chyba! bbb Registrace  nebyla uložena.', '::1');
 
 -- --------------------------------------------------------
 
@@ -1523,7 +1547,7 @@ CREATE TABLE `blog_membership_card` (
   `deleted` tinyint(1) UNSIGNED NOT NULL DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_membership_card`
@@ -1560,21 +1584,26 @@ CREATE TABLE `blog_registration` (
   `updated_by` varchar(50) DEFAULT NULL,
   `deleted` tinyint(1) UNSIGNED DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
-  `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+  `deleted_by` varchar(50) DEFAULT NULL,
+  `sales_id` int(11) DEFAULT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_registration`
 --
 
-INSERT INTO `blog_registration` (`ID`, `user_id`, `diary_id`, `aktivita_id`, `ucast`, `desc`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
-(1, 43, 534, 1, '- zvolte -', NULL, '2025-11-05 19:48:25', 'cassie', NULL, NULL, 0, NULL, NULL),
-(2, 43, 535, 1, '- zvolte -', NULL, '2025-11-05 19:51:41', 'cassie', NULL, NULL, 0, NULL, NULL),
-(3, 43, 217, 1, '- zvolte -', NULL, '2025-11-05 19:51:47', 'cassie', NULL, NULL, 0, NULL, NULL),
-(4, 43, 482, 1, '- zvolte -', NULL, '2025-11-05 19:51:53', 'cassie', NULL, NULL, 0, NULL, NULL),
-(5, 43, 163, 2, '- zvolte -', NULL, '2025-11-05 19:53:37', 'cassie', NULL, NULL, 0, NULL, NULL),
-(6, 43, 110, 2, '- zvolte -', NULL, '2025-11-05 19:53:40', 'cassie', NULL, NULL, 0, NULL, NULL),
-(7, 43, 164, 2, '- zvolte -', NULL, '2025-11-05 19:53:54', 'cassie', NULL, NULL, 0, NULL, NULL);
+INSERT INTO `blog_registration` (`ID`, `user_id`, `diary_id`, `aktivita_id`, `ucast`, `desc`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`, `sales_id`) VALUES
+(1, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 08:51:09', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(2, 43, 535, 1, '- zvolte -', NULL, '2025-11-06 08:52:52', 'cassie', NULL, NULL, 1, '2025-11-06 08:56:30', 'cassie', NULL),
+(3, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:03:39', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(4, 43, 58, 2, '- zvolte -', NULL, '2025-11-06 09:03:44', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:38', 'cassie', NULL),
+(5, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:18:48', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(6, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:27:14', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(7, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:28:00', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(8, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:28:50', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
+(9, 43, 58, 2, '- zvolte -', NULL, '2025-11-06 09:28:58', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:38', 'cassie', NULL),
+(10, 43, 270, 2, '- zvolte -', NULL, '2025-11-06 09:29:16', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:33', 'cassie', NULL),
+(11, 43, 111, 2, '- zvolte -', NULL, '2025-11-06 14:11:59', 'cassie', NULL, NULL, 0, NULL, NULL, 4);
 
 --
 -- Triggery `blog_registration`
@@ -1653,16 +1682,16 @@ CREATE TABLE `blog_sales` (
   `deleted` tinyint(1) UNSIGNED DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_sales`
 --
 
 INSERT INTO `blog_sales` (`ID`, `user_id`, `username_full`, `permanentka_id`, `aktivita_id`, `aktivita_name`, `cena`, `pocet`, `vstupy_celkem`, `vstupy_aktualni`, `datum_prodeje`, `datum_konce`, `desc`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
-(1, 43, 'Cassie Cat (cassie)', 7, 1, 'Joga & Pilates - Jednorázový vstup', 180, 1, 1, 0, 1762372183, 1762469999, '', '2025-11-05 19:49:43', 'admin', NULL, NULL, 0, NULL, NULL),
-(2, 43, 'Cassie Cat (cassie)', 8, 1, 'Joga & Pilates - 3 lekce (max 6 měsíců)', 500, 1, 3, 0, 1762372283, 1777931999, '', '2025-11-05 19:51:23', 'admin', '2025-11-05 19:51:47', 'cassie', 0, NULL, NULL),
-(3, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 0, 1762372381, 1770159599, '', '2025-11-05 19:53:01', 'admin', '2025-11-05 19:53:40', 'cassie', 0, NULL, NULL);
+(2, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 3, 1762418733, 1770245999, '', '2025-11-06 08:45:33', 'admin', '2025-11-06 09:29:38', 'cassie', 1, '2025-11-06 09:32:25', 'admin'),
+(3, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 2, 1762420673, 1770245999, '', '2025-11-06 09:17:53', 'admin', NULL, NULL, 1, '2025-11-06 09:32:22', 'admin'),
+(4, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 1, 1762434805, 1770245999, '', '2025-11-06 13:13:25', 'admin', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1687,7 +1716,7 @@ CREATE TABLE `blog_users` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL,
   `password_recovery_pin` varchar(255) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `blog_users`
@@ -1726,31 +1755,17 @@ INSERT INTO `blog_users` (`id`, `username`, `surname`, `firstname`, `password_ha
 CREATE TABLE `mv_lekce_ucast` (
   `diary_id` int(10) UNSIGNED NOT NULL,
   `total` int(10) UNSIGNED NOT NULL DEFAULT 0
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Vypisuji data pro tabulku `mv_lekce_ucast`
 --
 
 INSERT INTO `mv_lekce_ucast` (`diary_id`, `total`) VALUES
-(108, 0),
-(109, 0),
-(110, 1),
+(5, 0),
+(58, 0),
 (111, 1),
-(163, 2),
-(164, 2),
-(216, 0),
-(217, 1),
-(320, 0),
-(373, 0),
-(426, 0),
-(428, 0),
-(479, 0),
-(481, 2),
-(482, 1),
-(533, 0),
-(534, 2),
-(535, 1);
+(270, 0);
 
 -- --------------------------------------------------------
 
@@ -1774,7 +1789,7 @@ CREATE TABLE `__blog_orders` (
   `deleted` tinyint(1) UNSIGNED DEFAULT 0,
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 -- --------------------------------------------------------
 
@@ -1795,7 +1810,7 @@ CREATE TABLE `__blog_patients` (
   `deleted_at` timestamp NULL DEFAULT NULL,
   `deleted_by` varchar(50) DEFAULT NULL,
   `unreliable` tinyint(1) UNSIGNED NOT NULL DEFAULT 0 COMMENT 'nespolehlivý pacient'
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
 
 --
 -- Indexy pro exportované tabulky
@@ -1839,7 +1854,8 @@ ALTER TABLE `blog_membership_card`
 --
 ALTER TABLE `blog_registration`
   ADD PRIMARY KEY (`ID`),
-  ADD KEY `ID_USER` (`user_id`);
+  ADD KEY `ID_USER` (`user_id`),
+  ADD KEY `sales_id` (`sales_id`);
 
 --
 -- Indexy pro tabulku `blog_sales`
@@ -1908,7 +1924,7 @@ ALTER TABLE `blog_diary`
 -- AUTO_INCREMENT pro tabulku `blog_eventlog`
 --
 ALTER TABLE `blog_eventlog`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=775;
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=799;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_membership_card`
@@ -1920,13 +1936,13 @@ ALTER TABLE `blog_membership_card`
 -- AUTO_INCREMENT pro tabulku `blog_registration`
 --
 ALTER TABLE `blog_registration`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_sales`
 --
 ALTER TABLE `blog_sales`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=4;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_users`

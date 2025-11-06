@@ -314,6 +314,7 @@
       $form->addHidden('ID','0')
         ->setHtmlAttribute('id','frm-diaryForm-ID');
 
+      // ID lekce
       $form->addHidden('lekce_id','')
         ->setHtmlAttribute('id','frm-diaryForm-lekce_id');
 
@@ -566,6 +567,9 @@
       $form->addHidden('akce_id','')
         ->setHtmlAttribute('id','frm-registerForm-akce_id');
 
+      $form->addHidden('sales_id','')
+        ->setHtmlAttribute('id','frm-registerForm-sales_id');
+
       // Tlačítko pro odeslání
       $form->addSubmit('send','???')
         ->setHtmlAttribute('class','btn btn-success btn-sm')
@@ -614,14 +618,14 @@
         }
         else
         {
-          $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
+          $_msg = sprintf('Chyba! aaa Registrace %s nebyla uložena.','');
           $this->flashMessage($_msg,'danger');
           $this->eventlog('diary',$_msg);
         }
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
+        $_msg = sprintf('Chyba! bbb Registrace %s nebyla uložena.','');
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
       }
@@ -752,6 +756,9 @@
       $rst['aktivita_id'] = $data['aktivita_id'];
       $rst['date'] = $data['date'];
       $rst['user_id'] = $this->userID;
+      $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? null;
+
+      $data['sales_id_text'] = $rst['sales_id'] ?? '-';
 
       $rst['lekce_info_text'] = <<<TEXT
         <div id="lekce-infotext">
@@ -762,6 +769,7 @@
           <div><strong>Registrace možná do:</strong> {$data['aktivita_registrace_konec']}</div>
           <div><strong>Minimální počet klientů pro otevření lekce:</strong> {$data['aktivita_vstupy_min']}</div>
           <div><strong>Obsazenost lekce:</strong> {$data['aktivita_vstupy_aktualni']}/{$data['aktivita_vstupy_max']}</div>
+          <div><strong>ID permanentky:</strong> {$data['sales_id_text']}</div>
         </div>
 TEXT;
 

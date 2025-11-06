@@ -38,6 +38,7 @@
         $('#frm-registerForm-user_id').val('');
         $('#frm-registerForm-akce_id').val('');
         $('#frm-registerForm-akce_desc').val('');
+        $('#frm-registerForm-sales_id').val('');
     }
 
     function loadDataLekce(id) {
@@ -58,6 +59,7 @@
                 $('#frm-registerForm-user_id').val(dataLekce.user_id);
                 $('#frm-registerForm-akce_id').val(dataLekce.akce_id);
                 $('#frm-registerForm-akce_desc').val(dataLekce.akce_desc);
+                $('#frm-registerForm-sales_id').val(dataLekce.sales_id);
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 alert('LEKCE\nCHYBA - Načtení údajů selhalo.');

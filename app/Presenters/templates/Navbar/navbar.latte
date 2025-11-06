@@ -65,12 +65,12 @@
 
             {if $user->isLoggedIn()}
                 <span class="padding-right-20 text-white" title="{$user->identity->email}">Uživatel: <strong>{$user->identity->username}</strong></span>
-                <span class="padding-right-20 text-white">Vstupy: <strong>
+                <span class="padding-right-20 text-white">Kredity: 
                         {foreach $kredity as $key => $items}
                             {if $iterator->first}{else}, {/if}
-                            {$items['kredity']} ({$items['aktivita_nazev']})
+                            <strong> {$items['aktivita_nazev']}: <span class="px-1" style="background-color: #fff; color: #02386c;">{$items['kredity']}</span></strong> 
                         {/foreach}
-                </strong></span>
+                </span>
                 <a n:href="Sign:out" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-left pe-2"></i> Odhlášení</a>
             {else}
                 <a n:href="Sign:in" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-in-right pe-2"></i> Přihlášení</a>

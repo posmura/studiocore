@@ -218,10 +218,13 @@
         {
           $this->salesManager->insertProdej($data);
 
+          /*
           // aktualizuji kredity
           $data->updated_by = $this->userName;
           $data->kredit_zmena = $data->vstupy_aktualni;
           $this->factoryManager->updateKredityKlienta($data);
+           * 
+           */
 
         }
         catch (\Exception $e)
