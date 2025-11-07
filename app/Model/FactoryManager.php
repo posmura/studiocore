@@ -618,4 +618,16 @@
 
       return $data;
     }
+
+
+    /**
+     * LEKCE: Vrací detail lekce podle diary_id
+     *
+     * @return string
+     */
+    public function getLekceDetail($data): array
+    {
+      return $this->database->fetchAll(SqlCommands::getLekceDetail(),$data->diary_id);
+    }
+
   }

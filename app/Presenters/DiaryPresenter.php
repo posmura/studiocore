@@ -120,6 +120,7 @@
           $_msg = sprintf('Událost ID=%d byla smazána.',$ID);
         }
 
+        $this->flashMessage($_msg);
         $this->eventlog('diary',$_msg);
       }
       catch (\Exception $e)
@@ -130,6 +131,69 @@
       }
 
       $this->redirect('Diary:',$tsDiaryDate);
+    }
+
+
+    /**
+     * Detail lekce
+     *
+     * @param type $diary_id ID události v rozvrhu
+     * @return void
+     */
+    public function renderUsers($diary_id): void
+    {
+      if(!$diary_id)
+      {
+        $_msg = sprintf('Chyba! Nebyl zadáno ID události.');
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+        $this->redirect('Diary:');
+      }
+
+/*
+  a.`ID` as `registrace_id`,
+  a.`ucast` as `registrace_ucast`,
+  a.`desc` as `registrace_desc`,
+  a.`created_at` as `registrace_created_at`,
+  a.`created_by` as `registrace_created_by`,
+  a.`deleted` as `registrace_deleted`,
+  a.`deleted_at` as `registrace_deleted_at`,
+  a.`deleted_by` as `registrace_deleted_by`,
+  b.`ID` as `diary_id`,
+  b.`nazev` as `diary_nazev`,
+  b.`popis` as `diary_popis`,
+  b.`date` as `diary_date`,
+  b.`hour_from` as `diary_hour_from`,
+  b.`min_from` as `diary_min_from`,
+  b.`hour_to` as `diary_hour_to`,
+  b.`min_to` as `diary_`,
+  b.`desc` as `diary_desc`,
+  c.`id` as `user_id`,
+  c.`surname` as `user_surname`,
+  c.`firstname` as `user_firstname`,
+  c.`email` as `user_email`,
+  c.`mobil_number` as `user_mobil_number`,
+  d.`id` as `aktivita_id`,
+  d.`nazev` as `aktivita_nazev`,
+  d.`vstupy_min` as `aktivita_vstupy_min`,
+  d.`vstupy_max` as `aktivita_vstupy_max`,
+  d.`zruseni_zdarma` as `aktivita_zruseni_zdarma`,
+  d.`zruseni_zdarma_ts` as `aktivita_zruseni_zdarma_ts`,
+  d.`zruseni_neucast` as `aktivita_zruseni_neucast`,
+  d.`zruseni_neucast_ts` as `aktivita_zruseni_neucast_ts`,
+  d.`registrace_konec` as `aktivita_registrace_konec`,
+  d.`registrace_konec_ts` as `aktivita_registrace_konec_ts`,
+  e.`id` as `lektor_id`,
+  e.`surname` as `lektor_surname`,
+  e.`firstname` as `lektor_firstname`,
+  UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`
+ */
+
+      $data = self::array_to_object(['diary_id' => $diary_id]);
+
+      // načtu záznamy pro lekci podle diary_id
+      $rst = $this->factoryManager->getLekceDetail($data);
+      $this->template->rst = $rst;
     }
 
 

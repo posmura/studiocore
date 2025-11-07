@@ -121,37 +121,56 @@
                                         </div>
 
                                         {if $items['lektor_id']}
-                                        <div class="row mb-3" style='text-align: center;'>
-                                            <div class="col-12-sm">
-                                                {$presenter->lektorName[$items['lektor_id']]}
+                                            <div class="row mb-3" style='text-align: center;'>
+                                                <div class="col-12-sm">
+                                                    {$presenter->lektorName[$items['lektor_id']]}
+                                                </div>
                                             </div>
-                                        </div>
                                         {/if}
 
 
                                         {if $items['popis']}
-                                        <div class="row">
-                                            <div class="col-12-sm">
-                                                {$items['popis']}
+                                            <div class="row">
+                                                <div class="col-12-sm">
+                                                    {$items['popis']}
+                                                </div>
                                             </div>
-                                        </div>
                                         {/if}
                                         
                                         {if $items['diaryEvent']}
-                                        <div class="row">
-                                            <div class="col-12-sm">
-                                                <em>{$items['diaryEvent']|breakLines}</em>
+                                            <div class="row">
+                                                <div class="col-12-sm">
+                                                    <em>{$items['diaryEvent']|breakLines}</em>
+                                                </div>
                                             </div>
-                                        </div>
                                         {/if}
                                         
-                                        {ifset $userRegistered[$items['diaryID']]}
-                                            <div class="border border-2 border-white rounded p-1 text-center small" style="color: #fff; background-color: #e67c2f; letter-spacing: 1px;">
-                                                <strong>REGISTRACE</strong>
-                                            </div>
-                                        {/ifset}
+                                        {if $user->isLoggedIn()}
+                                            
+                                            {ifset $userRegistered[$items['diaryID']]}
+                                                <div class="row">
+                                                    <div class="col-12-sm text-center" style="text-align: center;">
+                                                        <a href="#" class="btn btn-sm btn-success border border-1 border-white">
+                                                            <i class="bi bi-person-check-fill"></i> Registrace
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {/ifset}
+                                        {/if}
                                         
-                                
+                                        {if $user->isLoggedIn()}
+                                            {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                                                <div class="row">
+                                                    <div class="col-12-sm text-center" style="text-align: center;">
+                                                        <a n:href="Diary:users $items['diaryID']" class="btn btn-sm btn-success border border-1 border-white" onclick="event.stopPropagation();">
+                                                            <i class="bi bi-people-fill"></i> Registrace
+                                                        </a>
+                                                    </div>
+                                                </div>
+                                            {/if}
+                                            
+                                        {/if}
+                                        
                                     </div>
                                 {/if}
                             {/foreach}
