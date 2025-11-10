@@ -46,13 +46,13 @@
     <div class="row"> 
               
         {* levý sloupec *}
-        <div class="col-md-8"> 
+        <div class="col-md-8" style="background-color: #FFFBBF;"> 
             
             {* lekce info blok *}
             <div class="p-2 mx-1 my-4">
                 <div class="row"> 
                     <div class="col-md-6"> 
-                        <ul style="color: #333;">
+                        <ul style="color: #666;">
                             <li>Aktivita: <strong>{$info['aktivita_nazev']}</strong></li>
                             <li>Název lekce: <strong>{$info['diary_nazev']}</strong></li>
                             <li>Lektor: <strong>{$info['lektor_firstname']} {$info['lektor_surname']}</strong></li>
@@ -60,16 +60,16 @@
                         </ul>
                     </div>
                     <div class="col-md-6"> 
-                        <ul style="color: #333;">
+                        <ul style="color: #666;">
                             <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
-                            <li>Zrušeni klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
-                            <li>Zruseni pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
+                            <li>Zrušení klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
+                            <li>Zrušení pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
                             <li>Konec registrace: <strong>{$info['aktivita_registrace_konec']}</strong> hod před zahájením</li>
                         </ul>
                     </div>
                 </div>
             </div>
-           {* lekce info blok - konec*}
+            {* lekce info blok - konec*}
             
             {* *** SEZNAM KLIENTŮ *** *}
             <div class="border border-2 border-warning p-2 mx-1 my-4" style="background-color: #fff;">
