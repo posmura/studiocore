@@ -1683,6 +1683,7 @@ SELECT
   a.`deleted` as `registrace_deleted`,
   a.`deleted_at` as `registrace_deleted_at`,
   a.`deleted_by` as `registrace_deleted_by`,
+  a.`sales_id` as `sales_id`,
   b.`ID` as `diary_id`,
   b.`nazev` as `diary_nazev`,
   b.`popis` as `diary_popis`,
@@ -1725,6 +1726,54 @@ WHERE
   b.`ID` = ?
 ORDER BY
   a.ID desc
+SQL;
+    }
+
+
+    /**
+     * LEKCE: Vrací informaci lekce podle diary_id
+     *
+     * @return string
+     */
+    public static function getLekceInfo(): string
+    {
+      return <<<SQL
+SELECT
+  b.`ID` as `diary_id`,
+  b.`nazev` as `diary_nazev`,
+  b.`popis` as `diary_popis`,
+  b.`date` as `diary_date`,
+  b.`hour_from` as `diary_hour_from`,
+  b.`min_from` as `diary_min_from`,
+  b.`hour_to` as `diary_hour_to`,
+  b.`min_to` as `diary_`,
+  b.`desc` as `diary_desc`,
+  d.`id` as `aktivita_id`,
+  d.`nazev` as `aktivita_nazev`,
+  d.`vstupy_min` as `aktivita_vstupy_min`,
+  d.`vstupy_max` as `aktivita_vstupy_max`,
+  d.`zruseni_zdarma` as `aktivita_zruseni_zdarma`,
+  d.`zruseni_zdarma_ts` as `aktivita_zruseni_zdarma_ts`,
+  d.`zruseni_neucast` as `aktivita_zruseni_neucast`,
+  d.`zruseni_neucast_ts` as `aktivita_zruseni_neucast_ts`,
+  d.`registrace_konec` as `aktivita_registrace_konec`,
+  d.`registrace_konec_ts` as `aktivita_registrace_konec_ts`,
+  e.`id` as `lektor_id`,
+  e.`surname` as `lektor_surname`,
+  e.`firstname` as `lektor_firstname`,
+  UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`,
+  DATE_FORMAT(STR_TO_DATE(b.`date`, '%Y%m%d'), '%d.%m.%Y') AS `lekce_datum`,
+  TIME_FORMAT(MAKETIME(b.`hour_from`, b.`min_from`, 0), '%H:%i') AS `lekce_cas_od`,
+  TIME_FORMAT(MAKETIME(b.`hour_to`, b.`min_to`, 0), '%H:%i') AS `lekce_cas_do`
+
+FROM
+  `blog_diary` as b
+LEFT JOIN
+  `blog_activity` AS d ON b.`aktivita_id` = d.`id`
+LEFT JOIN
+  `blog_users` AS e ON b.`lektor_id` = e.`id`
+WHERE
+  b.`ID` = ?
 SQL;
     }
 

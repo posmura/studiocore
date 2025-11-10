@@ -191,11 +191,47 @@
 
       $data = self::array_to_object(['diary_id' => $diary_id]);
 
+      // načtu info o lekci
+      $info = $this->factoryManager->getLekceInfo($data);
+      $this->template->info = $info[0];
+
+
       // načtu záznamy pro lekci podle diary_id
       $rst = $this->factoryManager->getLekceDetail($data);
       $this->template->rst = $rst;
     }
 
+
+
+    /**
+     * Rušení lekce klienta
+     *
+     * @param int $user_id ID uživatele
+     * @param int $diary_id ID lekce v rozvrhu
+     * @param int $aktivita_id ID aktivity
+     * @param int $sales_id ID permanentky
+     * @param int $kredit_zmena Změna kreditu
+     * @param int $zruseni_zdarma_ts Timestamp pro zrušení zdarma, tj. vrácení kreditu (vstupu)
+     * @return void
+     */
+    public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$kredit_zmena,$zruseni_zdarma_ts): void
+    {
+
+      $data = self::array_to_object(
+        [
+          'user_id' => $user_id,
+          'diary_id' => $diary_id,
+          'aktivita_id' => $aktivita_id,
+          'sales_id' => $sales_id,
+          'kredit_zmena' => $kredit_zmena,
+          'zruseni_zdarma_ts' => $zruseni_zdarma_ts,
+        ]
+     );
+
+      $this->cancelRegistration($data);
+
+      $this->redirect('Diary:users',$diary_id);
+    }
 
     /**
      * Vrací týden
@@ -619,6 +655,9 @@
       $form->addHidden('diary_id','')
         ->setHtmlAttribute('id','frm-registerForm-diary_id');
 
+      $form->addHidden('zruseni_zdarma_ts','')
+        ->setHtmlAttribute('id','frm-registerForm-zruseni_zdarma_ts');
+
       $form->addHidden('aktivita_id','')
         ->setHtmlAttribute('id','frm-registerForm-aktivita_id');
 
@@ -670,10 +709,7 @@
         }
         elseif ($operace == 'odregistrovat')
         {
-          $data['deleted_by'] = $this->userName;
-          $data['kredit_zmena'] = 1;
-
-          $rst = $this->factoryManager->deleteRegistrace($data);
+          $this->cancelRegistration($data);
         }
         elseif ($operace == 'lekce_probehla' || $operace == 'neni_kredit')
         {
@@ -682,14 +718,14 @@
         }
         else
         {
-          $_msg = sprintf('Chyba! aaa Registrace %s nebyla uložena.','');
+          $_msg = sprintf('Chyba!Registrace %s nebyla uložena.','');
           $this->flashMessage($_msg,'danger');
           $this->eventlog('diary',$_msg);
         }
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! bbb Registrace %s nebyla uložena.','');
+        $_msg = sprintf('Chyba!Registrace %s nebyla uložena.','');
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
       }
@@ -907,5 +943,38 @@ TEXT;
       $this->sendJson($dataJson);
 
       $this->terminate();
+    }
+
+
+    /**
+     * LEKCE: Zrušení registrace klienta na lekci
+     *
+     * @param object $data Data pro zrušení registrace klienta na lekci
+     * @return bool
+     */
+    public function cancelRegistration($data)
+    {
+      $data->deleted_by = $this->userName;
+
+      //zruseni_zdarma_ts
+
+      $data->kredit_zmena = 1;
+
+      $rst = $this->factoryManager->deleteRegistrace($data);
+
+      if ($rst != 0)
+      {
+        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s.',$data->user_id,$data->deleted_by);
+      $this->flashMessage($_msg);
+      $this->eventlog('diary',$_msg);
+
+      return true;
     }
   }

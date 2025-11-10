@@ -10,15 +10,66 @@
     {/if}
 </div>
 
+{*
+  b.`ID` as `diary_id`,
+  b.`nazev` as `diary_nazev`,
+  b.`popis` as `diary_popis`,
+  b.`date` as `diary_date`,
+  b.`hour_from` as `diary_hour_from`,
+  b.`min_from` as `diary_min_from`,
+  b.`hour_to` as `diary_hour_to`,
+  b.`min_to` as `diary_`,
+  b.`desc` as `diary_desc`,
+  d.`id` as `aktivita_id`,
+  d.`nazev` as `aktivita_nazev`,
+  d.`vstupy_min` as `aktivita_vstupy_min`,
+  d.`vstupy_max` as `aktivita_vstupy_max`,
+  d.`zruseni_zdarma` as `aktivita_zruseni_zdarma`,
+  d.`zruseni_zdarma_ts` as `aktivita_zruseni_zdarma_ts`,
+  d.`zruseni_neucast` as `aktivita_zruseni_neucast`,
+  d.`zruseni_neucast_ts` as `aktivita_zruseni_neucast_ts`,
+  d.`registrace_konec` as `aktivita_registrace_konec`,
+  d.`registrace_konec_ts` as `aktivita_registrace_konec_ts`,
+  e.`id` as `lektor_id`,
+  e.`surname` as `lektor_surname`,
+  e.`firstname` as `lektor_firstname`,
+  UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`,
+  DATE_FORMAT(STR_TO_DATE(b.`date`, '%Y%m%d'), '%d.%m.%Y') AS `lekce_datum`,
+  TIME_FORMAT(MAKETIME(b.`hour_from`, b.`min_from`, 0), '%H:%i') AS `lekce_cas_od`,
+  TIME_FORMAT(MAKETIME(b.`hour_to`, b.`min_to`, 0), '%H:%i') AS `lekce_cas_do`      
+*}
+
 <div id="content">
 	
 {if $user->isLoggedIn()}
-    
     {* hlavní blok *}
     <div class="row"> 
-        
+              
         {* levý sloupec *}
         <div class="col-md-8"> 
+            
+            {* lekce info blok *}
+            <div class="p-2 mx-1 my-4">
+                <div class="row"> 
+                    <div class="col-md-6"> 
+                        <ul style="color: #333;">
+                            <li>Aktivita: <strong>{$info['aktivita_nazev']}</strong></li>
+                            <li>Název lekce: <strong>{$info['diary_nazev']}</strong></li>
+                            <li>Lektor: <strong>{$info['lektor_firstname']} {$info['lektor_surname']}</strong></li>
+                            <li>Datum a čas: <strong>{$info['lekce_datum']}</strong>, <strong>{$info['lekce_cas_od']} - {$info['lekce_cas_do']}</strong></li>
+                        </ul>
+                    </div>
+                    <div class="col-md-6"> 
+                        <ul style="color: #333;">
+                            <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
+                            <li>Zrušeni klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
+                            <li>Zruseni pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
+                            <li>Konec registrace: <strong>{$info['aktivita_registrace_konec']}</strong> hod před zahájením</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+           {* lekce info blok - konec*}
             
             {* *** SEZNAM KLIENTŮ *** *}
             <div class="border border-2 border-warning p-2 mx-1 my-4" style="background-color: #fff;">
@@ -32,6 +83,7 @@
                                     <th>Mobil</th>
                                     <th>Vstupy</th>
                                     <th>Potvrzení<br>účasti</th>
+                                    <th></th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -55,6 +107,13 @@
                             <td>{$items['user_mobil_number']}</td>
                             <td>???</td>
                             <td>{$items['registrace_ucast']}</td>
+                            <td>
+                                <a n:href="Diary:cancelRegistration ,$items['user_id'],$items['diary_id'],$items['aktivita_id'],$items['sales_id'],$items['aktivita_zruseni_zdarma_ts'],$items['ts_diary_date']" 
+                                   onclick="return confirm('Opravdu si přejete zrušit tuto rezervaci?');" 
+                                   style="color: red !important" 
+                                   title="zrušit registraci">
+                                    <i class="bi bi-x-circle-fill"></i></a>
+                            </td>
                         </tr>
                     {/if}
                                          
@@ -118,7 +177,7 @@
             {* *** REGISTRACE KLIENTA *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Registrovat klienta na lekci</div>
-                {*form userpasswordForm*}
+                {*form adduserForm*}
                 --- formulář pro přidání klienta ---
                 {*/form*}
             </div>
@@ -148,10 +207,24 @@
         let dataTableContact = new DataTable('#tbl-users', {
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
-                "search": "Vyhledávání v tabulce:",
-                "searchPlaceholder": "zadejte hledaný text"
-            }
-            //order: [[0, 'desc']]
+                search: "Vyhledávání v tabulce:",
+                searchPlaceholder: "zadejte hledaný text"
+            },
+        
+            // výchozí řazení podle "Klient" (2. sloupec = index 1)
+            order: [[1, 'asc']],
+
+            columnDefs: [
+                // povolit třídění jen u sloupce "Klient"
+                { 
+                    orderable: true, targets: 1 
+                },
+                
+                // všechny ostatní sloupce netřídit
+                { 
+                    orderable: false, targets: [0, 2, 3, 4, 5] 
+                }
+            ]
         });
     </script>
 {/if}

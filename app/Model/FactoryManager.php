@@ -529,23 +529,31 @@
     /**
      * REGISTRACE: Zruší registraci klienta na lekci a upraví kredity klienta
      *
-     * @param object $data Data pro registraci
-     * @return bool
+     * @param object $data Data pro zrušení egistrace
+     * @return int
      */
     public function deleteRegistrace($data)
     {
+
       // zruším registraci
       if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id))
-        return false;
+      {
+        return 1;
+      }
 
       // upravím kredity(+1)
       if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id))
-        return false;
+      {
+        return 2;
+      }
 
       // upravím kredity v aktivní permanentce
       if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
+      {
+        return 3;
+      }
 
-      return true;
+      return 0;
     }
 
 
@@ -628,6 +636,17 @@
     public function getLekceDetail($data): array
     {
       return $this->database->fetchAll(SqlCommands::getLekceDetail(),$data->diary_id);
+    }
+
+
+    /**
+     * LEKCE: Vrací info lekce podle diary_id
+     *
+     * @return string
+     */
+    public function getLekceInfo($data): array
+    {
+      return $this->database->fetchAll(SqlCommands::getLekceInfo(),$data->diary_id);
     }
 
   }
