@@ -503,26 +503,26 @@
 
 
     /**
-     * REGISTRACE: Vloží registraci klienta na lekci a upraví kredity klienta
+     * REGISTRACE: Vyvtvoří registraci klienta na lekci a upraví kredity klienta
      *
      * @param object $data Data pro registraci
-     * @return bool
+     * @return int
      */
-    public function insertRegistrace($data)
+    public function insertRegistrace($data): int
     {
       // vložím registraci
       if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id))
-        return false;
+        return 1;
 
       // upravím kredity (-1)
       if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
-        return false;
+        return 2;
 
       // upravím kredity v aktivní permanentce
       if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
-        return false;
+        return 3;
 
-      return true;
+      return 0;
     }
 
 
@@ -532,7 +532,7 @@
      * @param object $data Data pro zrušení egistrace
      * @return int
      */
-    public function deleteRegistrace($data)
+    public function deleteRegistrace($data): int
     {
 
       // zruším registraci
@@ -647,6 +647,17 @@
     public function getLekceInfo($data): array
     {
       return $this->database->fetchAll(SqlCommands::getLekceInfo(),$data->diary_id);
+    }
+
+
+    /**
+     * LEKCE: Upraví potvrzení účasti klienta na lekci
+     *
+     * @return string
+     */
+    public function updateUcast($data)
+    {
+      return $this->database->query(SqlCommands::updateUcast(),$data->ucast, $data->updated_by,$data->ID);
     }
 
   }

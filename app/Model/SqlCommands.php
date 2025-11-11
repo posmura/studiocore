@@ -37,7 +37,6 @@ SQL;
      * @return string
      */
     public static function getAktivniPermanentkyID(): string
-    //public static function getPermanentkaAktivni(): string
     {
       return <<<SQL
 SELECT *
@@ -1774,6 +1773,25 @@ LEFT JOIN
   `blog_users` AS e ON b.`lektor_id` = e.`id`
 WHERE
   b.`ID` = ?
+SQL;
+    }
+
+
+    /**
+     * LEKCE: Upraví potvrzení účasti klienta na lekci
+     *
+     * @return string
+     */
+    public static function updateUcast(): string
+    {
+      return <<<SQL
+UPDATE blog_registration
+SET
+  `ucast`= ?,
+  `updated_at` = NOW(),
+  `updated_by` = ?
+ WHERE
+   `ID`=?
 SQL;
     }
 

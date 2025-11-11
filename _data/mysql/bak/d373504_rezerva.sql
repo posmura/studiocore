@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Počítač: localhost
--- Vytvořeno: Čtv 06. lis 2025, 15:15
+-- Vytvořeno: Úte 11. lis 2025, 16:31
 -- Verze serveru: 10.11.13-MariaDB-0ubuntu0.24.04.1
 -- Verze PHP: 8.1.33
 
@@ -80,10 +80,48 @@ CREATE TABLE `blog_credits` (
 --
 
 INSERT INTO `blog_credits` (`ID`, `user_id`, `aktivita_id`, `kredity`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
-(1, 46, 1, 0, '2025-11-06 07:25:57', 'system', '2025-11-06 13:53:27', 'admin', 0, NULL, NULL),
-(2, 46, 2, 0, '2025-11-06 07:25:57', 'system', '2025-11-06 13:53:27', 'admin', 0, NULL, NULL),
-(3, 43, 1, 0, '2025-11-06 07:26:15', 'system', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL),
-(4, 43, 2, 1, '2025-11-06 07:26:15', 'system', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL);
+(1, 46, 1, 0, '2025-11-06 07:25:57', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(2, 46, 2, 0, '2025-11-06 07:25:57', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(3, 43, 1, 0, '2025-11-06 07:26:15', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(4, 43, 2, 5, '2025-11-06 07:26:15', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(5, 68, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(6, 68, 2, 3, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(7, 51, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(8, 51, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(9, 47, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(10, 47, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(11, 52, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(12, 52, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(13, 54, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(14, 54, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(15, 63, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(16, 63, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(17, 64, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(18, 64, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(19, 65, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(20, 65, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(21, 66, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(22, 66, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(23, 67, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(24, 67, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(25, 55, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(26, 55, 2, -1, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(27, 56, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(28, 56, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(29, 57, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(30, 57, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(31, 58, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(32, 58, 2, -1, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(33, 59, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(34, 59, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(35, 60, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(36, 60, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:25', 'admin', 0, NULL, NULL),
+(37, 61, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(38, 61, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(39, 62, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(40, 62, 2, -1, '2025-11-07 08:20:34', 'system', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL),
+(41, 39, 1, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:26', 'admin', 0, NULL, NULL),
+(42, 39, 2, 0, '2025-11-07 08:20:34', 'system', '2025-11-11 14:56:26', 'admin', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1523,7 +1561,92 @@ INSERT INTO `blog_eventlog` (`ID`, `datetime`, `username`, `presenter`, `action`
 (795, '2025-11-06 15:02:48', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
 (796, '2025-11-06 15:03:16', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
 (797, '2025-11-06 15:03:39', 'cassie', 'diary', 'Chyba! Registrace  nebyla uložena.', '::1'),
-(798, '2025-11-06 15:06:42', 'cassie', 'diary', 'Chyba! bbb Registrace  nebyla uložena.', '::1');
+(798, '2025-11-06 15:06:42', 'cassie', 'diary', 'Chyba! bbb Registrace  nebyla uložena.', '::1'),
+(799, '2025-11-07 08:09:24', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(800, '2025-11-07 08:09:33', 'admin', 'membership_card', 'Editace permanenty ID=7.', '::1'),
+(801, '2025-11-07 08:09:40', 'admin', 'membership_card', 'Permanentka ID=7 byla uložena.', '::1'),
+(802, '2025-11-07 08:09:45', 'admin', 'membership_card', 'Editace permanenty ID=6.', '::1'),
+(803, '2025-11-07 08:09:52', 'admin', 'membership_card', 'Permanentka ID=6 byla uložena.', '::1'),
+(804, '2025-11-07 08:18:46', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(805, '2025-11-07 08:21:52', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(806, '2025-11-07 09:05:33', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(807, '2025-11-07 09:40:55', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(808, '2025-11-07 10:03:44', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(809, '2025-11-07 10:14:03', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(810, '2025-11-07 10:54:16', NULL, 'sign', 'Uživatel byl odhlášen.', '::1'),
+(811, '2025-11-07 10:54:28', 'amalka', 'sign', 'Uživatel \'amalka\' byl přihlášen.', '::1'),
+(812, '2025-11-07 10:55:42', 'amalka', 'sign', 'Uživatel byl odhlášen.', '::1'),
+(813, '2025-11-07 11:01:17', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(814, '2025-11-07 11:49:20', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(815, '2025-11-07 12:52:34', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(816, '2025-11-07 12:53:53', 'admin', 'diary', 'Chyba! Nebyl zadáno ID události.', '::1'),
+(817, '2025-11-07 13:26:24', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(818, '2025-11-07 14:18:41', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(819, '2025-11-10 07:39:31', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(820, '2025-11-10 07:40:00', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(821, '2025-11-10 08:35:05', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(822, '2025-11-10 08:36:28', 'cassie', 'diary', 'Chyba! Registrace klienta ID=43 nebyla zrušena uživatelem cassie.', '::1'),
+(823, '2025-11-10 08:48:19', 'cassie', 'diary', 'Chyba! Registrace klienta ID=43 nebyla zrušena uživatelem cassie.', '::1'),
+(824, '2025-11-10 08:51:42', 'cassie', 'diary', 'Chyba! Registrace klienta ID=43 nebyla zrušena uživatelem cassie.', '::1'),
+(825, '2025-11-10 08:56:03', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(826, '2025-11-10 09:50:11', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(827, '2025-11-10 09:52:15', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(828, '2025-11-10 09:52:42', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(829, '2025-11-10 10:04:49', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(830, '2025-11-10 12:17:44', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(831, '2025-11-10 12:23:36', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(832, '2025-11-10 12:23:41', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(833, '2025-11-10 12:30:16', 'admin', 'diary', 'Registrace klienta ID=68 byla zrušena uživatelem admin.', '::1'),
+(834, '2025-11-10 12:33:46', 'admin', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem admin.', '::1'),
+(835, '2025-11-10 12:35:50', 'admin', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem admin.', '::1'),
+(836, '2025-11-10 13:05:02', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(837, '2025-11-11 10:22:20', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(838, '2025-11-11 11:21:56', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(839, '2025-11-11 12:09:23', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(840, '2025-11-11 12:46:50', 'amalka', 'sign', 'Uživatel \'amalka\' byl přihlášen.', '::1'),
+(841, '2025-11-11 12:47:55', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(842, '2025-11-11 12:48:43', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(843, '2025-11-11 12:48:53', 'admin', 'sale', 'Nový prodej byl uložen.', '::1'),
+(844, '2025-11-11 13:55:57', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(845, '2025-11-11 13:56:10', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(846, '2025-11-11 14:05:06', 'admin', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem admin.', '::1'),
+(847, '2025-11-11 14:29:10', 'admin', 'diary', 'Účast klienta na lekci byla změněna na stav \'ano\'.', '::1'),
+(848, '2025-11-11 14:29:16', 'admin', 'diary', 'Účast klienta na lekci byla změněna na stav \'ne\'.', '::1'),
+(849, '2025-11-11 14:29:54', 'admin', 'diary', 'Účast klienta na lekci byla změněna na stav \'ne\'.', '::1'),
+(850, '2025-11-11 14:29:56', 'admin', 'diary', 'Účast klienta na lekci byla změněna na stav \'ano\'.', '::1'),
+(851, '2025-11-11 14:35:36', 'admin', 'diary', 'Chyba! Účast klienta na lekci nebyla změněna na stav \'ne\'.', '::1'),
+(852, '2025-11-11 14:35:46', 'admin', 'diary', 'Chyba! Účast klienta na lekci nebyla změněna na stav \'ano\'.', '::1'),
+(853, '2025-11-11 15:00:52', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(854, '2025-11-11 15:37:33', 'cassie', 'sign', 'Uživatel \'cassie\' byl přihlášen.', '::1'),
+(855, '2025-11-11 15:38:32', 'cassie', 'diary', 'Chyba!Registrace  nebyla uložena.', '::1'),
+(856, '2025-11-11 15:38:46', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(857, '2025-11-11 15:39:36', 'cassie', 'diary', 'Chyba!Registrace  nebyla uložena.', '::1'),
+(858, '2025-11-11 15:39:41', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(859, '2025-11-11 15:42:07', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(860, '2025-11-11 15:43:24', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(861, '2025-11-11 15:44:15', 'cassie', 'diary', 'Chyba!Registrace  nebyla uložena.', '::1'),
+(862, '2025-11-11 15:44:21', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(863, '2025-11-11 15:50:01', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(864, '2025-11-11 15:51:56', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(865, '2025-11-11 15:52:00', 'cassie', 'diary', 'Chyba!Registrace  nebyla uložena.', '::1'),
+(866, '2025-11-11 15:53:41', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(867, '2025-11-11 15:53:47', 'cassie', 'diary', 'Registrace klienta ID=43 byla vytvořena uživatelem cassie.', '::1'),
+(868, '2025-11-11 15:53:58', 'cassie', 'diary', 'Registrace klienta ID=43 byla zrušena uživatelem cassie.', '::1'),
+(869, '2025-11-11 15:54:28', 'cassie', 'diary', 'Registrace klienta ID=43 byla vytvořena uživatelem cassie.', '::1'),
+(870, '2025-11-11 15:55:57', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(871, '2025-11-11 15:57:03', 'admin', 'diary', 'Chyba! Účast klienta na lekci nebyla změněna na stav \'ano\'.', '::1'),
+(872, '2025-11-11 16:19:46', 'admin', 'sign', 'Uživatel \'admin\' byl přihlášen.', '::1'),
+(873, '2025-11-11 16:29:59', 'admin', 'diary', 'Registrace klienta ID=61 byla vytvořena uživatelem admin.', '::1'),
+(874, '2025-11-11 16:30:17', 'admin', 'diary', 'Registrace klienta ID=64 byla vytvořena uživatelem admin.', '::1'),
+(875, '2025-11-11 16:30:22', 'admin', 'diary', 'Registrace klienta ID=64 byla zrušena uživatelem admin.', '::1'),
+(876, '2025-11-11 16:30:31', 'admin', 'diary', 'Registrace klienta ID=61 byla zrušena uživatelem admin.', '::1'),
+(877, '2025-11-11 16:30:35', 'admin', 'diary', 'Registrace klienta ID=55 byla vytvořena uživatelem admin.', '::1'),
+(878, '2025-11-11 16:30:40', 'admin', 'diary', 'Registrace klienta ID=58 byla vytvořena uživatelem admin.', '::1'),
+(879, '2025-11-11 16:30:45', 'admin', 'diary', 'Registrace klienta ID=58 byla vytvořena uživatelem admin.', '::1'),
+(880, '2025-11-11 16:30:53', 'admin', 'diary', 'Registrace klienta ID=58 byla zrušena uživatelem admin.', '::1'),
+(881, '2025-11-11 16:31:01', 'admin', 'diary', 'Registrace klienta ID=62 byla vytvořena uživatelem admin.', '::1'),
+(882, '2025-11-11 16:31:12', 'admin', 'diary', 'Chyba! Účast klienta na lekci nebyla změněna na stav \'ano\'.', '::1'),
+(883, '2025-11-11 16:31:15', 'admin', 'diary', 'Chyba! Účast klienta na lekci nebyla změněna na stav \'ano\'.', '::1');
 
 -- --------------------------------------------------------
 
@@ -1554,8 +1677,8 @@ CREATE TABLE `blog_membership_card` (
 --
 
 INSERT INTO `blog_membership_card` (`id`, `aktivita_id`, `nazev`, `cena`, `platnost`, `platnost_ts`, `aktivni`, `vstupy`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
-(6, 2, 'Jednorázový vstup', 250, 1, 86400, 'ano', 1, '2025-10-13 14:48:05', 'admin', '2025-10-13 19:09:35', 'admin', 0, NULL, NULL),
-(7, 1, 'Jednorázový vstup', 180, 1, 86400, 'ano', 1, '2025-10-13 15:11:37', 'admin', '2025-10-13 19:13:33', 'admin', 0, NULL, NULL),
+(6, 2, 'Jednorázový vstup', 250, 365, 31536000, 'ano', 1, '2025-10-13 14:48:05', 'admin', '2025-11-07 07:09:52', 'admin', 0, NULL, NULL),
+(7, 1, 'Jednorázový vstup', 180, 365, 31536000, 'ano', 1, '2025-10-13 15:11:37', 'admin', '2025-11-07 07:09:40', 'admin', 0, NULL, NULL),
 (8, 1, '3 lekce (max 6 měsíců)', 500, 180, 15552000, 'ano', 3, '2025-10-13 15:12:52', 'admin', '2025-10-13 19:13:40', 'admin', 0, NULL, NULL),
 (9, 1, '7 lekcí (max 6 měsíců)', 1000, 180, 15552000, 'ano', 7, '2025-10-13 15:14:37', 'admin', '2025-10-13 19:13:45', 'admin', 0, NULL, NULL),
 (10, 1, '11 lekcí (max 6 měsíců)', 1500, 180, 15552000, 'ano', 11, '2025-10-13 15:15:32', 'admin', '2025-10-13 19:14:31', 'admin', 0, NULL, NULL),
@@ -1576,7 +1699,7 @@ CREATE TABLE `blog_registration` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `diary_id` int(10) UNSIGNED NOT NULL,
   `aktivita_id` int(10) UNSIGNED NOT NULL,
-  `ucast` enum('- zvolte -','ano','ne','') NOT NULL,
+  `ucast` enum('- nepotvrzeno -','ano','ne') NOT NULL,
   `desc` varchar(255) DEFAULT NULL,
   `created_at` timestamp NOT NULL DEFAULT current_timestamp(),
   `created_by` varchar(50) DEFAULT NULL,
@@ -1593,17 +1716,59 @@ CREATE TABLE `blog_registration` (
 --
 
 INSERT INTO `blog_registration` (`ID`, `user_id`, `diary_id`, `aktivita_id`, `ucast`, `desc`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`, `sales_id`) VALUES
-(1, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 08:51:09', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(2, 43, 535, 1, '- zvolte -', NULL, '2025-11-06 08:52:52', 'cassie', NULL, NULL, 1, '2025-11-06 08:56:30', 'cassie', NULL),
-(3, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:03:39', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(4, 43, 58, 2, '- zvolte -', NULL, '2025-11-06 09:03:44', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:38', 'cassie', NULL),
-(5, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:18:48', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(6, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:27:14', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(7, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:28:00', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(8, 43, 5, 2, '- zvolte -', NULL, '2025-11-06 09:28:50', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:36', 'cassie', NULL),
-(9, 43, 58, 2, '- zvolte -', NULL, '2025-11-06 09:28:58', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:38', 'cassie', NULL),
-(10, 43, 270, 2, '- zvolte -', NULL, '2025-11-06 09:29:16', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:33', 'cassie', NULL),
-(11, 43, 111, 2, '- zvolte -', NULL, '2025-11-06 14:11:59', 'cassie', NULL, NULL, 0, NULL, NULL, 4);
+(1, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 08:51:09', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(2, 43, 535, 1, '- nepotvrzeno -', NULL, '2025-11-06 08:52:52', 'cassie', NULL, NULL, 1, '2025-11-06 08:56:30', 'cassie', NULL),
+(3, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:03:39', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(4, 43, 58, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:03:44', 'cassie', NULL, NULL, 1, '2025-11-10 11:35:50', 'admin', NULL),
+(5, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:18:48', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(6, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:27:14', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(7, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:28:00', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(8, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:28:50', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', NULL),
+(9, 43, 58, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:28:58', 'cassie', NULL, NULL, 1, '2025-11-10 11:35:50', 'admin', NULL),
+(10, 43, 270, 2, '- nepotvrzeno -', NULL, '2025-11-06 09:29:16', 'cassie', NULL, NULL, 1, '2025-11-06 09:29:33', 'cassie', NULL),
+(11, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-06 14:11:59', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(12, 43, 164, 2, '- nepotvrzeno -', NULL, '2025-11-07 07:21:08', 'cassie', NULL, NULL, 1, '2025-11-10 07:56:03', 'cassie', 4),
+(13, 43, 429, 2, '- nepotvrzeno -', NULL, '2025-11-07 07:21:17', 'cassie', NULL, NULL, 1, '2025-11-10 07:37:19', 'cassie', 0),
+(14, 43, 429, 2, '- nepotvrzeno -', NULL, '2025-11-07 07:23:19', 'cassie', NULL, NULL, 1, '2025-11-10 07:37:19', 'cassie', 0),
+(15, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-07 09:14:55', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(16, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-07 09:15:00', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', 0),
+(17, 68, 111, 2, '- nepotvrzeno -', NULL, '2025-11-07 09:54:38', 'amalka', NULL, NULL, 1, '2025-11-10 11:30:16', 'admin', 0),
+(18, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:39:22', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(19, 43, 164, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:39:25', 'cassie', NULL, NULL, 1, '2025-11-10 07:56:03', 'cassie', 4),
+(20, 43, 429, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:39:32', 'cassie', NULL, NULL, 0, NULL, NULL, 0),
+(21, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:48:42', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(22, 43, 164, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:48:44', 'cassie', NULL, NULL, 1, '2025-11-10 07:56:03', 'cassie', 4),
+(23, 43, 58, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:48:50', 'cassie', NULL, NULL, 1, '2025-11-10 11:35:50', 'admin', 0),
+(24, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-10 07:56:00', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(25, 43, 164, 2, 'ne', NULL, '2025-11-10 08:50:21', 'cassie', '2025-11-11 13:35:36', 'admin', 0, NULL, NULL, 4),
+(26, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-10 08:51:47', 'cassie', NULL, NULL, 1, '2025-11-10 08:52:15', 'cassie', 0),
+(27, 43, 5, 2, '- nepotvrzeno -', NULL, '2025-11-10 08:52:26', 'cassie', NULL, NULL, 0, NULL, NULL, 0),
+(28, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-10 09:04:57', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(29, 43, 376, 2, '- nepotvrzeno -', NULL, '2025-11-10 11:23:55', 'cassie', NULL, NULL, 1, '2025-11-10 11:24:50', 'admin', 4),
+(30, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-10 11:29:50', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(31, 68, 111, 2, 'ne', NULL, '2025-11-11 11:47:04', 'amalka', '2025-11-11 13:29:16', 'admin', 0, NULL, NULL, 0),
+(32, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 11:48:02', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(33, 68, 164, 2, 'ano', NULL, '2025-11-11 12:09:40', 'amalka', '2025-11-11 13:35:46', 'admin', 0, NULL, NULL, 7),
+(34, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:37:41', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(35, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:38:32', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(36, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:38:49', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(37, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:39:36', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(38, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:39:44', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(39, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:42:12', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(40, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:43:30', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(41, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:44:15', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(42, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:44:25', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(43, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:50:04', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(44, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:52:00', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(45, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:52:00', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(46, 43, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 14:53:47', 'cassie', NULL, NULL, 1, '2025-11-11 14:53:58', 'cassie', 4),
+(47, 43, 111, 2, 'ano', NULL, '2025-11-11 14:54:28', 'cassie', '2025-11-11 14:57:03', 'admin', 0, NULL, NULL, 4),
+(48, 61, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 15:29:59', 'admin', NULL, NULL, 1, '2025-11-11 15:30:31', 'admin', NULL),
+(49, 64, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 15:30:17', 'admin', NULL, NULL, 1, '2025-11-11 15:30:22', 'admin', NULL),
+(50, 55, 111, 2, 'ano', NULL, '2025-11-11 15:30:35', 'admin', '2025-11-11 15:31:15', 'admin', 0, NULL, NULL, NULL),
+(51, 58, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 15:30:40', 'admin', NULL, NULL, 1, '2025-11-11 15:30:53', 'admin', NULL),
+(52, 58, 111, 2, '- nepotvrzeno -', NULL, '2025-11-11 15:30:45', 'admin', NULL, NULL, 1, '2025-11-11 15:30:53', 'admin', NULL),
+(53, 62, 111, 2, 'ano', NULL, '2025-11-11 15:31:01', 'admin', '2025-11-11 15:31:12', 'admin', 0, NULL, NULL, NULL);
 
 --
 -- Triggery `blog_registration`
@@ -1691,7 +1856,10 @@ CREATE TABLE `blog_sales` (
 INSERT INTO `blog_sales` (`ID`, `user_id`, `username_full`, `permanentka_id`, `aktivita_id`, `aktivita_name`, `cena`, `pocet`, `vstupy_celkem`, `vstupy_aktualni`, `datum_prodeje`, `datum_konce`, `desc`, `created_at`, `created_by`, `updated_at`, `updated_by`, `deleted`, `deleted_at`, `deleted_by`) VALUES
 (2, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 3, 1762418733, 1770245999, '', '2025-11-06 08:45:33', 'admin', '2025-11-06 09:29:38', 'cassie', 1, '2025-11-06 09:32:25', 'admin'),
 (3, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 2, 1762420673, 1770245999, '', '2025-11-06 09:17:53', 'admin', NULL, NULL, 1, '2025-11-06 09:32:22', 'admin'),
-(4, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 1, 1762434805, 1770245999, '', '2025-11-06 13:13:25', 'admin', '2025-11-06 14:11:59', 'cassie', 0, NULL, NULL);
+(4, 43, 'Cassie Cat (cassie)', 20, 2, 'SM - 2 lekce (max 3 měsíce)', 480, 1, 2, 0, 1762434805, 1770245999, '', '2025-11-06 13:13:25', 'admin', '2025-11-11 14:54:28', 'cassie', 0, NULL, NULL),
+(5, 43, 'Cassie Cat (cassie)', 6, 2, 'SM - Jednorázový vstup', 250, 1, 1, 0, 1762500112, 1794092399, '', '2025-11-07 07:21:52', 'admin', NULL, NULL, 0, NULL, NULL),
+(6, 43, 'Cassie Cat (cassie)', 19, 2, 'SM - 5 lekcí (max 3 měsíce)', 1150, 1, 5, 5, 1762861723, 1770677999, '', '2025-11-11 11:48:43', 'admin', NULL, NULL, 0, NULL, NULL),
+(7, 68, 'Amálka Křeček (amalka)', 19, 2, 'SM - 5 lekcí (max 3 měsíce)', 1150, 1, 5, 3, 1762861733, 1770677999, '', '2025-11-11 11:48:53', 'admin', '2025-11-11 12:09:40', 'amalka', 0, NULL, NULL);
 
 -- --------------------------------------------------------
 
@@ -1762,10 +1930,13 @@ CREATE TABLE `mv_lekce_ucast` (
 --
 
 INSERT INTO `mv_lekce_ucast` (`diary_id`, `total`) VALUES
-(5, 0),
+(5, 1),
 (58, 0),
-(111, 1),
-(270, 0);
+(111, 4),
+(164, 2),
+(270, 0),
+(376, 0),
+(429, 1);
 
 -- --------------------------------------------------------
 
@@ -1912,7 +2083,7 @@ ALTER TABLE `blog_activity`
 -- AUTO_INCREMENT pro tabulku `blog_credits`
 --
 ALTER TABLE `blog_credits`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=43;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_diary`
@@ -1924,7 +2095,7 @@ ALTER TABLE `blog_diary`
 -- AUTO_INCREMENT pro tabulku `blog_eventlog`
 --
 ALTER TABLE `blog_eventlog`
-  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=799;
+  MODIFY `ID` int(10) UNSIGNED NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=884;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_membership_card`
@@ -1936,13 +2107,13 @@ ALTER TABLE `blog_membership_card`
 -- AUTO_INCREMENT pro tabulku `blog_registration`
 --
 ALTER TABLE `blog_registration`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=12;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=54;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_sales`
 --
 ALTER TABLE `blog_sales`
-  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=5;
+  MODIFY `ID` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=8;
 
 --
 -- AUTO_INCREMENT pro tabulku `blog_users`

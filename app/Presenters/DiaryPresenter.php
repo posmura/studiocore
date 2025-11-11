@@ -5,6 +5,7 @@
   namespace App\Presenters;
 
   use Nette\Application\UI\Form;
+  use Nette\Application\UI\Multiplier;
 
   /**
    * Třída presenteru pro příspěvky
@@ -38,6 +39,12 @@
       7 => 'neděle',
     );
 
+    /**
+     * Pole seznamu účastí
+     * @var type
+     */
+    public $ucast;
+
 
     /**
      * Inicalizace presenteru
@@ -47,6 +54,15 @@
     public function startup(): void
     {
       parent::startup();
+
+      if (!$this->getUser()->isLoggedIn())
+      {
+        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
+
+        $this->redirect('Sign:in');
+
+        die;
+      }
     }
 
 
@@ -189,17 +205,28 @@
   UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`
  */
 
-      $data = self::array_to_object(['diary_id' => $diary_id]);
+      $_data = self::array_to_object(['diary_id' => $diary_id]);
 
       // načtu info o lekci
-      $info = $this->factoryManager->getLekceInfo($data);
+      $info = $this->factoryManager->getLekceInfo($_data);
       $this->template->info = $info[0];
 
 
       // načtu záznamy pro lekci podle diary_id
-      $rst = $this->factoryManager->getLekceDetail($data);
-      $this->template->rst = $rst;
-    }
+      $data = $this->factoryManager->getLekceDetail($_data);
+
+      // doplním kredity pro jednotlivé aktivity klienta
+      foreach ($data as $key => $items)
+      {
+        $kredity = $this->userManager->getKredityKlienta($items['user_id'], $this->userName);
+        $data[$key]['kredity'] = $kredity;
+      }
+
+      // načtu názvy aktivit pro zobrazní v šabloně
+      $this->template->data = $data;
+
+      $this->template->aktivita = $this->aktivita;
+   }
 
 
 
@@ -640,7 +667,7 @@
 
 
     /**
-     * Vrací objekt Form formuláře pro výběr datumu
+     * Vrací objekt Form formuláře pro registraci klientem
      *
      * @return Form
      */
@@ -686,7 +713,7 @@
 
 
     /**
-     * Zpracování dat odeslaných z formuláře registrace
+     * Zpracování dat odeslaných z formuláře registrace klientem
      *
      * @param Form $form Objekt Form formuláře
      * @param object $data Data z formuláře
@@ -702,10 +729,7 @@
       {
         if ($operace == 'registrovat')
         {
-          $data['created_by'] = $this->userName;
-          $data['kredit_zmena'] = -1;
-
-          $rst = $this->factoryManager->insertRegistrace($data);
+          $this->createRegistration($data);
         }
         elseif ($operace == 'odregistrovat')
         {
@@ -718,14 +742,14 @@
         }
         else
         {
-          $_msg = sprintf('Chyba!Registrace %s nebyla uložena.','');
+          $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
           $this->flashMessage($_msg,'danger');
           $this->eventlog('diary',$_msg);
         }
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba!Registrace %s nebyla uložena.','');
+        $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
       }
@@ -742,6 +766,149 @@
       }
 
       $this->redirect('Diary:default',$tsDiaryDate);
+    }
+
+
+    /**
+     * Vícenásobný formulář pro potvrzení účasti klienta na lekci
+     *
+     * @return Multiplier
+     */
+    protected function createComponentConfirmForm(): Multiplier
+    {
+
+      $this->ucast = $this->userManager->getListFromEnum(
+        array(
+          'db' => self::DB_NAME,
+          'tbl' => 'blog_registration',
+          'col' => 'ucast',
+        )
+      );
+
+      /**
+       * Definice formuláře
+       * @param string $id ID registrace, je součástí názvu formuláře
+       * @return Form
+       */
+      return new Multiplier(function (string $id) {
+        $form = new Form;
+
+        // ID registrace, ke kterém je formulář přiřazený
+        $form->addHidden('id', $id);
+
+        // potvrzení účasti klienta na lekci
+        $form->addSelect('ucast', '', $this->ucast)
+          ->setHtmlAttribute('class','form-control form-control-sm')
+          ->setHtmlAttribute('onchange', 'this.form.submit()');
+
+        $form->onSuccess[] = [$this, 'confirmFormSucceeded'];
+
+        return $form;
+      });
+    }
+
+
+    /**
+     * Zpracování dat odeslaných z formuláře pro potvrzení účasti klienta na lekci
+     *
+     * @param Form $form Objekt Form formuláře
+     * @param object $data Data z formuláře
+     * @return void
+     */
+    public function confirmFormSucceeded(Form $form,$data): void
+    {
+        $data->ID = (int) $data->id;
+        //$data->ucast;
+        $data->updated_by = $this->userName;
+
+        try
+        {
+          $rst = $this->factoryManager->updateUcast($data);
+
+          $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.", $data->ucast);
+          //$this->flashMessage($_msg);
+          $this->eventlog('diary',$_msg);
+        }
+        catch (\Exception $e)
+        {
+          $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.", $data->ucast);
+          $this->flashMessage($_msg);
+          $this->eventlog('diary',$_msg);
+        }
+
+        $this->redirect('this');
+    }
+
+
+
+    /**
+     * Vrací objekt Form formuláře pro registraci administrátorem nebo lektorem
+     *
+     * @return Form
+     */
+    protected function createComponentRegisterByAdminForm(): Form
+    {
+      $_rst = $this->userManager->getAllUsersOrderBySurname();
+
+      $_users = array();
+      $_users[0] = '- vyberte klienta -';
+
+      foreach ($_rst as $key => $items)
+      {
+        $_users[$items['id']] = sprintf('%s %s (%s)', $items['surname'], $items['firstname'], $items['username']);
+      }
+
+      // Definice formuláře
+      $form = new Form;
+
+      // nastavení ochrany
+      $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+
+      $form->addHidden('diary_id','')
+        ->setHtmlAttribute('id','frm-registerByAdminForm-diary_id');
+
+      $form->addHidden('aktivita_id','')
+        ->setHtmlAttribute('id','frm-registerByAdminForm-aktivita_id');
+
+      $form->addSelect('user_id','Klient', $_users)
+        ->setHtmlAttribute('class','form-control form-control-sm')
+        ->setHtmlAttribute('id','frm-registerByAdminForm-user_id');
+
+      //$form->addHidden('sales_id','')
+      //  ->setHtmlAttribute('id','frm-registerByAdminForm-sales_id');
+
+      // Tlačítko pro odeslání
+      $form->addSubmit('send','Registrovat')
+        ->setHtmlAttribute('class','btn btn-success btn-sm');
+
+      // Definice akce
+      $form->onSuccess[] = [$this,'formRegisterByAdminSucceeded'];
+
+      return $form;
+    }
+
+
+    /**
+     * Zpracování dat odeslaných z formuláře registrace administrátorem nebo lektorem
+     *
+     * @param Form $form Objekt Form formuláře
+     * @param object $data Data z formuláře
+     * @return void
+     */
+    public function formRegisterByAdminSucceeded(Form $form,$data): void
+    {
+      try
+      {
+        $this->createRegistration($data);
+      }
+      catch (\Exception $e)
+      {
+        $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+      }
+
+      $this->redirect('this');
     }
 
 
@@ -977,4 +1144,49 @@ TEXT;
 
       return true;
     }
+
+
+    /**
+     * LEKCE: Vytvoření registrace klienta na lekci
+     *
+     * @param object $data Data pro vytvoření registrace klienta na lekci
+     * @return bool
+     */
+    public function createRegistration($data)
+    {
+      $data->created_by = $this->userName;
+
+      $data->user_id = (int) $data->user_id;
+
+
+      // když neexistuje parametr ID permanentky, bude vytvořen
+      if (!isset($data->sales_id))
+      {
+        $sales_id = $this->userManager->getAktivniPermanentkyID($data->user_id);
+
+        $data->sales_id = $sales_id[$data->aktivita_id];
+      }
+
+      //zruseni_zdarma_ts
+
+      $data->kredit_zmena = -1;
+
+      $rst = $this->factoryManager->insertRegistrace($data);
+
+      if ($rst != 0)
+      {
+        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$rst,$data->user_id,$data->created_by);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+      $_msg = sprintf('Registrace klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+      $this->flashMessage($_msg);
+      $this->eventlog('diary',$_msg);
+
+      return true;
+    }
+
   }

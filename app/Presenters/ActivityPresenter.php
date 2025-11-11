@@ -21,8 +21,11 @@
     public function startup(): void
     {
       parent::startup();
+
       if (!$this->getUser()->isLoggedIn())
       {
+        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
+
         $this->redirect('Homepage:');
       }
     }

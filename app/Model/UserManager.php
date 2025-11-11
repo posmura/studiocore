@@ -638,7 +638,6 @@
      * @param int $aktivita_id ID aktivity
      * @return array
      */
-    //public function getAktivniPermanentkyID(int $user_id, int $aktivita_id): array
     public function getAktivniPermanentkyID(int $user_id): array
     {
       // načtu seznam aktivit

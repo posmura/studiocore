@@ -52,7 +52,7 @@
             <div class="p-2 mx-1 my-4">
                 <div class="row"> 
                     <div class="col-md-6"> 
-                        <ul style="color: #666;">
+                        <ul style="color: #666; font-style: italic;">
                             <li>Aktivita: <strong>{$info['aktivita_nazev']}</strong></li>
                             <li>Název lekce: <strong>{$info['diary_nazev']}</strong></li>
                             <li>Lektor: <strong>{$info['lektor_firstname']} {$info['lektor_surname']}</strong></li>
@@ -60,7 +60,7 @@
                         </ul>
                     </div>
                     <div class="col-md-6"> 
-                        <ul style="color: #666;">
+                        <ul style="color: #666; font-style: italic;">
                             <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
                             <li>Zrušení klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
                             <li>Zrušení pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
@@ -73,7 +73,7 @@
             
             {* *** SEZNAM KLIENTŮ *** *}
             <div class="border border-2 border-warning p-2 mx-1 my-4" style="background-color: #fff;">
-                {foreach $rst as $key => $items}
+                {foreach $data as $key => $items}
                     {if $iterator->first}
                         <table id="tbl-users" class="display" style="width:100%">
                             <thead>
@@ -81,7 +81,7 @@
                                     <th>SMS</th>
                                     <th>Klient</th>
                                     <th>Mobil</th>
-                                    <th>Vstupy</th>
+                                    <th>Kredity</th>
                                     <th>Potvrzení<br>účasti</th>
                                     <th></th>
                                 </tr>
@@ -105,9 +105,31 @@
                             </td>
                             <td>{$items['user_surname']} {$items['user_firstname']}</td>
                             <td>{$items['user_mobil_number']}</td>
-                            <td>???</td>
-                            <td>{$items['registrace_ucast']}</td>
                             <td>
+                                {ifset $items->kredity}
+                                    {foreach $items->kredity as $akey => $aitems}
+                                        {if $aitems['kredity'] < 0} 
+                                            {var $astyle='color: red;'} 
+                                        {elseif $aitems['kredity'] == 0} 
+                                            {var $astyle='color: blue;'}
+                                        {else} 
+                                            {var $astyle='color: green;'}
+                                        {/if}
+                                        <div>
+                                            {$aktivita[$akey]} - <span style="{$astyle|noescape}"><strong>{$aitems['kredity']}</strong></span>
+                                        </div>
+                                    {/foreach}
+                                {/ifset}
+                            </td>
+                            <td>
+                                {var $confirmFormId = "confirmForm-" . $items['registrace_id']}
+                                {form $confirmFormId}{input ucast}{/form}
+
+                                <script>
+                                    $('#frm-{$confirmFormId|noescape}-ucast').val({$items['registrace_ucast']});
+                                </script>
+                                
+                            <td class="text-center">
                                 <a n:href="Diary:cancelRegistration ,$items['user_id'],$items['diary_id'],$items['aktivita_id'],$items['sales_id'],$items['aktivita_zruseni_zdarma_ts'],$items['ts_diary_date']" 
                                    onclick="return confirm('Opravdu si přejete zrušit tuto rezervaci?');" 
                                    style="color: red !important" 
@@ -129,7 +151,7 @@
             {* *** VSTUPY *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Přehled všech registrací na lekci</div>
-                {foreach $rst as $key => $items}
+                {foreach $data as $key => $items}
                     {if $iterator->first}
                         <table class="table" style="width:100%">
                             <thead>
@@ -177,9 +199,20 @@
             {* *** REGISTRACE KLIENTA *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Registrovat klienta na lekci</div>
-                {*form adduserForm*}
-                --- formulář pro přidání klienta ---
-                {*/form*}
+                <div class="p-2" style="text-align: center;">
+                    {form registerByAdminForm}
+                        {input user_id}
+                        <div class="p-2">
+                            {input send}
+                        </div>
+                        {/form}
+                </div>
+                    
+                <script>
+                    $('#frm-registerByAdminForm-diary_id').val({$items['diary_id']});
+                    $('#frm-registerByAdminForm-aktivita_id').val({$items['aktivita_id']});
+                </script>
+
             </div>
             
             {* *** SMS *** *}

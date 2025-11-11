@@ -48,15 +48,20 @@
     public function renderDefault(): void
     {
 
+      // načtu klienty
       $data = $this->userManager->getAllUsers();
+
+      // doplním kredity pro jednotlivé aktivity klienta
       foreach ($data as $key => $items)
       {
         $kredity = $this->userManager->getKredityKlienta($items['id'], $this->userName);
         $data[$key]['kredity'] = $kredity;
       }
 
-      $this->template->aktivita = $this->aktivita;
       $this->template->users = $data;
+
+      // načtu názvy aktivit pro zobrazní v šabloně
+      $this->template->aktivita = $this->aktivita;
     }
 
 
