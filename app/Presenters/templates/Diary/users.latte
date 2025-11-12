@@ -130,7 +130,7 @@
                                 </script>
                                 
                             <td class="text-center">
-                                <a n:href="Diary:cancelRegistration ,$items['user_id'],$items['diary_id'],$items['aktivita_id'],$items['sales_id'],$items['aktivita_zruseni_zdarma_ts'],$items['ts_diary_date']" 
+                                <a n:href="Diary:cancelRegistration ,$items['user_id'],$items['diary_id'],$items['aktivita_id'],$items['sales_id'],$info['aktivita_zruseni_zdarma_ts'],$info['diary_date'].' '.$info['lekce_cas_od']" 
                                    onclick="return confirm('Opravdu si přejete zrušit tuto rezervaci?');" 
                                    style="color: red !important" 
                                    title="zrušit registraci">
@@ -200,17 +200,21 @@
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Registrovat klienta na lekci</div>
                 <div class="p-2" style="text-align: center;">
-                    {form registerByAdminForm}
-                        {input user_id}
-                        <div class="p-2">
-                            {input send}
-                        </div>
+                    {if $dataCount < $info['aktivita_vstupy_max']}
+                        {form registerByAdminForm}
+                            {input user_id}
+                            <div class="p-2">
+                                {input send}
+                            </div>
                         {/form}
+                    {else}
+                        <div class="text-center">Lekce je obsazena.</div>
+                    {/if}
                 </div>
                     
                 <script>
-                    $('#frm-registerByAdminForm-diary_id').val({$items['diary_id']});
-                    $('#frm-registerByAdminForm-aktivita_id').val({$items['aktivita_id']});
+                    $('#frm-registerByAdminForm-diary_id').val({$info['diary_id']});
+                    $('#frm-registerByAdminForm-aktivita_id').val({$info['aktivita_id']});
                 </script>
 
             </div>
@@ -225,7 +229,6 @@
                 <div>&nbsp;</div>
             </div>
                         
-
         {* pravý sloupec - konec*}
         </div> 
     

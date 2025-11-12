@@ -55,6 +55,7 @@
     {
       parent::startup();
 
+      /*
       if (!$this->getUser()->isLoggedIn())
       {
         $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
@@ -63,6 +64,8 @@
 
         die;
       }
+       *
+       */
     }
 
 
@@ -211,23 +214,26 @@
       $info = $this->factoryManager->getLekceInfo($_data);
       $this->template->info = $info[0];
 
-
       // načtu záznamy pro lekci podle diary_id
       $data = $this->factoryManager->getLekceDetail($_data);
 
-      // doplním kredity pro jednotlivé aktivity klienta
+      // doplním kredity pro jednotlivé aktivity klienta a zjistím počet nesmazaných registrací
+      $dataCount = 0;
       foreach ($data as $key => $items)
       {
         $kredity = $this->userManager->getKredityKlienta($items['user_id'], $this->userName);
         $data[$key]['kredity'] = $kredity;
+
+        // upravím počet nesmazaných registrací
+        if ($items['registrace_deleted'] == 0)
+          $dataCount++;
       }
+      $this->template->data = $data;
+      $this->template->dataCount = $dataCount;
 
       // načtu názvy aktivit pro zobrazní v šabloně
-      $this->template->data = $data;
-
       $this->template->aktivita = $this->aktivita;
    }
-
 
 
     /**
@@ -239,10 +245,14 @@
      * @param int $sales_id ID permanentky
      * @param int $kredit_zmena Změna kreditu
      * @param int $zruseni_zdarma_ts Timestamp pro zrušení zdarma, tj. vrácení kreditu (vstupu)
+     * @param string $datum_cas_lekce Datum a čas lekce ve fomatu YYYYMMDD HH:MM
      * @return void
      */
-    public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$kredit_zmena,$zruseni_zdarma_ts): void
+    public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$zruseni_zdarma_ts,$datum_cas_lekce): void
     {
+      // vytvořím timestamp z datumu a času lekce a odečtu timestamp doby zrušení zdarma
+      $dt = \DateTime::createFromFormat('Ymd H:i', $datum_cas_lekce);
+      $_zruseni_zdarma_ts = $dt->getTimestamp() - $zruseni_zdarma_ts;
 
       $data = self::array_to_object(
         [
@@ -250,10 +260,10 @@
           'diary_id' => $diary_id,
           'aktivita_id' => $aktivita_id,
           'sales_id' => $sales_id,
-          'kredit_zmena' => $kredit_zmena,
-          'zruseni_zdarma_ts' => $zruseni_zdarma_ts,
+          'kredit_zmena' => 0,
+          'zruseni_zdarma_ts' => $_zruseni_zdarma_ts,
         ]
-     );
+      );
 
       $this->cancelRegistration($data);
 
@@ -735,7 +745,7 @@
         {
           $this->cancelRegistration($data);
         }
-        elseif ($operace == 'lekce_probehla' || $operace == 'neni_kredit')
+        elseif ($operace == 'lekce_probehla' || $operace == 'neni_kredit' || $operace == 'lekce_obsazena')
         {
           // žádná akce
           $_no_action = true; // zatím proměnou nevyužívám
@@ -1023,6 +1033,7 @@
       $rst['aktivita_id'] = $data['aktivita_id'];
       $rst['date'] = $data['date'];
       $rst['user_id'] = $this->userID;
+      $rst['zruseni_zdarma_ts'] = $data['aktivita_zruseni_zdarma_ts'];
 
       // nastavení akce
       $_data = self::array_to_object(
@@ -1031,6 +1042,9 @@
           'diary_id' => $rst['diary_id']
         ]
       );
+
+      // test na obsazenost lekce
+      $lekce_obsazena = $data['aktivita_vstupy_aktualni'] >= $data['aktivita_vstupy_max'] ? true : false;
 
       // test na registraci klienta na lekci
       $rst_check = $this->factoryManager->checkIsUserIsRegistered($_data);
@@ -1054,21 +1068,30 @@
           // lze registrovat - zkontroluji kredity
           $kredity = $this->userManager->getKredityKlienta($rst['user_id'],$this->userName);
 
-          $kredit = $kredity[$rst['aktivita_id']]['kredity'];
-          if ($kredit < 0)
+          if (!$lekce_obsazena)
           {
-            // nelze registrovat - nejsou kredity
-            $rst['akce_id'] = 'neni_kredit';
-            $rst['akce_desc'] = 'NEMÁTE DOSTATEČNÝ POČET VSTUPŮ';
+            $kredit = $kredity[$rst['aktivita_id']]['kredity'];
+            if ($kredit < 0)
+            {
+              // nelze registrovat - nejsou kredity
+              $rst['akce_id'] = 'neni_kredit';
+              $rst['akce_desc'] = 'NEMÁTE DOSTATEČNÝ POČET VSTUPŮ';
+            }
+            else
+            {
+              // lze registrovat - jsou kredity
+              $rst['akce_id'] = 'registrovat';
+              $rst['akce_desc'] = 'REGISTROVAT';
+
+              // zjistím aktuální permanentku
+              $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
+            }
           }
           else
           {
-            // lze registrovat - jsou kredity
-            $rst['akce_id'] = 'registrovat';
-            $rst['akce_desc'] = 'REGISTROVAT';
-
-            // zjistím aktuální permanentku
-            $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
+            // nelze registrovat - nejsou kredity
+            $rst['akce_id'] = 'lekce_obsazena';
+            $rst['akce_desc'] = 'LEKCE JE OBSAZENA';
           }
         }
         elseif ($is_registered > 0)
@@ -1123,9 +1146,21 @@ TEXT;
     {
       $data->deleted_by = $this->userName;
 
-      //zruseni_zdarma_ts
+      $zruseni_zdarma = $this->isCancelRegistrationFree($data->zruseni_zdarma_ts);
 
-      $data->kredit_zmena = 1;
+      // nastavení hodnoty změny kreditu
+      if ($zruseni_zdarma)
+      {
+        // kredit bude vrácen
+        $data->kredit_zmena = 1;
+        $msg_kredit_zmena = "Kredit byl vrácen. Zrušení registrace proběhlo před termínem konce bezplatného storna.";
+      }
+      else
+      {
+        // kredit vrácen nebude
+        $data->kredit_zmena = 0;
+        $msg_kredit_zmena = "Kredit nebyl vrácen. Zrušení registrace proběhlo po termínu konce bezplatného storna.";
+      }
 
       $rst = $this->factoryManager->deleteRegistrace($data);
 
@@ -1138,9 +1173,24 @@ TEXT;
         return false;
       }
 
-      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s.',$data->user_id,$data->deleted_by);
+      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
+
+      return true;
+    }
+
+
+    /**
+     * Vrací příznak, zde při odregistrování bude vrácen kredit
+     *
+     * @param type $zruseni_zdarma_ts Timestamp zrušení zdarma
+     * @return bool
+     */
+    public function isCancelRegistrationFree($zruseni_zdarma_ts)
+    {
+      if (time() > (int) $zruseni_zdarma_ts)
+        return false;
 
       return true;
     }
@@ -1167,8 +1217,7 @@ TEXT;
         $data->sales_id = $sales_id[$data->aktivita_id];
       }
 
-      //zruseni_zdarma_ts
-
+      // nastavení změny kreditu
       $data->kredit_zmena = -1;
 
       $rst = $this->factoryManager->insertRegistrace($data);
@@ -1183,7 +1232,7 @@ TEXT;
       }
 
       $_msg = sprintf('Registrace klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
-      $this->flashMessage($_msg);
+      //$this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
       return true;
