@@ -89,7 +89,7 @@
 
 {* ZOBRAZENÍ MODÁLU PODLE ROLE PŘIHLÁŠENÉHO UŽIVATELE *}
 {if $user->isLoggedIn()}
-    {if $user->identity->role == "admin"}
+    {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
         {include 'modalAdmin.latte'} 
     {/if}
 {/if}
