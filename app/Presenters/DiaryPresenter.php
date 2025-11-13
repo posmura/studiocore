@@ -6,12 +6,17 @@
 
   use Nette\Application\UI\Form;
   use Nette\Application\UI\Multiplier;
+  use BulkGate\Sdk\Sender;
+  use BulkGate\Sdk\Message\Sms;
 
   /**
    * Třída presenteru pro příspěvky
    */
   final class DiaryPresenter extends BasePresenter
   {
+
+    /** @var Sender @inject */
+    public $sender;
 
     /**
      * Timestamp předaného dne
@@ -54,18 +59,6 @@
     public function startup(): void
     {
       parent::startup();
-
-      /*
-      if (!$this->getUser()->isLoggedIn())
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-
-        $this->redirect('Sign:in');
-
-        die;
-      }
-       *
-       */
     }
 
 
@@ -161,7 +154,7 @@
      */
     public function renderUsers($diary_id): void
     {
-      if(!$diary_id)
+      if (!$diary_id)
       {
         $_msg = sprintf('Chyba! Nebyl zadáno ID události.');
         $this->flashMessage($_msg,'danger');
@@ -169,44 +162,44 @@
         $this->redirect('Diary:');
       }
 
-/*
-  a.`ID` as `registrace_id`,
-  a.`ucast` as `registrace_ucast`,
-  a.`desc` as `registrace_desc`,
-  a.`created_at` as `registrace_created_at`,
-  a.`created_by` as `registrace_created_by`,
-  a.`deleted` as `registrace_deleted`,
-  a.`deleted_at` as `registrace_deleted_at`,
-  a.`deleted_by` as `registrace_deleted_by`,
-  b.`ID` as `diary_id`,
-  b.`nazev` as `diary_nazev`,
-  b.`popis` as `diary_popis`,
-  b.`date` as `diary_date`,
-  b.`hour_from` as `diary_hour_from`,
-  b.`min_from` as `diary_min_from`,
-  b.`hour_to` as `diary_hour_to`,
-  b.`min_to` as `diary_`,
-  b.`desc` as `diary_desc`,
-  c.`id` as `user_id`,
-  c.`surname` as `user_surname`,
-  c.`firstname` as `user_firstname`,
-  c.`email` as `user_email`,
-  c.`mobil_number` as `user_mobil_number`,
-  d.`id` as `aktivita_id`,
-  d.`nazev` as `aktivita_nazev`,
-  d.`vstupy_min` as `aktivita_vstupy_min`,
-  d.`vstupy_max` as `aktivita_vstupy_max`,
-  d.`zruseni_zdarma` as `aktivita_zruseni_zdarma`,
-  d.`zruseni_zdarma_ts` as `aktivita_zruseni_zdarma_ts`,
-  d.`zruseni_neucast` as `aktivita_zruseni_neucast`,
-  d.`zruseni_neucast_ts` as `aktivita_zruseni_neucast_ts`,
-  d.`registrace_konec` as `aktivita_registrace_konec`,
-  d.`registrace_konec_ts` as `aktivita_registrace_konec_ts`,
-  e.`id` as `lektor_id`,
-  e.`surname` as `lektor_surname`,
-  e.`firstname` as `lektor_firstname`,
-  UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`
- */
+      /*
+        a.`ID` as `registrace_id`,
+        a.`ucast` as `registrace_ucast`,
+        a.`desc` as `registrace_desc`,
+        a.`created_at` as `registrace_created_at`,
+        a.`created_by` as `registrace_created_by`,
+        a.`deleted` as `registrace_deleted`,
+        a.`deleted_at` as `registrace_deleted_at`,
+        a.`deleted_by` as `registrace_deleted_by`,
+        b.`ID` as `diary_id`,
+        b.`nazev` as `diary_nazev`,
+        b.`popis` as `diary_popis`,
+        b.`date` as `diary_date`,
+        b.`hour_from` as `diary_hour_from`,
+        b.`min_from` as `diary_min_from`,
+        b.`hour_to` as `diary_hour_to`,
+        b.`min_to` as `diary_`,
+        b.`desc` as `diary_desc`,
+        c.`id` as `user_id`,
+        c.`surname` as `user_surname`,
+        c.`firstname` as `user_firstname`,
+        c.`email` as `user_email`,
+        c.`mobil_number` as `user_mobil_number`,
+        d.`id` as `aktivita_id`,
+        d.`nazev` as `aktivita_nazev`,
+        d.`vstupy_min` as `aktivita_vstupy_min`,
+        d.`vstupy_max` as `aktivita_vstupy_max`,
+        d.`zruseni_zdarma` as `aktivita_zruseni_zdarma`,
+        d.`zruseni_zdarma_ts` as `aktivita_zruseni_zdarma_ts`,
+        d.`zruseni_neucast` as `aktivita_zruseni_neucast`,
+        d.`zruseni_neucast_ts` as `aktivita_zruseni_neucast_ts`,
+        d.`registrace_konec` as `aktivita_registrace_konec`,
+        d.`registrace_konec_ts` as `aktivita_registrace_konec_ts`,
+        e.`id` as `lektor_id`,
+        e.`surname` as `lektor_surname`,
+        e.`firstname` as `lektor_firstname`,
+        UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`
+       */
 
       $_data = self::array_to_object(['diary_id' => $diary_id]);
 
@@ -221,7 +214,7 @@
       $dataCount = 0;
       foreach ($data as $key => $items)
       {
-        $kredity = $this->userManager->getKredityKlienta($items['user_id'], $this->userName);
+        $kredity = $this->userManager->getKredityKlienta($items['user_id'],$this->userName);
         $data[$key]['kredity'] = $kredity;
 
         // upravím počet nesmazaných registrací
@@ -233,7 +226,7 @@
 
       // načtu názvy aktivit pro zobrazní v šabloně
       $this->template->aktivita = $this->aktivita;
-   }
+    }
 
 
     /**
@@ -251,7 +244,7 @@
     public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$zruseni_zdarma_ts,$datum_cas_lekce): void
     {
       // vytvořím timestamp z datumu a času lekce a odečtu timestamp doby zrušení zdarma
-      $dt = \DateTime::createFromFormat('Ymd H:i', $datum_cas_lekce);
+      $dt = \DateTime::createFromFormat('Ymd H:i',$datum_cas_lekce);
       $_zruseni_zdarma_ts = $dt->getTimestamp() - $zruseni_zdarma_ts;
 
       $data = self::array_to_object(
@@ -269,6 +262,7 @@
 
       $this->redirect('Diary:users',$diary_id);
     }
+
 
     /**
      * Vrací týden
@@ -496,16 +490,6 @@
       // Opakovat
       $form->addCheckbox('opakovat','')
         ->setHtmlAttribute('class','form-check-input');
-      /*
-        ->setOption('label',
-        \Nette\Utils\Html::el('label')
-        ->setText('Uživatelské jméno')
-        ->addClass('form-check-label')
-        ->title('aaaaaaa')
-        ->setAttribute('id','frm-diaryForm-opakovat-label-text')
-        );
-       *
-       */
 
       // Poznámka
       $form->addTextArea('desc','Poznámka:')
@@ -800,21 +784,22 @@
        * @param string $id ID registrace, je součástí názvu formuláře
        * @return Form
        */
-      return new Multiplier(function (string $id) {
-        $form = new Form;
+      return new Multiplier(function (string $id)
+        {
+          $form = new Form;
 
-        // ID registrace, ke kterém je formulář přiřazený
-        $form->addHidden('id', $id);
+          // ID registrace, ke kterém je formulář přiřazený
+          $form->addHidden('id',$id);
 
-        // potvrzení účasti klienta na lekci
-        $form->addSelect('ucast', '', $this->ucast)
-          ->setHtmlAttribute('class','form-control form-control-sm')
-          ->setHtmlAttribute('onchange', 'this.form.submit()');
+          // potvrzení účasti klienta na lekci
+          $form->addSelect('ucast','',$this->ucast)
+            ->setHtmlAttribute('class','form-control form-control-sm')
+            ->setHtmlAttribute('onchange','this.form.submit()');
 
-        $form->onSuccess[] = [$this, 'confirmFormSucceeded'];
+          $form->onSuccess[] = [$this,'confirmFormSucceeded'];
 
-        return $form;
-      });
+          return $form;
+        });
     }
 
 
@@ -827,28 +812,27 @@
      */
     public function confirmFormSucceeded(Form $form,$data): void
     {
-        $data->ID = (int) $data->id;
-        //$data->ucast;
-        $data->updated_by = $this->userName;
+      $data->ID = (int) $data->id;
+      //$data->ucast;
+      $data->updated_by = $this->userName;
 
-        try
-        {
-          $rst = $this->factoryManager->updateUcast($data);
+      try
+      {
+        $rst = $this->factoryManager->updateUcast($data);
 
-          $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.", $data->ucast);
-          //$this->flashMessage($_msg);
-          $this->eventlog('diary',$_msg);
-        }
-        catch (\Exception $e)
-        {
-          $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.", $data->ucast);
-          $this->flashMessage($_msg);
-          $this->eventlog('diary',$_msg);
-        }
+        $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.",$data->ucast);
+        //$this->flashMessage($_msg);
+        $this->eventlog('diary',$_msg);
+      }
+      catch (\Exception $e)
+      {
+        $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.",$data->ucast);
+        $this->flashMessage($_msg);
+        $this->eventlog('diary',$_msg);
+      }
 
-        $this->redirect('this');
+      $this->redirect('this');
     }
-
 
 
     /**
@@ -865,7 +849,7 @@
 
       foreach ($_rst as $key => $items)
       {
-        $_users[$items['id']] = sprintf('%s %s (%s)', $items['surname'], $items['firstname'], $items['username']);
+        $_users[$items['id']] = sprintf('%s %s (%s)',$items['surname'],$items['firstname'],$items['username']);
       }
 
       // Definice formuláře
@@ -880,13 +864,12 @@
       $form->addHidden('aktivita_id','')
         ->setHtmlAttribute('id','frm-registerByAdminForm-aktivita_id');
 
-      $form->addSelect('user_id','Klient', $_users)
+      $form->addSelect('user_id','Klient',$_users)
         ->setHtmlAttribute('class','form-control form-control-sm')
         ->setHtmlAttribute('id','frm-registerByAdminForm-user_id');
 
       //$form->addHidden('sales_id','')
       //  ->setHtmlAttribute('id','frm-registerByAdminForm-sales_id');
-
       // Tlačítko pro odeslání
       $form->addSubmit('send','Registrovat')
         ->setHtmlAttribute('class','btn btn-success btn-sm');
@@ -916,6 +899,98 @@
         $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
+      }
+
+      $this->redirect('this');
+    }
+
+
+    /**
+     * Vrací objekt Form formuláře pro odeslání SMS
+     *
+     * @return Form
+     */
+    protected function createComponentSendSmsForm(): Form
+    {
+      // Definice formuláře
+      $form = new Form;
+
+      // nastavení ochrany
+      $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+
+      $form->addText('sms_mobile_numbers','')
+        ->setHtmlAttribute('id','frm-sendSmsForm-sms_mobile_numbers')
+        ->setHtmlAttribute('style','display: none;')
+        ->setRequired("Nebylo zvoleno žádné číslo mobilního telefonu!");
+
+      $form->addTextArea('sms_msg','Text SMS zprávy:')
+        ->setHtmlAttribute('class','form-control form-control-sm')
+        ->setRequired("%label je vyžadován!");
+
+      // Tlačítko pro odeslání
+      $form->addSubmit('send','Odeslat SMS')
+        ->setHtmlAttribute('class','btn btn-success btn-sm');
+
+      // Definice akce
+      $form->onSuccess[] = [$this,'formSendSmsSucceeded'];
+
+      return $form;
+    }
+
+
+    /**
+     * Zpracování dat odeslaných z formuláře pro odeslání SMS
+     *
+     * @param Form $form Objekt Form formuláře
+     * @param object $data Data z formuláře
+     * @return void
+     */
+    public function formSendSmsSucceeded(Form $form,$data): void
+    {
+      // ošetření telefonní čísla
+      $sms_mobile_numbers = explode('|',$data->sms_mobile_numbers);
+
+      if (!count($sms_mobile_numbers))
+      {
+        $_msg = sprintf('Chyba! Nebylo zvoleno žádné číslo mobilního telefonu.','');
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+        $this->redirect('this');
+      }
+
+      // ošetření textu zprávy
+      $sms_msg = htmlspecialchars($data->sms_msg,ENT_QUOTES | ENT_HTML5,'UTF-8');
+
+      if (!$sms_msg)
+      {
+        $_msg = sprintf('Chyba! Nebyl zadán text SMS zprávy.','');
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+        $this->redirect('this');
+      }
+
+      // odeslání zprávy
+      $sms_msg = sprintf("STUDIO CORE | Rezervacni system: %s",$sms_msg);
+
+      foreach ($sms_mobile_numbers as $sms_mobile_number)
+      {
+        // validace telefonního čísla
+        if (!$this->checkSmsPhone($sms_mobile_number))
+        {
+          $_msg = sprintf('Chyba! Chybný formát telefonního čísla %s.',$sms_mobile_number);
+          $this->flashMessage($_msg,'danger');
+          $this->eventlog('sign',$_msg);
+
+          continue;
+        }
+
+        // odeslání SMS
+        if ($this->sender->send(new Sms($sms_mobile_number,$sms_msg)))
+        {
+          $_msg = sprintf('SMS %s byla předána k odeslání.',$sms_mobile_number);
+          $this->flashMessage($_msg);
+          $this->eventlog('diary',$_msg);
+        }
       }
 
       $this->redirect('this');
@@ -1053,13 +1128,13 @@
       else
         $is_registered = $rst_check['pocet'];
 
-      if ($data['aktivita_registrace_konec_ts'] <= time())
+      if ($data['aktivita_registrace_konec_ts'] <= time() && $is_registered == 0)
         $is_registered = -1;
 
       if ($is_registered == -1)
       {
         $rst['akce_id'] = 'lekce_probehla';
-        $rst['akce_desc'] = 'LEKCE JIŽ PROBĚHLA';
+        $rst['akce_desc'] = 'NA LEKCI SE JIŽ NELZE REGISTROVAT';
       }
       else
       {
@@ -1103,7 +1178,6 @@
           // zjistím permanentku při registraci klientem
           $_sales = $this->factoryManager->getSalesId($_data);
           $rst['sales_id'] = $_sales['sales_id'] ?? 0;
-
         }
         else
         {
@@ -1208,7 +1282,6 @@ TEXT;
 
       $data->user_id = (int) $data->user_id;
 
-
       // když neexistuje parametr ID permanentky, bude vytvořen
       if (!isset($data->sales_id))
       {
@@ -1237,5 +1310,4 @@ TEXT;
 
       return true;
     }
-
   }

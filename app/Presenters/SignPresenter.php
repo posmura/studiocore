@@ -411,7 +411,7 @@
       $this->userManager->updatePasswordRecoveryPin($_data);
 
       // připravím text pro SMS
-      $pin_text = sprintf("Rezervační sytém STUDIO CORE: PIN pro obnovu hesla je %s",$pin);
+      $pin_text = sprintf("STUDIO CORE | Rezervacni system: PIN pro obnovu hesla je %s",$pin);
       //$this->flashMessage($pin_text);
 
       $this->eventlog('sign',$pin_text);

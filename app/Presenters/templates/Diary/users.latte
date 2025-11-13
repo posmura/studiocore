@@ -93,12 +93,11 @@
                         <tr>
                             <td>
                                 <div class="form-check">
-                                    <input class="form-check-input" 
+                                    <input class="form-check-input multi-check" 
                                            type="checkbox" 
                                            id="sms-{$key|noescape}" 
                                            name="sms_{$key|noescape}" 
                                            value="{$items['user_mobil_number']|noescape}"
-                                           onclick="alert(this.value)"
                                            >
                                     <label class="form-check-label"></label>
                                 </div>
@@ -222,11 +221,13 @@
             {* *** SMS *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">SMS zpráva označeným klientům</div>
-                <div>&nbsp;</div>
-   
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
+                <div class="p-2" style="text-align: center;">
+                    {form sendSmsForm}
+                        {input sms_mobile_numbers}
+                        <div>{label sms_msg /}{input sms_msg}</div>
+                        <div class="p-2">{input send}</div>
+                    {/form}
+                </div>
             </div>
                         
         {* pravý sloupec - konec*}
@@ -239,7 +240,28 @@
 </div>
 
 {if $user->isLoggedIn()}
+
     <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const checkboxes = document.querySelectorAll('.multi-check');
+            const hiddenInput = document.getElementById('frm-sendSmsForm-sms_mobile_numbers');
+            
+            function updateHiddenInput() {
+                // vezmeme všechny zaškrtnuté checkboxy
+                const values = Array.from(checkboxes)
+                        .filter(cb => cb.checked)
+                        .map(cb => cb.value);
+
+                // spojíme je pomocí |
+                hiddenInput.value = values.join('|');
+            }
+
+            // navěsíme listener na změnu stavu checkboxů
+            checkboxes.forEach(cb => {
+                cb.addEventListener('change', updateHiddenInput);
+            });
+        });
+
         let dataTableContact = new DataTable('#tbl-users', {
             language: {
                 url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
