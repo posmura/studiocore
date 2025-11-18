@@ -12,6 +12,12 @@
   final class MembershipCardPresenter extends BasePresenter
   {
 
+    /**
+     * Povolenmé metody, kdy uživatel nemusí být přihlášem
+     * @var array
+     */
+    private array $allowedActions = ['priceList'];
+
 
     /**
      * Inicalizace presenteru
@@ -22,7 +28,7 @@
     {
       parent::startup();
 
-      if (!$this->getUser()->isLoggedIn())
+      if (!$this->getUser()->isLoggedIn() && !in_array($this->getAction(), $this->allowedActions, true))
       {
         $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
 
@@ -32,13 +38,24 @@
 
 
     /**
-     * Seznam všech uživatelů
+     * Seznam všech permanentek pro administraci
      *
      * @return void
      */
     public function renderDefault(): void
     {
       $this->template->data = $this->membershipCardManager->getAllPermanentka();
+    }
+
+
+    /**
+     * Seznam všech permanentek pro ceník
+     *
+     * @return void
+     */
+    public function renderPriceList(): void
+    {
+      $this->template->data = $this->membershipCardManager->getAllPermanentkaOrderByActivity();
     }
 
 

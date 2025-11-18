@@ -1,0 +1,40 @@
+{block content}
+<div id="banner">
+    <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
+        <strong>CENÍK</strong></div>
+</div>
+
+<div id="content">
+
+        <div class="mt-3">
+            <div class="border border-1 p-2">
+                <table class="table " style="width:100%;">
+                    <thead>
+                        <tr>
+                            <th>Aktivita</th>
+                            <th>Název</th>
+                            <th style="text-align: right;">>Cena</th>
+                            <th style="text-align: right;">>Platnost [dny]</th>
+                            <th style="text-align: right;">Počet vstupů</th>
+                        </tr>
+                    </thead>
+
+                    <tbody>
+                        {foreach $data as $item}
+                            {if $item->aktivni = 'ano'}
+                                <tr>
+                                    <td>{$presenter->aktivita[$item->aktivita_id]}</td>
+                                    <td>{$item->nazev}</td>
+                                    <td style="text-align: right;">{$item->cena},-</td>
+                                    <td style="text-align: right;">{$item->platnost}</td>
+                                    <td style="text-align: right;">{$item->vstupy}</td>
+                                </tr>
+                            {/if}
+                        {/foreach}
+                    </tbody>
+                </table>
+            </div> 
+        </div> 
+                    
+</div>
+
