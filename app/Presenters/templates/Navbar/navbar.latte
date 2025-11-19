@@ -1,4 +1,4 @@
-<nav class="border border-bottom-1 navbar navbar-expand-sm XXXnavbar-dark XXXbg-light d-print-none fixed-top" style="background-color: #02386c; border-radius: 0;">
+<nav class="border border-bottom-1 navbar navbar-dark navbar-expand-xl d-print-none fixed-top" style="color: #fff; background-color: #02386c; border-radius: 0;">
 
     <div class="container-fluid">
         <a class="navbar-brand" href="https://studiocore.cz" target="_blank">
@@ -61,26 +61,53 @@
                 {/if}
 
                 <li class="nav-item mx-2">
-                    <a href="/docs/rezervacni_rad.pdf" target="_blank" class="nav-link nav-rs">REZERVAČNÍ ŘÁD</a>
+                    <a href="/docs/rezervacni_rad.pdf" target="_blank" class="nav-link nav-rs"><span style="white-space: nowrap;">REZERVAČNÍ ŘÁD</span></a>
                 </li>
 
             </ul>
 
             {if $user->isLoggedIn()}
-                <span class="padding-right-20 text-white" title="{$user->identity->email}">Uživatel: <strong>{$user->identity->username}</strong></span>
-                <span class="padding-right-20 text-white">Kredity: 
-                        {foreach $kredity as $key => $items}
-                            {if $iterator->first}{else}, {/if}
-                            <strong> {$items['aktivita_nazev']}: <span class="px-1" style="background-color: #fff; color: #02386c;">{$items['kredity']}</span></strong> 
-                        {/foreach}
-                </span>
-                <a n:href="Sign:out" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-left pe-2"></i> Odhlášení</a>
+                <span style="white-space: nowrap;" class="padding-right-20 text-white" title="{$user->identity->email}">Uživatel: <strong>{$user->identity->username}</strong></span>
+                {if $user->identity->role == "klient"}
+                    <button class="btn btn-outline-light mx-2 px-2" data-bs-toggle="modal" data-bs-target="#modalKlientKredity"><span style="white-space: nowrap;"><i class="bi bi-credit-card pe-2"></i> Kredity</span></button>                {/if}
+                
+                <a n:href="Sign:out" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-box-arrow-left pe-2"></i> Odhlášení</span></a>
             {else}
-                <a n:href="Sign:in" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-box-arrow-in-right pe-2"></i> Přihlášení</a>
-                <a n:href="Sign:up" class="btn btn-outline-light mx-2 px-2" type="button"><i class="bi bi-person-circle pe-2"></i> Registrace</a>
+                <a n:href="Sign:in" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-box-arrow-in-right pe-2"></i> Přihlášení</span></a>
+                <a n:href="Sign:up" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-person-circle pe-2"></i> Registrace</span></a>
             {/if}
         </div>
 
     </div>
 
 </nav>
+        
+{if $user->isLoggedIn() && $user->identity->role == "klient"}
+    <div class="modal fade" id="modalKlientKredity" data-bs-backdrop="static" data-bs-keyboard="false">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Vaše kredity</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                
+                <div class="modal-body">
+                    <table class="table">
+                        <tr>
+                            <th>Aktivita</th>
+                            <th>Počet dostupných kreditů</th>
+                        </tr>
+                        {foreach $kredity as $key => $items}
+                            <tr>
+                                <td>{$items['aktivita_nazev']}</td>
+                                <td>{$items['kredity']}</td>
+                            </tr>
+                        {/foreach}
+                    </table>
+                </div>
+
+            </div>
+        </div>
+    </div>
+{/if}
+

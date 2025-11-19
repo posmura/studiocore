@@ -40,11 +40,28 @@
         
         <div class="blog-footer p-5">
             <div class="border-top border-color-warning text-center color-secondary">
-                &copy; {$ts|date:'Y'} STUDIO CORE. Veškerá práva vyhrazena.
+                &copy; {$ts|date:'Y'} <a href="https://www.studiocore.cz/" target="_blank" style="color: #e67c2f !important;">STUDIO CORE</a>. Veškerá práva vyhrazena.
             </div>
+            <div class="text-center color-secondary small">
+                <em><i class="bi bi-braces-asterisk"></i> <a href="https://posmura.cz/" target="_blank" style="color: #e67c2f !important;">Vlasta Pošmura</a>, {$ts|date:'Y'}</em>
+            </div>
+
         </div>
 
-        {block scripts}{/block}
+        {block scripts}
+        <script>
+            function adjustNavbarSpacing() {
+                const navbar = document.querySelector('.navbar');
+                const content = document.querySelector('container');
+                
+                const navHeight = navbar.offsetHeight;
+                content.style.paddingTop = navHeight + 'px';
+            }
+            
+            window.addEventListener('load', adjustNavbarSpacing);
+            window.addEventListener('resize', adjustNavbarSpacing);
+        </script>
+        {/block}
         
     </body>
 </html>

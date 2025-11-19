@@ -1129,12 +1129,24 @@
         $is_registered = $rst_check['pocet'];
 
       if ($data['aktivita_registrace_konec_ts'] <= time() && $is_registered == 0)
+      {
         $is_registered = -1;
+        $_akce_desc = 'NA LEKCI SE JIŽ NELZE REGISTROVAT';
+      }
+      elseif  ($data['aktivita_registrace_konec_ts'] <= time() && $is_registered > 0)
+      {
+        $is_registered = -1;
+        $_akce_desc = 'REGISTRACE NA LEKCI JIŽ NELZE UPRAVIT';
+      }
+      else 
+      {
+        $_akce_desc = '';
+      }
 
       if ($is_registered == -1)
       {
         $rst['akce_id'] = 'lekce_probehla';
-        $rst['akce_desc'] = 'NA LEKCI SE JIŽ NELZE REGISTROVAT';
+        $rst['akce_desc'] = $_akce_desc;
       }
       else
       {

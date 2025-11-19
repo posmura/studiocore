@@ -17,11 +17,28 @@
                 <div class="mb-3 mt-3">{label username /}{input username}</div>
                 <div class="mb-3 mt-3">{label surname /}{input surname}</div>
                 <div class="mb-3 mt-3">{label firstname /}{input firstname}</div>
+
                 <div class="mb-3 mt-3">
-                    {label password /}{input password}
-                    <div class="text-danger">{inputError password}</div>
+                    {label password /}
+                    <div class="input-group">
+                        {input password}
+                        <button class="btn btn-outline-secondary togglePassword" type="button">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                    <div class="text-danger">{inputError password}</div>                        
                 </div>
-                <div class="mb-3 mt-3">{label password_verify /}{input password_verify}</div>
+                
+                <div class="mb-3 mt-3">
+                    {label password_verify /}
+                    <div class="input-group">
+                        {input password_verify}
+                        <button class="btn btn-outline-secondary togglePassword" type="button">
+                            <i class="bi bi-eye"></i>
+                        </button>
+                    </div>
+                </div>
+                        
                 <div class="mb-3 mt-3">{label email /}{input email}</div>
                 <div class="mb-3 mt-3">{label email_verify /}{input email_verify}</div>
                 <div class="mb-3 mt-3">{label mobil_number /}{input mobil_number}</div>
@@ -37,3 +54,24 @@
         <div class="col-sm-4"></div>        
     </div>
 </div>
+            
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.togglePassword').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const input = btn.parentElement.querySelector('input');
+                const icon = btn.querySelector('i');
+                
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    icon.classList.remove('bi-eye');
+                    icon.classList.add('bi-eye-slash');
+                } else {
+                    input.type = 'password';
+                    icon.classList.remove('bi-eye-slash');
+                    icon.classList.add('bi-eye');
+                }
+            });
+        });
+    });
+</script>
