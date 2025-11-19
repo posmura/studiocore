@@ -92,6 +92,27 @@ SQL;
 
 
     /**
+     * KREDITY: Ruční úprava kreditu klienta pro konkrétní aktivita_id
+     *
+     * @return string
+     */
+    public static function updateKredit(): string
+    {
+      return <<<SQL
+UPDATE blog_credits
+SET
+  `kredity`= ?,
+  `updated_at`=NOW(),
+  `updated_by`=?
+ WHERE
+   user_id=?
+   AND aktivita_id=?
+   AND deleted=0
+SQL;
+    }
+
+
+    /**
      * KREDITY: Upraví aktualní vstupy na aktuální pemanentce klienta při změně registrace (přihlášení/odhlášení na/z lekce)
      *
      * @return string
@@ -1665,6 +1686,7 @@ ORDER BY
 SQL;
     }
 
+
     /**
      * LEKCE: Vrací detail lekce podle diary_id
      *
@@ -1794,5 +1816,4 @@ SET
    `ID`=?
 SQL;
     }
-
   }

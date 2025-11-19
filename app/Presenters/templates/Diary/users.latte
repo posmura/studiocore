@@ -102,7 +102,9 @@
                                     <label class="form-check-label"></label>
                                 </div>
                             </td>
-                            <td>{$items['user_surname']} {$items['user_firstname']}</td>
+                            <td>
+                                <a n:href="User:user $items['user_id']" style="color: #e67c2f !important;"><strong>{$items['user_surname']} {$items['user_firstname']}</strong></a>
+                            </td>
                             <td>{$items['user_mobil_number']}</td>
                             <td>
                                 {ifset $items->kredity}

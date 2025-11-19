@@ -573,6 +573,22 @@
       );
     }
 
+    /**
+     * KREDITY: Ruční úprava kreditu klienta pro konkrétní aktivita_id
+     *
+     * @param object $data Data pro kredity
+     * @return bool
+     */
+    public function updateKredit($data)
+    {
+      return $this->database->query(SqlCommands::updateKredit(),
+          $data->kredit,
+          $data->updated_by,
+          $data->user_id,
+          $data->aktivita_id
+      );
+    }
+
 
     /**
      * KREDITY: Načte kredity klienta

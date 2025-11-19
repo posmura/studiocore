@@ -24,6 +24,12 @@
      */
     const PWD_MAX_LENGTH = 50;
 
+    /**
+     * Seznam aktivit
+     * @var array
+     */
+    public $_aktivity;
+
 
     /**
      * Inicalizace presenteru
@@ -37,6 +43,12 @@
       {
         $this->redirect('Homepage:');
       }
+
+      // načtu seznam aktivit
+      $this->_aktivity = $this->aktivita;
+      if (isset($this->_aktivity[0]))
+        unset($this->_aktivity[0]);
+      ksort($this->_aktivity);
     }
 
 
@@ -54,7 +66,7 @@
       // doplním kredity pro jednotlivé aktivity klienta
       foreach ($data as $key => $items)
       {
-        $kredity = $this->userManager->getKredityKlienta($items['id'], $this->userName);
+        $kredity = $this->userManager->getKredityKlienta($items['id'],$this->userName);
         $data[$key]['kredity'] = $kredity;
       }
 
@@ -72,16 +84,17 @@
      */
     public function renderUser($userID): void
     {
+
       if (!$userID)
         $userID = $this->userID;
 
       $ts = strtotime(date('Y-m-d 23:59:59'));
 
       $data = self::array_to_object(
-        [
-          'id' => $userID,
-          'ts' => $ts,
-        ]
+          [
+            'id' => (int) $userID,
+            'ts' => $ts,
+          ]
       );
 
       $this->template->user_id = $userID;
@@ -95,6 +108,12 @@
 
       // registrace uživatele
       $this->template->registrace_data = $this->userManager->getRegistraceByUserID($data);
+
+      // kredity - seznam aktivit
+      $this->template->_aktivity = $this->_aktivity;
+
+      // kredity - seznam hpdnot kreditů jednotlivých aktivit
+      $this->template->_kredity = $this->userManager->getKredityKlienta($data->id,$this->userName);
     }
 
 
@@ -199,7 +218,7 @@
         ->setRequired('%label je vyžadováno!');
 
       $form->addText('mobil_number','Mobilní telefon:')
-        ->addRule(Form::PATTERN, '%label může obsahovat jen čísla a nepovinně znak + na začátku.', '^\+?[0-9]+$')
+        ->addRule(Form::PATTERN,'%label může obsahovat jen čísla a nepovinně znak + na začátku.','^\+?[0-9]+$')
         ->setHtmlAttribute('class','form-control form-control-sm')
         ->setHtmlAttribute('placeholder','')
         ->setRequired('%label je vyžadován!');
@@ -324,6 +343,92 @@
       $this->flashMessage('Heslo pro uživatelský účet \''.$data->username.'\' bylo změněno!');
       $this->eventlog('sign','Heslo pro uživatelský účet \''.$data->username.'\' bylo změněno!');
       $this->redirect('User:user',$data->id);
+    }
+
+
+    /**
+     * Definice formuláře pro změnu kreditu
+     *
+     * @return Form
+     */
+    protected function createComponentKreditForm(): Form
+    {
+      $form = new Form;
+
+      $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+
+      $form->addHidden('user_id')
+        ->setHtmlAttribute('ID','frm-kreditForm-user_id');
+
+      foreach ($this->_aktivity as $key => $items)
+      {
+        $form->addInteger('kredit_'.$key,$items.':')
+          ->setHtmlAttribute('class','form-control form-control-sm')
+          ->setHtmlAttribute('placeholder','')
+          ->setRequired("Kredit pro aktivitu %label je vyžadován!");
+      }
+
+      $form->addSubmit('send','Odeslat')
+        ->setHtmlAttribute('class','btn btn-success btn-sm');
+
+      $form->onSuccess[] = [$this,'formKreditFormSucceeded'];
+
+      return $form;
+    }
+
+
+    /**
+     * Akce po odeslání formuláře pro změnu kreditu
+     *
+     * @param Form $form Objekt formuláře
+     * @param type $data Data z formuláře
+     * @return void
+     */
+    public function formKreditFormSucceeded(Form $form,$data): void
+    {
+      $data->updated_by = $this->userName;
+
+      $params = array();
+
+      // vytvořím data pro aktualizace
+      foreach ($data as $key => $items)
+      {
+        if (substr($key,0,7) == 'kredit_')
+        {
+          $_kredit = explode('_',$key);
+          $_aktivita_id = $_kredit[1];
+
+          $params[$_aktivita_id] = array(
+            'user_id' => $data->user_id,
+            'aktivita_id' => $_aktivita_id,
+            'kredit' => $items,
+            'updated_by' => $this->userName,
+          );
+        }
+      }
+
+      // vlastní aktualizace kreditu
+      foreach ($params as $key => $items)
+      {
+        $_data = self::array_to_object($items);
+
+        try
+        {
+          $this->factoryManager->updateKredit($_data);
+        }
+        catch (\Exception $e)
+        {
+          $_msg = 'Chyba! Kredity pro uživatele ID='.$data->user_id.' nebyly změněny!';
+          $this->flashMessage($_msg,'danger');
+          $this->eventlog('sign',$_msg);
+          $this->redirect('User:user',$data->user_id);
+          }
+      }
+
+      $_msg = 'Kredity pro uživatele ID='.$data->user_id.' byly změněny!';
+      $this->flashMessage($_msg);
+      $this->eventlog('sign',$_msg);
+      $this->redirect('User:user',$data->user_id);
     }
 
 
