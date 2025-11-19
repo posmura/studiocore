@@ -81,9 +81,26 @@
         
         {* prostřední sloupec *}
         <div class="col-md-4"> 
+            {* *** KREDIT *** *}
+            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                <div style="font-size: 120%; font-weight: bold;">Úprava kreditu</div>
+                <div class="p-2" style="text-align: center;">
+                    {form kreditForm}
+                        <div>{label kredit /}{input kredit}</div>
+                        <div class="p-2">{input send}</div>
+                    {/form}
+                </div>
+                
+                <script>
+                    $('#frm-kreditForm-kredit').val({$info['kredit']});
+                </script>
+
+            </div>
+
+            
             {* *** VSTUPY *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
-                <div style="font-size: 120%; font-weight: bold;">Registrace</div>
+                <div style="font-size: 120%; font-weight: bold;">Přehled registrací</div>
                 <div>&nbsp;</div>
                 {ifset $registrace_data}
                     {foreach $registrace_data as $item}

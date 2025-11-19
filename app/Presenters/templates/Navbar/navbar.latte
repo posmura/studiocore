@@ -1,4 +1,4 @@
-<nav class="border border-bottom-1 navbar navbar-dark navbar-expand-xl d-print-none fixed-top" style="color: #fff; background-color: #02386c; border-radius: 0;">
+<nav class="border border-bottom-1 navbar navbar-dark navbar-expand-xl d-print-none fixed-top navbar-blog" >
 
     <div class="container-fluid">
         <a class="navbar-brand" href="https://studiocore.cz" target="_blank">
@@ -9,8 +9,8 @@
                 >
         </a>
 
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar" style="color: #fff !important;">
-            <span class="navbar-toggler-icon" style="color: #fff !important;"></span>
+        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#mynavbar">
+            <span class="navbar-toggler-icon"></span>
         </button>
 
         <div class="collapse navbar-collapse" id="mynavbar">
@@ -33,7 +33,7 @@
                     <li class="nav-item dropdown">
                         <a class="nav-link  nav-rs dropdown-toggle mx-2" href="#" role="button" data-bs-toggle="dropdown">ADMINISTRACE</a>
 
-                        <ul class="dropdown-menu" style="background-color: #02386c;">
+                        <ul class="dropdown-menu dropdown-menu-blog">
                             {if $user->identity->role == "klient"}
                                 <li>
                                     <a class="dropdown-item" n:href="User:user $user->identity->id" class="nav-link">Uživatel</a>
@@ -41,7 +41,7 @@
                             {/if}
                             {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
                                 <li>
-                                    <a class="dropdown-item" n:href="User:default" class="nav-link">Uživatel</a>
+                                    <a class="dropdown-item" n:href="User:default" class="nav-link nav-link-blog">Uživatel</a>
                                 </li>
                                 <li>
                                     <a class="dropdown-item" n:href="MembershipCard:default" class="nav-link">Permanentky</a>

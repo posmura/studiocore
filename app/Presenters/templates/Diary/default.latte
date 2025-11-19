@@ -21,15 +21,15 @@
         {* panel s tlačítky *}
         <div class="m-3 d-print-none ">
 
-            {* řadka nový záznam *}
+            {* řadka datum a nový záznam *}
             <div class="row mb-3 p-0">
-                <div class="col-sm-6" style="padding: 2px;">
+                <div class="col-sm-6 p-0">
                     {form diaryDateForm}
                         {*label date /*}{input date} &nbsp; {input send}
                     {/form}
                 </div>
 
-                <div class="col-sm-6" style="padding: 2px;">
+                <div class="col-sm-6 p-0">
                     <div style="text-align: right;">
                         {if $user->identity->role == "admin"}
                             <button type="button" class="btn btn-success btn-sm" onclick="openNewDiaryAdminForm();">
@@ -41,14 +41,12 @@
             </div>
 
             {* řadka tlačítek pro pohyb po datech *}
-            <div class="row" style="background-color:#f3f3f3;">
+            <div class="row row-diary-select-week">
                 <div class="col-sm-4" style="padding: 2px;">
-                    {*if $user->identity->role == "admin" && $user->identity->role == "lektor"*}
                     <div style="text-align: left;">
                         <a n:href="Diary:default $diaryPrevWeek" type="button" class="btn btn-primary btn-sm">
                             <i class="bi bi-caret-left-fill padding-right-10"></i> Předchozí</a>
                     </div>
-                    {*/if*}
                 </div>
                 <div class="col-sm-4" style="padding: 2px;">
                     <div style="text-align: center;">
@@ -69,22 +67,22 @@
 
     <div class="row">
         {for $i=1; $i <= 7; $i++}
-            <div class="col-xl border m-1 p-0 mb-5" style="background-color:#fafafa;">
+            <div class="col-xl border m-1 p-0 mb-5 th-diary-nameday">
                 <table style="width: 100%;">
-                    <tr class="td_diary_nameday">
-                        <th class="td_diary td_diary_nameday td_diary_{$i|noescape} td_diary_header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
+                    <tr class="td-diary-nameday">
+                        <th class="td_diary th-diary-nameday td-diary-{$i|noescape} td-diary-header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
                             <span style="font-size: 75%;">{$diaryWeek[$i]['diaryNameDay']}</span>
                         </th>
                     </tr>
 
-                    <tr class="td_diary_date">
-                        <td class="td_diary td_diary_date td_diary_{$i|noescape} td_diary_header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
+                    <tr class="td-diary-date">
+                        <td class="td_diary td-diary-date td-diary-{$i|noescape} td-diary-header" style="{if $diaryWeek[$i]['diaryToday']}background-color: #FFF3CD;{else}background-color:#d1d1d1;{/if}">
                             {$diaryWeek[$i]['diaryDateFormat']}
                         </td>
                     </tr>
 
                     <tr class="tr_diary_event">
-                        <td class="td_diary td_diary_event small p-1" style="">
+                        <td class="td_diary td-diary-event small p-1" style="">
                             {foreach $diaryEvents as $key => $items}
                                 {if $items['diaryDate'] == $diaryWeek[$i]['diaryDate']}
                                                                                     
