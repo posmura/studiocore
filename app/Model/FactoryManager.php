@@ -514,13 +514,21 @@
       if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id))
         return 1;
 
-      // upravím kredity (-1)
-      if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
-        return 2;
+      // když není permice, odečtu jen kredit
+      if (!$data->sales_id && $data->sales_id == 0)
+      {
+        // upravím kredity (-1)
+        if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
+          return 2;
+      }
 
-      // upravím kredity v aktivní permanentce
-      if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
-        return 3;
+      // když je permice, odečtu jen permici
+      if ($data->sales_id && $data->sales_id > 0)
+      {
+        // upravím kredity v aktivní permanentce
+        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
+          return 3;
+      }
 
       return 0;
     }
@@ -537,20 +545,22 @@
 
       // zruším registraci
       if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id))
+          return 1;
+
+      // když není permice, odečtu jen kredit
+      if (!$data->sales_id && $data->sales_id == 0)
       {
-        return 1;
+        // upravím kredity(+1)
+        if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id))
+          return 2;
       }
 
-      // upravím kredity(+1)
-      if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id))
+      // když je permice, odečtu jen permici
+      if ($data->sales_id && $data->sales_id > 0)
       {
-        return 2;
-      }
-
-      // upravím kredity v aktivní permanentce
-      if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
-      {
-        return 3;
+        // upravím kredity v aktivní permanentce
+        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
+          return 3;
       }
 
       return 0;

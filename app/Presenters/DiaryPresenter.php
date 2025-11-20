@@ -1138,7 +1138,7 @@
         $is_registered = -1;
         $_akce_desc = 'REGISTRACE NA LEKCI JIŽ NELZE UPRAVIT';
       }
-      else 
+      else
       {
         $_akce_desc = '';
       }

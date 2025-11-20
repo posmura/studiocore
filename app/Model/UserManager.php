@@ -586,7 +586,7 @@
           $ret[$aktivita_id]['kredity'] = $kredity + $ret[$aktivita_id]['perm_all_vstupy_aktualni'];
         }
 
-        $refresh = $this->database->query(SqlCommands::refreshKredityKlienta(), $ret[$aktivita_id]['kredity'],$user_name,  $user_id, $aktivita_id);
+        //$refresh = $this->database->query(SqlCommands::refreshKredityKlienta(), $ret[$aktivita_id]['kredity'],$user_name,  $user_id, $aktivita_id);
 
       }
 
