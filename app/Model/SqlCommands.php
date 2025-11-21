@@ -1476,7 +1476,8 @@ SELECT
   vstupy_celkem,
   vstupy_aktualni,
   SUM(vstupy_celkem) OVER (PARTITION BY user_id, aktivita_id) AS vstupy_celkem_skupina,
-  SUM(vstupy_aktualni) OVER (PARTITION BY user_id, aktivita_id) AS vstupy_aktualni_skupina
+  SUM(vstupy_aktualni) OVER (PARTITION BY user_id, aktivita_id) AS vstupy_aktualni_skupina,
+  created_by
 FROM
   blog_sales
 WHERE

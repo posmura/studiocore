@@ -85,13 +85,26 @@
                 {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor")}
                     {* *** KREDIT *** *}
                     <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
-                        <div style="font-size: 120%; font-weight: bold;">Úprava kreditu</div>
+                        <div style="font-size: 120%; font-weight: bold;">Kredit</div>
+                        <div class="alert alert-success small">
+                            Zadejte hodnotu kreditu pro danou aktivitu. 
+                            <br>
+                            <strong>Upozornění:</strong> Výpočet konečné hodnoty kreditu se odvíjí od hodnoty kreditů (vstupů) aktivních permanentek klienta.
+                            <br>
+                            Přehled jednotlivých permanentek a počet zbývajících vstupů naleznete na této stránce v bloku <strong>Nákupy</strong>.
+                        </div>
                         <div class="p-0" style="text-align: center;">
                             {form kreditForm}
                                 {foreach $_aktivity as $key => $items}
                                     {var $_aktivita = "kredit_".$key}
                                     <div class="p-2 small" style="text-align: left;">
                                         {label $_aktivita /}{input $_aktivita}
+                                        {var $span_kredi_id = 'span-kredit_' . $key}
+                                        <span>Aktuální kredit: 
+                                            <strong>
+                                                <span id="{$span_kredi_id|noescape}"></span>
+                                            </strong>
+                                        </span>
                                     </div>
                                 {/foreach}
                                 <div class="p-2">{input send}</div>
@@ -101,8 +114,8 @@
                         <script>
                             $('#frm-kreditForm-user_id').val({$user_id});
                             {foreach $_aktivity as $key => $items }
-                                {var $input_id = '#frm-kreditForm-kredit_' . $key}
-                                $({= $input_id}).val({= $_kredity[$key]['kredity']});
+                                {var $input_id = '#span-kredit_' . $key}
+                                $({= $input_id}).text({= $_kredity[$key]['kredity']});
                             {/foreach}
                         </script>
                     </div>
@@ -165,25 +178,31 @@
                                                         <table class="table">
                                                             <tr class="small">
                                                                 <td>Název</td>
-                                                                <td>Datum prodeje</td>
-                                                                <td>Konec platnosti</td>
+                                                                <td>Datum prodeje<br>Konec platnosti</td>
                                                                 <td>Zbývá vstupů</td>
+                                                                <td>Prodávající</td>
                                                             </tr>
                                                         {/if}
 
                                                         <tr class="small">
                                                             <td><strong>{$item->aktivita_name}</strong></td>
-                                                            <td>{$item->datum_prodeje|date('d.m.Y')}</td>
-                                                            {var $style_datum_konce = time()}
-                                                            {if $item->datum_konce < $style_datum_konce}
-                                                                {var $style_datum_konce = "color: red;"}
-                                                            {elseif $item->datum_konce == $style_datum_konce}
-                                                                {var $style_datum_konce = "color: orange;"}
-                                                            {else}
-                                                                {var $style_datum_konce = "color: green;"}
-                                                            {/if}
-                                                            <td style="{$style_datum_konce|noescape}"><strong>{$item->datum_konce|date('d.m.Y')}</strong></td>
+                                                            <td>
+                                                                {$item->datum_prodeje|date('d.m.Y')}
+                                                                <br>
+                                                                {var $style_datum_konce = time()}
+                                                                {if $item->datum_konce < $style_datum_konce}
+                                                                    {var $style_datum_konce = "color: red;"}
+                                                                {elseif $item->datum_konce == $style_datum_konce}
+                                                                    {var $style_datum_konce = "color: orange;"}
+                                                                {else}
+                                                                    {var $style_datum_konce = "color: green;"}
+                                                                {/if}
+                                                                <span style="{$style_datum_konce|noescape}">
+                                                                    <strong>{$item->datum_konce|date('d.m.Y')}</strong>
+                                                                </span>
+                                                            </td>
                                                             <td class="text-right"><strong>{$item->vstupy_aktualni}</strong></td>
+                                                            <td><strong>{$item->created_by}</strong></td>
                                                         </tr>
                                                         {if $iterator->last}
                                                         </table>

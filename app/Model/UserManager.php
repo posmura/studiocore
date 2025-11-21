@@ -578,7 +578,8 @@
         if ($kredity < 0)
         {
           // když jsou kredity <= 0, odečtu je od aktuálních vstupů permanentek
-          $ret[$aktivita_id]['kredity'] = $kredity + $ret[$aktivita_id]['perm_all_vstupy_aktualni'];
+          //$ret[$aktivita_id]['kredity'] = $kredity + $ret[$aktivita_id]['perm_all_vstupy_aktualni'];
+          $ret[$aktivita_id]['kredity'] = $ret[$aktivita_id]['perm_all_vstupy_aktualni'];
         }
         else
         {

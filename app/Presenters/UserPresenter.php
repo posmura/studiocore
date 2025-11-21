@@ -363,6 +363,7 @@
       foreach ($this->_aktivity as $key => $items)
       {
         $form->addInteger('kredit_'.$key,$items.':')
+          ->setValue(0)
           ->setHtmlAttribute('class','form-control form-control-sm')
           ->setHtmlAttribute('placeholder','')
           ->setRequired("Kredit pro aktivitu %label je vyžadován!");
@@ -410,6 +411,9 @@
       // vlastní aktualizace kreditu
       foreach ($params as $key => $items)
       {
+        if (!$items['kredit'] || $items['kredit'] == 0)
+          continue;
+
         $_data = self::array_to_object($items);
 
         try
@@ -426,7 +430,7 @@
       }
 
       $_msg = 'Kredity pro uživatele ID='.$data->user_id.' byly změněny!';
-      $this->flashMessage($_msg);
+      //$this->flashMessage($_msg);
       $this->eventlog('sign',$_msg);
       $this->redirect('User:user',$data->user_id);
     }

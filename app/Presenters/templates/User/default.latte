@@ -25,7 +25,7 @@
             
             <tbody>
                 {foreach $users as $item}
-                    {if $user->isLoggedIn() and ($user->identity->role == "admin" or $user->identity->username == $item->username)}
+                    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor" || $user->identity->username == $item->username)}
 
                         <tr>
                             <td>{$item->id}</td>
@@ -60,15 +60,15 @@
                             <td>{$item->registered_at|date:'d.m.Y, H:i:s'}</td>
                             <td style="text-align: right;">
                                 
-                                {if $user->isLoggedIn() and $user->identity->role == "admin" and $user->identity->username != $item->username}
-                                    {*if $item->role != "admin"*}
+                                {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor") && $user->identity->username != $item->username}
                                         <a n:href="User:user $item->id" class="btn btn-sm btn-success">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <a n:href="User:delete $item->id,$user->identity->username" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
-                                    {*/if*}
+                                        {if $user->identity->role == "admin"}
+                                            <a n:href="User:delete $item->id,$user->identity->username" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
+                                                <i class="bi bi-trash"></i>
+                                            </a>
+                                        {/if}
                                 {/if}
                                 
                                 {if $user->isLoggedIn() and $user->identity->username == $item->username}
