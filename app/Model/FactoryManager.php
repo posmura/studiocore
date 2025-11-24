@@ -515,7 +515,7 @@
         return 1;
 
       // když není permice, odečtu jen kredit
-      if (!$data->sales_id && $data->sales_id == 0)
+      if (!$data->sales_id || $data->sales_id == 0)
       {
         // upravím kredity (-1)
         if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
