@@ -100,11 +100,13 @@
                                     <div class="p-2 small" style="text-align: left;">
                                         {label $_aktivita /}{input $_aktivita}
                                         {var $span_kredi_id = 'span-kredit_' . $key}
-                                        <span>Aktuální kredit: 
-                                            <strong>
-                                                <span id="{$span_kredi_id|noescape}"></span>
-                                            </strong>
-                                        </span>
+                                        <div class="alert alert-success p-1 mt-2">
+                                            <span>Aktuální kredit: 
+                                                <strong>
+                                                    <span id="{$span_kredi_id|noescape}"></span>
+                                                </strong>
+                                            </span>
+                                        </div>
                                     </div>
                                 {/foreach}
                                 <div class="p-2">{input send}</div>

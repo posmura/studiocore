@@ -583,6 +583,7 @@
       );
     }
 
+
     /**
      * KREDITY: Ruční úprava kreditu klienta pro konkrétní aktivita_id
      *
@@ -609,6 +610,23 @@
     public function getKredityKlienta($data)
     {
       return $this->database->fetch(SqlCommands::getKredityKlienta(),
+          $data->user_id,
+          $data->aktivita_id
+      );
+    }
+
+
+    /**
+     * KREDITY: Vyresetuje kredity klienta pro danou aktivitu
+     *
+     * @param object $data Data pro kredity
+     * @return bool
+     */
+    public function resetKredit($data)
+    {
+      return $this->database->query(SqlCommands::resetKredit(),
+          $data->kredit_zmena,
+          $data->created_by,
           $data->user_id,
           $data->aktivita_id
       );

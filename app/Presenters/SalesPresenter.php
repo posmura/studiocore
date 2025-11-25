@@ -70,7 +70,7 @@
         $this->salesManager->deleteProdej($data);
 
         // aktualizuji kredity
-        $this->factoryManager->updateKredityKlienta($data);
+        //$this->factoryManager->updateKredityKlienta($data);
 
       }
       catch (\Exception $e)
@@ -189,6 +189,7 @@
       // načtu kredity klienta
       $rst_kredit = $this->factoryManager->getKredityKlienta($data);
 
+      // pokud je klient s kredity v mínusu, odečtu mínusové kredity z aktualních vstupů na permanentce
       if ($rst_kredit['kredity'] < 0)
         $data->vstupy_aktualni = $rst_perm->vstupy + $rst_kredit['kredity'];
       else
@@ -221,13 +222,14 @@
         {
           $this->salesManager->insertProdej($data);
 
-          /*
-          // aktualizuji kredity
-          $data->updated_by = $this->userName;
-          $data->kredit_zmena = $data->vstupy_aktualni;
-          $this->factoryManager->updateKredityKlienta($data);
-           *
-           */
+          // pokud jsou kredity v mínusu, nastavím hodnotu kreditu na 0
+          // hodnota záporných kreditů byla použita pro ponížení aktuálních vstupů na nové permanentce
+          if ($rst_kredit['kredity'] < 0)
+          {
+            $data->updated_by = $this->userName;
+            $data->kredit_zmena = 0;
+            $this->factoryManager->resetKredit($data);
+          }
 
         }
         catch (\Exception $e)

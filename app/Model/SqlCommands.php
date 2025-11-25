@@ -71,7 +71,7 @@ SQL;
 
 
     /**
-     * KREDITY: Upraví kredity klienta při změně registrace (přihlášení/odhlášení na/z lekce)
+     * KREDITY: Upraví kredity klienta o požadovanou hodnotu
      *
      * @return string
      */
@@ -90,6 +90,27 @@ SET
 SQL;
     }
 
+
+
+    /**
+     * KREDITY: Vyresetuje kredity klienta pro danou aktivitu
+     *
+     * @return string
+     */
+    public static function resetKredit(): string
+    {
+      return <<<SQL
+UPDATE blog_credits
+SET
+  `kredity`=?,
+  `updated_at`=NOW(),
+  `updated_by`=?
+ WHERE
+   user_id=?
+   AND aktivita_id=?
+   AND deleted=0
+SQL;
+    }
 
     /**
      * KREDITY: Ruční úprava kreditu klienta pro konkrétní aktivita_id
