@@ -1331,14 +1331,13 @@ TEXT;
 
       if ($data->user_id == 0)
       {
-        $_msg = sprintf('Chyba! Registrace na lekci nemohla být vytvořena. (ID uživatele = %d)',$rst,$data->user_id);
+        $_msg = sprintf('Nebyl zadán klient.');
         $this->flashMessage($_msg,'danger');
+        $_msg = sprintf('Chyba! Nebyl zadán klient. (ID uživatele = %d)',$data->user_id);
         $this->eventlog('diary',$_msg);
 
         return false;
       }
-
-
 
       // když neexistuje parametr ID permanentky, bude vytvořen
       if (!isset($data->sales_id))
