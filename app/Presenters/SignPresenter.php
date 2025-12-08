@@ -178,8 +178,9 @@
       try
       {
         $user = $this->getUser();
-        $this->user->setExpiration($data->remember ? '14 days' : '20 minutes',!$data->remember);
         $this->user->login($data->username,$data->password);
+        $this->user->setExpiration('14 days');
+        //$this->user->setExpiration($data->remember ? '14 days' : '20 minutes',!$data->remember);
         $this->eventlog('sign','Uživatel \''.$data->username.'\' byl přihlášen.');
         $this->redirect('Homepage:default');
       }

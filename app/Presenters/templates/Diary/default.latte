@@ -17,10 +17,10 @@
 <div id="content">
     <p></p>
 
-    {if $user->isLoggedIn()}
         {* panel s tlačítky *}
         <div class="m-3 d-print-none ">
 
+    {if $user->isLoggedIn()}
             {* řadka datum a nový záznam *}
             <div class="row mb-3 p-0">
                 <div class="col-sm-6 p-0">
@@ -39,31 +39,43 @@
                     </div>
                 </div>
             </div>
-
-            {* řadka tlačítek pro pohyb po datech *}
-            <div class="row row-diary-select-week">
-                <div class="col-sm-4" style="padding: 2px;">
+    {/if}
+    
+        {* řadka tlačítek pro pohyb po datech *}
+        {var $weekNow = (int) date('oW')}                       {* číslo aktuálního týdne *}
+        {var $weekFromTs = (int) date('oW', $diaryPrevWeek)}    {* číslo předchozího týdne *}
+        {*$weekNow}|{$weekFromTs*}
+    
+        <div class="row row-diary-select-week">
+            <div class="col-sm-4" style="padding: 2px;">
+            
+                {* podmíněné zobrazení tlačítko Předchozí *}
+                {if $user->isLoggedIn() || ($weekNow <= $weekFromTs)}                    
                     <div style="text-align: left;">
                         <a n:href="Diary:default $diaryPrevWeek" type="button" class="btn btn-primary btn-sm">
                             <i class="bi bi-caret-left-fill padding-right-10"></i> Předchozí</a>
                     </div>
-                </div>
-                <div class="col-sm-4" style="padding: 2px;">
-                    <div style="text-align: center;">
-                        <a n:href="Diary:default" type="button" class="btn btn-primary btn-sm">
-                            <i class="bi bi-calendar-event padding-right-10"></i> Tento týden</a>
-                    </div>
-                </div>
-                <div class="col-sm-4" style="padding: 2px;">
-                    <div style="text-align: right;">
-                        <a n:href="Diary:default $diaryNextWeek" type="button" class="btn btn-primary btn-sm">
-                            <i class="bi bi-caret-right-fill padding-right-10"></i> Následující</a>
-                    </div>
-                </div>
-
+                {/if}   
+                
             </div>
+        
+            <div class="col-sm-4" style="padding: 2px;">
+                <div style="text-align: center;">
+                    <a n:href="Diary:default" type="button" class="btn btn-primary btn-sm">
+                        <i class="bi bi-calendar-event padding-right-10"></i> Tento týden</a>
+                </div>
+            </div>
+        
+            <div class="col-sm-4" style="padding: 2px;">
+                <div style="text-align: right;">
+                    <a n:href="Diary:default $diaryNextWeek" type="button" class="btn btn-primary btn-sm">
+                        <i class="bi bi-caret-right-fill padding-right-10"></i> Následující</a>
+                </div>
+            </div>
+        
         </div>
-    {/if}        
+        
+    </div>
 
     <div class="row">
         {for $i=1; $i <= 7; $i++}

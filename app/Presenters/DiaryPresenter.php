@@ -154,6 +154,13 @@
      */
     public function renderUsers($diary_id): void
     {
+      if (!$this->getUser()->isLoggedIn())
+      {
+        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
+
+        $this->redirect('Homepage:');
+      }
+
       if (!$diary_id)
       {
         $_msg = sprintf('Chyba! Nebyl zadáno ID události.');
@@ -717,6 +724,13 @@
     {
       $operace = $data->akce_id;
 
+      // požadavek na přesměrování na přihlášení, například z důvodu neplatného user_id
+      if ($operace == 'relogin')
+      {
+        $this->redirect('Sign:in');
+        die;
+      }
+
       //$data['aktivni_permanentka'] = $this->aktivniPermanentkyID[$data->aktivita_id];
 
       try
@@ -736,7 +750,7 @@
         }
         else
         {
-          $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
+          $_msg = sprintf('Chyba! Registrace %s nebyla uložena. Neplatný typ operace','');
           $this->flashMessage($_msg,'danger');
           $this->eventlog('diary',$_msg);
         }
@@ -1041,6 +1055,29 @@
      */
     public function handleLoadDataLekce(): void
     {
+      $rst = array();
+
+      // pokud není user_id, nesmím dovolit odeslat formulář
+      if (!$this->userID)
+      {
+      $rst['lekce_info_text'] = <<<TEXT
+        <div id="lekce-infotext">
+          <div>Omlouváme se, ale akce nemůže být provedena. Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.</div>
+        </div>
+TEXT;
+
+        $rst['akce_id'] = 'relogin';
+        $rst['akce_desc'] = 'OPĚTOVNÉ PŘIHLÁŠENÍ';
+
+        $_msg = sprintf('Chyba! Akce nemohla být provedena. Nebylo předáno ID uživatele. Výzva pro pro opětovné přihlášení.','');
+        $this->eventlog('diary',$_msg);
+
+        $dataJson = json_encode($rst);
+
+        $this->sendJson($dataJson);
+
+        $this->terminate();
+      }
 
       /*
         a.`ID` AS `ID`,
@@ -1072,8 +1109,6 @@
       $ID = $this->getParameter('ID');
 
       $data = $this->factoryManager->getLekceById($ID);
-
-      $rst = array();
 
       // informace o lekci
       $data['from'] = $this->timeOrderToTimeForm($data['hour_from'],$data['min_from']);
@@ -1252,14 +1287,14 @@ TEXT;
 
       if ($rst != 0)
       {
-        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
+        $_msg = sprintf('Chyba %d! Registrace ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
         return false;
       }
 
-      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
+      $_msg = sprintf('Registrace ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
@@ -1294,6 +1329,17 @@ TEXT;
 
       $data->user_id = (int) $data->user_id;
 
+      if ($data->user_id == 0)
+      {
+        $_msg = sprintf('Chyba! Registrace na lekci nemohla být vytvořena. (ID uživatele = %d)',$rst,$data->user_id);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+
+
       // když neexistuje parametr ID permanentky, bude vytvořen
       if (!isset($data->sales_id))
       {
@@ -1309,14 +1355,14 @@ TEXT;
 
       if ($rst != 0)
       {
-        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$rst,$data->user_id,$data->created_by);
+        $_msg = sprintf('Chyba %d! Registrace na lekci ID=%s nebyla vytvořena uživatelem %s.',$rst,$data->user_id,$data->created_by);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
         return false;
       }
 
-      $_msg = sprintf('Registrace klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+      $_msg = sprintf('Registrace na lekci ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
       //$this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 

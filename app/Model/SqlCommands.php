@@ -1767,6 +1767,7 @@ LEFT JOIN
   `blog_users` AS e ON b.`lektor_id` = e.`id`
 WHERE
   b.`ID` = ?
+  AND c.`id` > 0
 ORDER BY
   a.ID desc
 SQL;
