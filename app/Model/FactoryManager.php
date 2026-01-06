@@ -511,8 +511,39 @@
     public function insertRegistrace($data): int
     {
       // vložím registraci
-      if (!$this->database->query(SqlCommands::insertRegistrace(),$data->user_id,$data->diary_id,$data->aktivita_id,$data->created_by,$data->sales_id))
+      try {
+        $res = $this->database->query(
+          SqlCommands::insertRegistrace(),
+          $data->user_id,
+          $data->diary_id,
+          $data->aktivita_id,
+          $data->created_by,
+          $data->sales_id
+        );
+
+        $affected = $res->getRowCount();  // 0 nebo 1
+
+        if ($affected === 1)
+        {
+          // registrace klienta na lekci byla úspěšně vložena
+          $_continue = true;
+        }
+        elseif ($affected === 0)
+        {
+          // registrace klienta na lekci již existuje
+          return 9999;
+        }
+        else
+        {
+          // jiná chyba
+          return 9998;
+        }
+      }
+      catch (\Nette\Database\DriverException $e)
+      {
+        // chyba DB
         return 1;
+      }
 
       // když není permice, odečtu jen kredit
       if (!$data->sales_id || $data->sales_id == 0)

@@ -1287,14 +1287,14 @@ TEXT;
 
       if ($rst != 0)
       {
-        $_msg = sprintf('Chyba %d! Registrace ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
+        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
         return false;
       }
 
-      $_msg = sprintf('Registrace ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
+      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
@@ -1333,7 +1333,7 @@ TEXT;
       {
         $_msg = sprintf('Nebyl zadán klient.');
         $this->flashMessage($_msg,'danger');
-        $_msg = sprintf('Chyba! Nebyl zadán klient. (ID uživatele = %d)',$data->user_id);
+        $_msg = sprintf('Chyba! Nebyl zadán klient. (ID klienta = %d)',$data->user_id);
         $this->eventlog('diary',$_msg);
 
         return false;
@@ -1354,14 +1354,19 @@ TEXT;
 
       if ($rst != 0)
       {
-        $_msg = sprintf('Chyba %d! Registrace na lekci ID=%s nebyla vytvořena uživatelem %s.',$rst,$data->user_id,$data->created_by);
+        if ($rst == 9999)
+          $_desc = sprintf('Klient ID=%s je již na lekci registrován.',$data->user_id);
+        else
+          $_desc = sprintf('Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+
+        $_msg = sprintf('Chyba %d! %s',$rst,$_desc);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
         return false;
       }
 
-      $_msg = sprintf('Registrace na lekci ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+      $_msg = sprintf('Registrace na klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
       //$this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 

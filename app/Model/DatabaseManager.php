@@ -6,6 +6,7 @@ namespace App\Model;
 
 use Nette;
 use Nette\Database\Connection;
+use Nette\Database\ResultSet;
 
 class DatabaseManager
 {

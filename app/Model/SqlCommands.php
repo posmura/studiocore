@@ -1594,7 +1594,7 @@ SQL;
      *
      * @return string
      */
-    public static function insertRegistrace(): string
+    public static function XXXinsertRegistrace(): string
     {
       return <<<SQL
 INSERT INTO blog_registration
@@ -1606,6 +1606,55 @@ INSERT INTO blog_registration
   `created_by`,
   `sales_id`
 
+)
+VALUES
+  (?,?,?,NOW(),?,?);
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Vloží registraci na lekci
+     *
+     * @return string
+     */
+    public static function YYYinsertRegistrace(): string
+    {
+      return <<<SQL
+INSERT INTO blog_registration
+(
+  `user_id`,
+  `diary_id`,
+  `aktivita_id`,
+  `created_at`,
+  `created_by`,
+  `sales_id`
+)
+VALUES
+  (?,?,?,NOW(),?,?)
+ON DUPLICATE KEY UPDATE
+  user_id = user_id;
+SQL;
+    }
+
+
+
+    /**
+     * REGISTRACE: Vloží registraci na lekci
+     *
+     * @return string
+     */
+    public static function insertRegistrace(): string
+    {
+      return <<<SQL
+INSERT IGNORE INTO blog_registration
+(
+  user_id,
+  diary_id,
+  aktivita_id,
+  created_at,
+  created_by,
+  sales_id
 )
 VALUES
   (?,?,?,NOW(),?,?);
