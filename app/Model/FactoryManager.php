@@ -510,7 +510,7 @@
      */
     public function insertRegistrace($data): int
     {
-      // vložím registraci
+      $this->database->beginTransaction();
       try {
         $res = $this->database->query(
           SqlCommands::insertRegistrace(),
@@ -523,45 +523,41 @@
 
         $affected = $res->getRowCount();  // 0 nebo 1
 
-        if ($affected === 1)
-        {
-          // registrace klienta na lekci byla úspěšně vložena
-          $_continue = true;
-        }
-        elseif ($affected === 0)
+        if ($affected === 0)
         {
           // registrace klienta na lekci již existuje
+          $this->database->rollBack();
           return 9999;
         }
-        else
+        elseif ($affected !== 1)
         {
-          // jiná chyba
+          $this->database->rollBack();
           return 9998;
         }
+
+        // když není permice, odečtu jen kredit
+        if ((int) $data->sales_id === 0)
+        {
+          $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id);
+        }
+
+        // když je permice, odečtu jen permici
+        if ((int) $data->sales_id > 0)
+        {
+          $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
+        }
+
+        $this->database->commit();
+        return 0;
       }
       catch (\Nette\Database\DriverException $e)
       {
-        // chyba DB
+        $this->database->rollBack();
+        // kód 4025 = MariaDB CHECK constraint violation (kredity >= -1)
+        if ($e->getDriverCode() == 4025)
+          return 4;
         return 1;
       }
-
-      // když není permice, odečtu jen kredit
-      if (!$data->sales_id || $data->sales_id == 0)
-      {
-        // upravím kredity (-1)
-        if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id))
-          return 2;
-      }
-
-      // když je permice, odečtu jen permici
-      if ($data->sales_id && $data->sales_id > 0)
-      {
-        // upravím kredity v aktivní permanentce
-        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id))
-          return 3;
-      }
-
-      return 0;
     }
 
 
@@ -573,28 +569,30 @@
      */
     public function deleteRegistrace($data): int
     {
+      $this->database->beginTransaction();
+      try {
+        $this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id);
 
-      // zruším registraci
-      if (!$this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id))
-          return 1;
+        // když není permice, vrátím jen kredit
+        if ((int) $data->sales_id === 0 && $data->kredit_zmena != 0)
+        {
+          $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id);
+        }
 
-      // když není permice, odečtu jen kredit
-      if (!$data->sales_id && $data->sales_id == 0)
-      {
-        // upravím kredity(+1)
-        if (!$this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id))
-          return 2;
+        // když je permice, vrátím jen permici
+        if ((int) $data->sales_id > 0 && $data->kredit_zmena != 0)
+        {
+          $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id);
+        }
+
+        $this->database->commit();
+        return 0;
       }
-
-      // když je permice, odečtu jen permici
-      if ($data->sales_id && $data->sales_id > 0)
+      catch (\Nette\Database\DriverException $e)
       {
-        // upravím kredity v aktivní permanentce
-        if (!$this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id))
-          return 3;
+        $this->database->rollBack();
+        return 1;
       }
-
-      return 0;
     }
 
 

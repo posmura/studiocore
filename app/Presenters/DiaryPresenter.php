@@ -282,6 +282,8 @@
 	        $form->setHtmlAttribute('style','display:inline;');
 	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 	        $form->addHidden('registration_id',$id);
+	        $form->addCheckbox('vratit_vstup')
+	          ->setDefaultValue(false);
 	        $form->addSubmit('send','Zrušit')
 	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
 	          ->setHtmlAttribute('onclick',"return confirm('Opravdu si přejete zrušit tuto rezervaci?');");
@@ -344,7 +346,7 @@
 	        ]
 	      );
 
-	      $this->cancelRegistration($data);
+	      $this->cancelRegistration($data, (bool) ($formData->vratit_vstup ?? false));
 
 	      return $data;
 	    }
@@ -1457,11 +1459,12 @@ TEXT;
       }
 
       $data['sales_id_text'] = $rst['sales_id'] ?? '-';
+      $_lektor_name = $this->lektorName[$data['lektor_id']] ?? '—';
 
       $rst['lekce_info_text'] = <<<TEXT
         <div id="lekce-infotext">
           <div><strong>Název lekce:</strong> {$data['nazev']}</div>
-          <div><strong>Lektor:</strong> {$this->lektorName[$data['lektor_id']]}</div>
+          <div><strong>Lektor:</strong> {$_lektor_name}</div>
           <div><strong>Datum a čas:</strong> {$data['aktivita_date']}, {$data['aktivita_from']} - {$data['aktivita_to']}</div>
           <div><strong>Bezplatné storno do:</strong> {$data['aktivita_zruseni_zdarma']}</div>
           <div><strong>Registrace možná do:</strong> {$data['aktivita_registrace_konec']}</div>
@@ -1485,18 +1488,20 @@ TEXT;
      * @param object $data Data pro zrušení registrace klienta na lekci
      * @return bool
      */
-    public function cancelRegistration($data)
+    public function cancelRegistration($data, bool $forceVratitKredit = false)
     {
       $data->deleted_by = $this->userName;
 
-      $zruseni_zdarma = $this->isCancelRegistrationFree($data->zruseni_zdarma_ts);
+      $zruseni_zdarma = $forceVratitKredit || $this->isCancelRegistrationFree($data->zruseni_zdarma_ts);
 
       // nastavení hodnoty změny kreditu
       if ($zruseni_zdarma)
       {
         // kredit bude vrácen
         $data->kredit_zmena = 1;
-        $msg_kredit_zmena = "Kredit byl vrácen. Zrušení registrace proběhlo před termínem konce bezplatného storna.";
+        $msg_kredit_zmena = $forceVratitKredit
+          ? "Kredit byl vrácen. Vstup byl vrácen manuálně administrátorem."
+          : "Kredit byl vrácen. Zrušení registrace proběhlo před termínem konce bezplatného storna.";
       }
       else
       {
@@ -1578,6 +1583,8 @@ TEXT;
       {
         if ($rst == 9999)
           $_desc = sprintf('Klient ID=%s je již na lekci registrován.',$data->user_id);
+        elseif ($rst == 4)
+          $_desc = sprintf('Klient ID=%s nemá dostatek kreditů (kredit by klesl pod -1).',$data->user_id);
         else
           $_desc = sprintf('Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
 

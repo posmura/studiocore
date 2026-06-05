@@ -50,7 +50,6 @@ WHERE
   AND `deleted` = 0
 ORDER BY
   `datum_konce` ASC,
-  `vstupy_celkem` ASC,
   `ID` ASC
 
 SQL;
@@ -1677,7 +1676,8 @@ SET
   `deleted_by`=?
 WHERE
   `user_id`=?
-  AND `diary_id`=?;
+  AND `diary_id`=?
+  AND `deleted`=0;
 SQL;
     }
 

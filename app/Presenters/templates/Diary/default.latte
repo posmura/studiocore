@@ -133,7 +133,7 @@
                                         {if $items['lektor_id']}
                                             <div class="row mb-3" style='text-align: center;'>
                                                 <div class="col-12-sm">
-                                                    {$presenter->lektorName[$items['lektor_id']]}
+                                                    {$presenter->lektorName[$items['lektor_id']] ?? '—'}
                                                 </div>
                                             </div>
                                         {/if}

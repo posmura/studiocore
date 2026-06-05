@@ -147,7 +147,7 @@
                                     </td>
                                     <td>{$item->lekce_cas}</td>
                                     <td><strong>{$item->lekce_nazev}</strong></td>
-                                    <td>{$lektor[$item->lektor_id]}</td>
+                                    <td>{$lektor[$item->lektor_id] ?? '—'}</td>
                                 </tr>
                                 {if $iterator->last}
                                 </table>
