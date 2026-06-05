@@ -682,10 +682,22 @@
      * @param object $data Data pro registraci
      * @return bool
      */
-    public function getSalesId($data)
-    {
-      return $this->database->fetch(SqlCommands::getSalesId(),$data->user_id,$data->diary_id);
-    }
+	    public function getSalesId($data)
+	    {
+	      return $this->database->fetch(SqlCommands::getSalesId(),$data->user_id,$data->diary_id);
+	    }
+
+
+	    /**
+	     * REGISTRACE: Vrací registraci podle jejího ID.
+	     *
+	     * @param int $registration_id ID registrace
+	     * @return mixed
+	     */
+	    public function getRegistraceByID(int $registration_id)
+	    {
+	      return $this->database->fetch(SqlCommands::getRegistraceByID(),$registration_id);
+	    }
 
 
     /**

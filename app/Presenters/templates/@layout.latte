@@ -45,7 +45,12 @@
             <div class="text-center color-secondary small">
                 <em><i class="bi bi-braces-asterisk"></i> <a href="https://posmura.cz/" target="_blank" style="color: #e67c2f !important;">Vlasta Pošmura</a>, {$ts|date:'Y'}</em>
             </div>
-
+            {if $isDevEnvironment || $isDevDatabase}
+            <div class="text-center mt-2">
+                {if $isDevEnvironment}<span class="badge bg-warning text-dark fs-6">&#9888; vývojová verze</span>{/if}
+                {if $isDevDatabase}<span class="badge bg-danger text-white fs-6">&#9888; vývojová DB</span>{/if}
+            </div>
+            {/if}
         </div>
 
         {block scripts}

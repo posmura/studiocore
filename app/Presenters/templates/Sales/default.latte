@@ -1,6 +1,6 @@
 {block content}
 <div id="banner">
-    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "admin")}
+    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor")}
         <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
             <strong>PRODEJ</strong></div>
     {/if}
@@ -45,7 +45,7 @@
                                 {*<td>{$item->pocet}</td>*}
                                 <td>{$item->vstupy_celkem}/{$item->vstupy_aktualni}</td>
                                 <td>{$item->datum_prodeje|date:'d.m.Y H:i'}</td>
-                                
+
                                 <td>
                                     {if $item->datum_konce < $ts_dnes}
                                         {var $datum_konce_style = "color: red;"}
@@ -56,23 +56,22 @@
                                     {/if}
                                     <strong><span style="{$datum_konce_style|noescape}">{$item->datum_konce|date:'d.m.Y H:i'}</span></strong>
                                 </td>
-                                
+
                                 <td>{$item->created_by}</td>
                                 <td>{$item->desc}</td>
                                 <td style="text-align: right;">
                                     {if $user->isLoggedIn() && $user->identity->role == "admin"}
-                                        <a n:href="Sales:delete $item->ID,$item->user_id,$item->vstupy_aktualni,$item->aktivita_id" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        {var $deleteFormId = 'deleteSalesForm-' . $item->ID}
+                                        {form $deleteFormId}{input send}{/form}
                                     {/if}
                                 </td>
                             </tr>
                         {/foreach}
                     </tbody>
                 </table>
-            </div> 
-                    
-        </div> 
+            </div>
+
+        </div>
     {/if}
 </div>
 
@@ -92,8 +91,6 @@
 {* ZOBRAZENÍ MODÁLU PODLE ROLE PŘIHLÁŠENÉHO UŽIVATELE *}
 {if $user->isLoggedIn()}
     {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
-        {include 'modalAdmin.latte'} 
+        {include 'modalAdmin.latte'}
     {/if}
 {/if}
-
-

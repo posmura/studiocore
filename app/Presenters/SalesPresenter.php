@@ -2,9 +2,10 @@
 
   declare(strict_types=1);
 
-  namespace App\Presenters;
+	  namespace App\Presenters;
 
-  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Multiplier;
 
   /**
    * Třída presenteru pro permanentky
@@ -18,17 +19,12 @@
      *
      * @return void
      */
-    public function startup(): void
-    {
-      parent::startup();
+	    public function startup(): void
+	    {
+	      parent::startup();
 
-      if (!$this->getUser()->isLoggedIn())
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-
-        $this->redirect('Homepage:');
-      }
-    }
+	      $this->requireStaff();
+	    }
 
 
     /**
@@ -51,21 +47,60 @@
      * @param int $aktivita_id ID aktivity
      * @return void
      */
-    public function renderDelete($id,$user_id,$vstupy_aktualni,$aktivita_id): void
-    {
-      $data = self::array_to_object(
-        [
-          'id' => $id,
-          'deleted_by' => $this->userName,
-          'updated_by' => $this->userName,
-          'kredit_zmena' => -1 * $vstupy_aktualni,
-          'user_id' => $user_id,
-          'aktivita_id' => $aktivita_id,
-        ]
-      );
+	    public function renderDelete($id,$user_id,$vstupy_aktualni,$aktivita_id): void
+	    {
+	      $this->requireAdmin();
 
-      try
-      {
+	      $this->error('Mazání prodeje je nutné provést formulářem.',405);
+	    }
+
+
+	    /**
+	     * Formuláře pro mazání prodeje.
+	     *
+	     * @return Multiplier
+	     */
+	    protected function createComponentDeleteSalesForm(): Multiplier
+	    {
+	      $this->requireAdmin();
+
+	      return new Multiplier(function (string $id)
+	      {
+	        $form = new Form;
+	        $form->setHtmlAttribute('style','display:inline;');
+	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	        $form->addHidden('id',$id);
+	        $form->addSubmit('send','Odstranit')
+	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
+	        $form->onSuccess[] = [$this,'deleteSalesFormSucceeded'];
+
+	        return $form;
+	      });
+	    }
+
+
+	    /**
+	     * Akce po odeslání formuláře pro mazání prodeje.
+	     *
+	     * @param Form $form Objekt formuláře
+	     * @param type $data Data z formuláře
+	     * @return void
+	     */
+	    public function deleteSalesFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      $data = self::array_to_object(
+	        [
+	          'id' => $data->id,
+	          'deleted_by' => $this->userName,
+	          'updated_by' => $this->userName,
+	        ]
+	      );
+
+	      try
+	      {
         // odstraním prodej
         $this->salesManager->deleteProdej($data);
 
@@ -130,9 +165,11 @@
      *
      * @return Form
      */
-    protected function createComponentSalesForm(): Form
-    {
-      // seznam permanentek
+	    protected function createComponentSalesForm(): Form
+	    {
+	      $this->requireStaff();
+
+	      // seznam permanentek
       $_permanentky = $this->membershipCardManager->getListPermanentka();
 
       // seznam klientů (uživatelů)
@@ -172,9 +209,11 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formSalesSucceeded(Form $form,$data): void
-    {
-      $rst_perm = $this->salesManager->getPermanentkaActivitaById($data);
+	    public function formSalesSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      $rst_perm = $this->salesManager->getPermanentkaActivitaById($data);
       $rst_user = $this->salesManager->getUserById($data);
 
 

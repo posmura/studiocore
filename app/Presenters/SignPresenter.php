@@ -101,13 +101,11 @@
      *
      * @return void
      */
-    public function renderOut(): void
-    {
-      $this->eventlog('sign','Uživatel byl odhlášen.');
-      $this->getUser()->logout();
-      //$this->redirect('Sign:in');
-      $this->redirect('Homepage:');
-    }
+	    public function renderOut(): void
+	    {
+	      $this->requireLogin();
+	      $this->error('Odhlášení je nutné provést formulářem.',405);
+	    }
 
 
     /**
@@ -183,14 +181,14 @@
         //$this->user->setExpiration($data->remember ? '14 days' : '20 minutes',!$data->remember);
         $this->eventlog('sign','Uživatel \''.$data->username.'\' byl přihlášen.');
         $this->redirect('Homepage:default');
-      }
-      catch (Nette\Security\AuthenticationException $e)
-      {
-        $_msg = $e->getMessage();
-        $this->flashMessage($_msg,'danger');
-        $this->eventlog('sign',$_msg);
-        $this->redirect('Sign:in');
-      }
+	      }
+	      catch (Nette\Security\AuthenticationException $e)
+	      {
+	        $_msg = 'Neplatné uživatelské jméno nebo heslo!';
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('sign',sprintf("Neúspěšné přihlášení uživatele '%s': %s",$data->username,$e->getMessage()));
+	        $this->redirect('Sign:in');
+	      }
       /*
         catch (\Throwable $e)
         {
@@ -411,11 +409,10 @@
       $_data = $this->array_to_object($_params);
       $this->userManager->updatePasswordRecoveryPin($_data);
 
-      // připravím text pro SMS
-      $pin_text = sprintf("STUDIO CORE | Rezervacni system: PIN pro obnovu hesla je %s",$pin);
-      //$this->flashMessage($pin_text);
+	      // připravím text pro SMS
+	      $pin_text = sprintf("STUDIO CORE | Rezervacni system: PIN pro obnovu hesla je %s",$pin);
 
-      $this->eventlog('sign',$pin_text);
+	      $this->eventlog('sign',sprintf('Byl vygenerován PIN pro obnovu hesla uživatele %s.',$user[0]['username']));
 
       // validace telefonního čísla
       if (!$this->checkSmsPhone($_data->mobil_number))
@@ -436,11 +433,11 @@
         $_msg = sprintf('SMS \'%s\' (%s) byla předána k odeslání.',
           $_data->mobil_number,
           $_data->username,
-        );
-        $this->flashMessage($_msg);
-        $this->eventlog('sing',$_msg);
+	        );
+	        $this->flashMessage($_msg);
+	        $this->eventlog('sign',$_msg);
 
-        $this->redirect('Sign:Recoverypassword');
+	        $this->redirect('Sign:Recoverypassword');
       }
       else
       {
@@ -449,10 +446,10 @@
           $_data->username,
         );
 
-        $this->flashMessage($_msg,'danger');
-        $this->eventlog('sing',$_msg);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('sign',$_msg);
 
-        $this->redirect('Sign:Recovery');
+	        $this->redirect('Sign:Recovery');
       }
     }
 
@@ -462,11 +459,13 @@
      *
      * @return Form
      */
-    protected function createComponentSignupdatepasswordForm(): Form
-    {
-      $form = new Form;
+	    protected function createComponentSignupdatepasswordForm(): Form
+	    {
+	      $form = new Form;
 
-      $form->addText('username','Uživatelské jméno:')
+	      $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+
+	      $form->addText('username','Uživatelské jméno:')
         //->setValue($this->userNameForm)
         ->addRule($form::PATTERN,'%label může obsahovat pouze písmena anglické abecedy a číslice, délka '.$this->userManager::USERNAME_MIN_LENGTH.'–'.$this->userManager::USERNAME_MAX_LENGTH.' znaků.','^[A-Za-z0-9]{'.$this->userManager::USERNAME_MIN_LENGTH.','.$this->userManager::USERNAME_MAX_LENGTH.'}$')
         ->setHtmlAttribute('class','form-control')

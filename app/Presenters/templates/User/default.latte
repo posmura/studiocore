@@ -7,7 +7,7 @@
 </div>
 
 <div id="content">
-	
+
 {if $user->isLoggedIn()}
     <div class="border border-1 p-2 mt-4">
         <table id="tbl-users" class="display" style="width:100%;">
@@ -22,7 +22,7 @@
                     <th></th>
                 </tr>
             </thead>
-            
+
             <tbody>
                 {foreach $users as $item}
                     {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor" || $user->identity->username == $item->username)}
@@ -32,11 +32,11 @@
                             <td>{$item->username}</td>
                             <td>{$item->surname} {$item->firstname}</td>
                             <td>
-                                {if $item->role == 'admin'} 
-                                    {var $rstyle='color: red;'} 
-                                {elseif $item->role == 'lektor'} 
+                                {if $item->role == 'admin'}
+                                    {var $rstyle='color: red;'}
+                                {elseif $item->role == 'lektor'}
                                     {var $rstyle='color: blue;'}
-                                {else} 
+                                {else}
                                     {var $rstyle=''}
                                 {/if}
                                 <span style="{$rstyle|noescape}">{$item->role}</span>
@@ -44,11 +44,11 @@
                             <td>
                                 {ifset $item->kredity}
                                     {foreach $item->kredity as $akey => $aitems}
-                                        {if $aitems['kredity'] < 0} 
-                                            {var $astyle='color: red;'} 
-                                        {elseif $aitems['kredity'] == 0} 
+                                        {if $aitems['kredity'] < 0}
+                                            {var $astyle='color: red;'}
+                                        {elseif $aitems['kredity'] == 0}
                                             {var $astyle='color: blue;'}
-                                        {else} 
+                                        {else}
                                             {var $astyle='color: green;'}
                                         {/if}
                                         <div>
@@ -59,24 +59,23 @@
                             </td>
                             <td>{$item->registered_at|date:'d.m.Y, H:i:s'}</td>
                             <td style="text-align: right;">
-                                
+
                                 {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor") && $user->identity->username != $item->username}
                                         <a n:href="User:user $item->id" class="btn btn-sm btn-success">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
                                         {if $user->identity->role == "admin"}
-                                            <a n:href="User:delete $item->id,$user->identity->username" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
-                                                <i class="bi bi-trash"></i>
-                                            </a>
+                                            {var $deleteFormId = 'deleteUserForm-' . $item->id}
+                                            {form $deleteFormId}{input send}{/form}
                                         {/if}
                                 {/if}
-                                
+
                                 {if $user->isLoggedIn() and $user->identity->username == $item->username}
                                     <a n:href="User:user $item->id" class="btn btn-sm btn-success">
                                         <i class="bi bi-pencil-square"></i>
                                     </a>
                                 {/if}
-                                
+
                             </td>
                         </tr>
 
@@ -99,7 +98,7 @@
                 order: [[2, 'asc']]
             });
     </script>
-                    
+
 {/if}
 
-            
+

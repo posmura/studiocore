@@ -115,34 +115,50 @@
      * @param int $opakovat Počet opakování
      * @return void
      */
-    public function renderDelete($ID,$lekce_id,$date,$tsDiaryDate,$opakovat): void
-    {
-      $deleted_by = $this->userName;
+	    public function renderDelete($ID,$lekce_id,$date,$tsDiaryDate,$opakovat): void
+	    {
+	      $this->requireStaff();
 
-      try
-      {
-        if ($opakovat > 1)
-        {
-          $this->factoryManager->deleteDiaryByLekceId($lekce_id,$date,$deleted_by);
-          $_msg = sprintf('Události lekce ID=%d byly smazány od %d a výše.',$lekce_id,$date);
-        }
-        else
-        {
-          $this->factoryManager->deleteDiary($ID,$deleted_by);
-          $_msg = sprintf('Událost ID=%d byla smazána.',$ID);
-        }
+	      $this->error('Mazání události je nutné provést formulářem.',405);
+	    }
+
+
+	    /**
+	     * Smaže událost nebo opakování události.
+	     *
+	     * @param object $data Data události
+	     * @param int $tsDiaryDate Timestamp pro návrat do rozvrhu
+	     * @param int $opakovat Počet opakování
+	     * @return void
+	     */
+	    private function deleteDiaryFromForm($data,$tsDiaryDate,$opakovat): void
+	    {
+	      $deleted_by = $this->userName;
+
+	      try
+	      {
+	        if ($opakovat > 1)
+	        {
+	          $this->factoryManager->deleteDiaryByLekceId($data->lekce_id,$data->date,$deleted_by);
+	          $_msg = sprintf('Události lekce ID=%d byly smazány od %d a výše.',$data->lekce_id,$data->date);
+	        }
+	        else
+	        {
+	          $this->factoryManager->deleteDiary($data->ID,$deleted_by);
+	          $_msg = sprintf('Událost ID=%d byla smazána.',$data->ID);
+	        }
 
         $this->flashMessage($_msg);
         $this->eventlog('diary',$_msg);
       }
-      catch (\Exception $e)
-      {
-        $_msg = sprintf('Chyba! Událost ID=%d nebyla smazána.',$ID);
-        $this->flashMessage($_msg,'danger');
-        $this->eventlog('diary',$_msg);
-      }
+	      catch (\Exception $e)
+	      {
+	        $_msg = sprintf('Chyba! Událost ID=%d nebyla smazána.',$data->ID);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('diary',$_msg);
+	      }
 
-      $this->redirect('Diary:',$tsDiaryDate);
+	      $this->redirect('Diary:',$tsDiaryDate);
     }
 
 
@@ -152,14 +168,9 @@
      * @param type $diary_id ID události v rozvrhu
      * @return void
      */
-    public function renderUsers($diary_id): void
-    {
-      if (!$this->getUser()->isLoggedIn())
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-
-        $this->redirect('Homepage:');
-      }
+	    public function renderUsers($diary_id): void
+	    {
+	      $this->requireStaff();
 
       if (!$diary_id)
       {
@@ -248,27 +259,175 @@
      * @param string $datum_cas_lekce Datum a čas lekce ve fomatu YYYYMMDD HH:MM
      * @return void
      */
-    public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$zruseni_zdarma_ts,$datum_cas_lekce): void
-    {
-      // vytvořím timestamp z datumu a času lekce a odečtu timestamp doby zrušení zdarma
-      $dt = \DateTime::createFromFormat('Ymd H:i',$datum_cas_lekce);
-      $_zruseni_zdarma_ts = $dt->getTimestamp() - $zruseni_zdarma_ts;
+	    public function renderCancelRegistration($user_id,$diary_id,$aktivita_id,$sales_id,$zruseni_zdarma_ts,$datum_cas_lekce): void
+	    {
+	      $this->requireStaff();
 
-      $data = self::array_to_object(
-        [
-          'user_id' => $user_id,
-          'diary_id' => $diary_id,
-          'aktivita_id' => $aktivita_id,
-          'sales_id' => $sales_id,
-          'kredit_zmena' => 0,
-          'zruseni_zdarma_ts' => $_zruseni_zdarma_ts,
-        ]
-      );
+	      $this->error('Zrušení registrace je nutné provést formulářem.',405);
+	    }
 
-      $this->cancelRegistration($data);
 
-      $this->redirect('Diary:users',$diary_id);
-    }
+	    /**
+	     * Formuláře pro zrušení registrace klienta administrátorem nebo lektorem.
+	     *
+	     * @return Multiplier
+	     */
+	    protected function createComponentCancelRegistrationForm(): Multiplier
+	    {
+	      $this->requireStaff();
+
+	      return new Multiplier(function (string $id)
+	      {
+	        $form = new Form;
+	        $form->setHtmlAttribute('style','display:inline;');
+	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	        $form->addHidden('registration_id',$id);
+	        $form->addSubmit('send','Zrušit')
+	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('onclick',"return confirm('Opravdu si přejete zrušit tuto rezervaci?');");
+	        $form->onSuccess[] = [$this,'cancelRegistrationFormSucceeded'];
+
+	        return $form;
+	      });
+	    }
+
+
+	    /**
+	     * Zpracování formuláře pro zrušení registrace klienta.
+	     *
+	     * @param Form $form Objekt Form formuláře
+	     * @param object $data Data z formuláře
+	     * @return void
+	     */
+	    public function cancelRegistrationFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      $cancelData = $this->cancelRegistrationFromForm($data);
+	      if (!$cancelData)
+	      {
+	        $this->redirect('this');
+	      }
+
+	      $this->redirect('Diary:users',$cancelData->diary_id);
+	    }
+
+
+	    /**
+	     * Připraví data pro zrušení registrace z formuláře.
+	     *
+	     * @param object $formData Data z formuláře
+	     * @return object|null
+	     */
+	    private function cancelRegistrationFromForm($formData)
+	    {
+	      $registration = $this->factoryManager->getRegistraceByID((int) $formData->registration_id);
+	      if (!$registration)
+	      {
+	        $_msg = sprintf('Chyba! Registrace ID=%d nebyla nalezena.',(int) $formData->registration_id);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('diary',$_msg);
+
+	        return null;
+	      }
+
+	      $_zruseni_zdarma_ts = $this->getRegistrationCancelFreeTimestamp($registration);
+
+	      $data = self::array_to_object(
+	        [
+	          'user_id' => (int) $registration['user_id'],
+	          'diary_id' => (int) $registration['diary_id'],
+	          'aktivita_id' => (int) $registration['aktivita_id'],
+	          'sales_id' => (int) $registration['sales_id'],
+	          'kredit_zmena' => 0,
+	          'zruseni_zdarma_ts' => $_zruseni_zdarma_ts,
+	        ]
+	      );
+
+	      $this->cancelRegistration($data);
+
+	      return $data;
+	    }
+
+
+	    /**
+	     * Vrací timestamp začátku lekce z řádku rozvrhu.
+	     *
+	     * @param mixed $lesson Data lekce
+	     * @return int
+	     */
+	    private function getLessonStartTimestamp($lesson): int
+	    {
+	      $dateString = sprintf('%s %02d:%02d',$lesson['date'],(int) $lesson['hour_from'],(int) $lesson['min_from']);
+	      $dt = \DateTime::createFromFormat('Ymd H:i',$dateString);
+	      if (!$dt)
+	      {
+	        throw new \RuntimeException(sprintf('Nelze sestavit čas lekce z hodnoty %s.',$dateString));
+	      }
+
+	      return $dt->getTimestamp();
+	    }
+
+
+	    /**
+	     * Vrací timestamp dne lekce pro návrat do rozvrhu.
+	     *
+	     * @param mixed $lesson Data lekce
+	     * @return int
+	     */
+	    private function getTsDiaryDateFromLesson($lesson): int
+	    {
+	      $dt = \DateTime::createFromFormat('Ymd',(string) $lesson['date']);
+	      if (!$dt)
+	      {
+	        return $this->tsToday;
+	      }
+
+	      return $dt->getTimestamp();
+	    }
+
+
+	    /**
+	     * Vrací deadline bezplatného storna z řádku rozvrhu.
+	     *
+	     * @param mixed $lesson Data lekce
+	     * @return int
+	     */
+	    private function getLessonCancelFreeTimestamp($lesson): int
+	    {
+	      return $this->getLessonStartTimestamp($lesson) - (int) $lesson['aktivita_zruseni_zdarma_ts'];
+	    }
+
+
+	    /**
+	     * Vrací deadline registrace z řádku rozvrhu.
+	     *
+	     * @param mixed $lesson Data lekce
+	     * @return int
+	     */
+	    private function getLessonRegistrationEndTimestamp($lesson): int
+	    {
+	      return $this->getLessonStartTimestamp($lesson) - (int) $lesson['aktivita_registrace_konec_ts'];
+	    }
+
+
+	    /**
+	     * Vrací deadline bezplatného storna z řádku registrace.
+	     *
+	     * @param mixed $registration Data registrace
+	     * @return int
+	     */
+	    private function getRegistrationCancelFreeTimestamp($registration): int
+	    {
+	      $dateString = sprintf('%s %02d:%02d',$registration['diary_date'],(int) $registration['hour_from'],(int) $registration['min_from']);
+	      $dt = \DateTime::createFromFormat('Ymd H:i',$dateString);
+	      if (!$dt)
+	      {
+	        throw new \RuntimeException(sprintf('Nelze sestavit čas registrace z hodnoty %s.',$dateString));
+	      }
+
+	      return $dt->getTimestamp() - (int) $registration['zruseni_zdarma_ts'];
+	    }
 
 
     /**
@@ -386,9 +545,11 @@
      *
      * @return Form
      */
-    protected function createComponentDiaryDateForm(): Form
-    {
-      // Definice formuláře
+	    protected function createComponentDiaryDateForm(): Form
+	    {
+	      $this->requireLogin();
+
+	      // Definice formuláře
       $form = new Form;
 
       // nastavení ochrany
@@ -422,9 +583,11 @@
      * @param object $data Data z formuláře
      * @return void
      */
-    public function formSucceeded(Form $form,$data): void
-    {
-      $diaryDate = $this->dateFormToDateOrder($data->date);
+	    public function formSucceeded(Form $form,$data): void
+	    {
+	      $this->requireLogin();
+
+	      $diaryDate = $this->dateFormToDateOrder($data->date);
 
       $tsDiaryDate = $this->dateOrderToTsDiaryDate($diaryDate);
 
@@ -440,9 +603,11 @@
      *
      * @return Form
      */
-    protected function createComponentDiaryForm(): Form
-    {
-      // Definice formuláře
+	    protected function createComponentDiaryForm(): Form
+	    {
+	      $this->requireStaff();
+
+	      // Definice formuláře
       $form = new Form;
 
       // nastavení ochrany
@@ -540,9 +705,11 @@
      * @param array $data Data z formuláře
      * @return void
      */
-    public function diaryFormSucceeded(Form $form,$data): void
-    {
-      // nastavení ID události pro tlačítko 'sendAsNew'
+	    public function diaryFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      // nastavení ID události pro tlačítko 'sendAsNew'
       if ($form['sendAsNew']->isSubmittedBy())
         $data->ID = '0';
 
@@ -569,11 +736,11 @@
 
       // -- nastavení akce pro tlačítko 'sendDelete'
 
-      if ($form['sendDelete']->isSubmittedBy())
-      {
-        $this->redirect('Diary:delete',$data->ID,$data->lekce_id,$data->date,$tsDiaryDate,$opakovat);
-        die;
-      }
+	      if ($form['sendDelete']->isSubmittedBy())
+	      {
+	        $this->deleteDiaryFromForm($data,$tsDiaryDate,$opakovat);
+	        die;
+	      }
 
 
       // -- nastavení pro tlačítka 'send' a 'sendAsNew'
@@ -680,30 +847,12 @@
       // nastavení ochrany
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
-      $form->addHidden('diary_id','')
-        ->setHtmlAttribute('id','frm-registerForm-diary_id');
+	      $form->addHidden('diary_id','')
+	        ->setHtmlAttribute('id','frm-registerForm-diary_id');
 
-      $form->addHidden('zruseni_zdarma_ts','')
-        ->setHtmlAttribute('id','frm-registerForm-zruseni_zdarma_ts');
-
-      $form->addHidden('aktivita_id','')
-        ->setHtmlAttribute('id','frm-registerForm-aktivita_id');
-
-      $form->addHidden('date','')
-        ->setHtmlAttribute('id','frm-registerForm-date');
-
-      $form->addHidden('user_id','')
-        ->setHtmlAttribute('id','frm-registerForm-user_id');
-
-      $form->addHidden('akce_id','')
-        ->setHtmlAttribute('id','frm-registerForm-akce_id');
-
-      $form->addHidden('sales_id','')
-        ->setHtmlAttribute('id','frm-registerForm-sales_id');
-
-      // Tlačítko pro odeslání
-      $form->addSubmit('send','???')
-        ->setHtmlAttribute('class','btn btn-success btn-sm')
+	      // Tlačítko pro odeslání
+	      $form->addSubmit('send','???')
+	        ->setHtmlAttribute('class','btn btn-success btn-sm')
         ->setHtmlAttribute('id','frm-registerForm-akce_desc');
 
       // Definice akce
@@ -720,61 +869,103 @@
      * @param object $data Data z formuláře
      * @return void
      */
-    public function formRegisterSucceeded(Form $form,$data): void
-    {
-      $operace = $data->akce_id;
+	    public function formRegisterSucceeded(Form $form,$data): void
+	    {
+	      $this->requireLogin();
 
-      // požadavek na přesměrování na přihlášení, například z důvodu neplatného user_id
-      if ($operace == 'relogin')
-      {
-        $this->redirect('Sign:in');
-        die;
-      }
+	      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
+	      if (!$lesson)
+	      {
+	        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena.',(int) $data->diary_id);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('diary',$_msg);
+	        $this->redirect('Diary:default',$this->tsToday);
+	      }
 
-      //$data['aktivni_permanentka'] = $this->aktivniPermanentkyID[$data->aktivita_id];
+	      $tsDiaryDate = $this->getTsDiaryDateFromLesson($lesson);
+	      $userId = (int) $this->userID;
+	      $aktivitaId = (int) $lesson['aktivita_id'];
 
-      try
-      {
-        if ($operace == 'registrovat')
-        {
-          $this->createRegistration($data);
-        }
-        elseif ($operace == 'odregistrovat')
-        {
-          $this->cancelRegistration($data);
-        }
-        elseif ($operace == 'lekce_probehla' || $operace == 'neni_kredit' || $operace == 'lekce_obsazena')
-        {
-          // žádná akce
-          $_no_action = true; // zatím proměnou nevyužívám
-        }
-        else
-        {
-          $_msg = sprintf('Chyba! Registrace %s nebyla uložena. Neplatný typ operace','');
-          $this->flashMessage($_msg,'danger');
-          $this->eventlog('diary',$_msg);
-        }
-      }
-      catch (\Exception $e)
-      {
-        $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
-        $this->flashMessage($_msg,'danger');
-        $this->eventlog('diary',$_msg);
-      }
+	      $_data = self::array_to_object(
+	        [
+	          'user_id' => $userId,
+	          'diary_id' => (int) $lesson['ID'],
+	        ]
+	      );
 
-      // jdu zpět do formuláře
-      if (!$data->date)
-      {
-        $tsDiaryDate = $this->tsToday;
-      }
-      else
-      {
-        $_date = \DateTime::createFromFormat('Ymd',$data->date);
-        $tsDiaryDate = $_date->getTimestamp();
-      }
+	      try
+	      {
+	        $rst_check = $this->factoryManager->checkIsUserIsRegistered($_data);
+	        $is_registered = (int) ($rst_check['pocet'] ?? 0);
 
-      $this->redirect('Diary:default',$tsDiaryDate);
-    }
+	        if ($this->getLessonRegistrationEndTimestamp($lesson) <= time())
+	        {
+	          $_msg = $is_registered > 0
+	            ? 'Registrace na lekci již nelze upravit.'
+	            : 'Na lekci se již nelze registrovat.';
+	          $this->flashMessage($_msg,'warning');
+	          $this->eventlog('diary',$_msg);
+	        }
+	        elseif ($is_registered == 0)
+	        {
+	          if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
+	          {
+	            $_msg = 'Lekce je obsazena.';
+	            $this->flashMessage($_msg,'warning');
+	            $this->eventlog('diary',$_msg);
+	          }
+	          else
+	          {
+	            $kredity = $this->userManager->getKredityKlienta($userId,$this->userName);
+	            $kredit = $kredity[$aktivitaId]['kredity'] ?? 0;
+
+	            if ($kredit < 0)
+	            {
+	              $_msg = 'Nemáte dostatečný počet vstupů.';
+	              $this->flashMessage($_msg,'warning');
+	              $this->eventlog('diary',$_msg);
+	            }
+	            else
+	            {
+	              $registrationData = self::array_to_object(
+	                [
+	                  'user_id' => $userId,
+	                  'diary_id' => (int) $lesson['ID'],
+	                  'aktivita_id' => $aktivitaId,
+	                  'sales_id' => (int) ($this->aktivniPermanentkyID[$aktivitaId] ?? 0),
+	                ]
+	              );
+
+	              $this->createRegistration($registrationData);
+	            }
+	          }
+	        }
+	        else
+	        {
+	          $_sales = $this->factoryManager->getSalesId($_data);
+	          $cancelData = self::array_to_object(
+	            [
+	              'user_id' => $userId,
+	              'diary_id' => (int) $lesson['ID'],
+	              'aktivita_id' => $aktivitaId,
+	              'sales_id' => (int) ($_sales['sales_id'] ?? 0),
+	              'kredit_zmena' => 0,
+	              'zruseni_zdarma_ts' => $this->getLessonCancelFreeTimestamp($lesson),
+	            ]
+	          );
+
+	          $this->cancelRegistration($cancelData);
+	        }
+	      }
+	      catch (\Exception $e)
+	      {
+	        $_msg = sprintf('Chyba! Registrace nebyla uložena.');
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('diary',$_msg);
+	      }
+
+	      $this->redirect('Diary:default',$tsDiaryDate);
+	    }
 
 
     /**
@@ -782,10 +973,11 @@
      *
      * @return Multiplier
      */
-    protected function createComponentConfirmForm(): Multiplier
-    {
+	    protected function createComponentConfirmForm(): Multiplier
+	    {
+	      $this->requireStaff();
 
-      $this->ucast = $this->userManager->getListFromEnum(
+	      $this->ucast = $this->userManager->getListFromEnum(
         array(
           'db' => self::DB_NAME,
           'tbl' => 'blog_registration',
@@ -798,11 +990,12 @@
        * @param string $id ID registrace, je součástí názvu formuláře
        * @return Form
        */
-      return new Multiplier(function (string $id)
-        {
-          $form = new Form;
+	      return new Multiplier(function (string $id)
+	        {
+	          $form = new Form;
+	          $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
-          // ID registrace, ke kterém je formulář přiřazený
+	          // ID registrace, ke kterém je formulář přiřazený
           $form->addHidden('id',$id);
 
           // potvrzení účasti klienta na lekci
@@ -824,9 +1017,11 @@
      * @param object $data Data z formuláře
      * @return void
      */
-    public function confirmFormSucceeded(Form $form,$data): void
-    {
-      $data->ID = (int) $data->id;
+	    public function confirmFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      $data->ID = (int) $data->id;
       //$data->ucast;
       $data->updated_by = $this->userName;
 
@@ -854,9 +1049,11 @@
      *
      * @return Form
      */
-    protected function createComponentRegisterByAdminForm(): Form
-    {
-      $_rst = $this->userManager->getAllUsersOrderBySurname();
+	    protected function createComponentRegisterByAdminForm(): Form
+	    {
+	      $this->requireStaff();
+
+	      $_rst = $this->userManager->getAllUsersOrderBySurname();
 
       $_users = array();
       $_users[0] = '- vyberte klienta -';
@@ -872,15 +1069,12 @@
       // nastavení ochrany
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
-      $form->addHidden('diary_id','')
-        ->setHtmlAttribute('id','frm-registerByAdminForm-diary_id');
+	      $form->addHidden('diary_id','')
+	        ->setHtmlAttribute('id','frm-registerByAdminForm-diary_id');
 
-      $form->addHidden('aktivita_id','')
-        ->setHtmlAttribute('id','frm-registerByAdminForm-aktivita_id');
-
-      $form->addSelect('user_id','Klient',$_users)
-        ->setHtmlAttribute('class','form-control form-control-sm')
-        ->setHtmlAttribute('id','frm-registerByAdminForm-user_id');
+	      $form->addSelect('user_id','Klient',$_users)
+	        ->setHtmlAttribute('class','form-control form-control-sm')
+	        ->setHtmlAttribute('id','frm-registerByAdminForm-user_id');
 
       //$form->addHidden('sales_id','')
       //  ->setHtmlAttribute('id','frm-registerByAdminForm-sales_id');
@@ -902,9 +1096,31 @@
      * @param object $data Data z formuláře
      * @return void
      */
-    public function formRegisterByAdminSucceeded(Form $form,$data): void
-    {
-      try
+	    public function formRegisterByAdminSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
+	      if (!$lesson)
+	      {
+	        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena.',(int) $data->diary_id);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('diary',$_msg);
+	        $this->redirect('this');
+	      }
+
+	      $data->diary_id = (int) $lesson['ID'];
+	      $data->aktivita_id = (int) $lesson['aktivita_id'];
+
+	      if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
+	      {
+	        $_msg = 'Lekce je obsazena.';
+	        $this->flashMessage($_msg,'warning');
+	        $this->eventlog('diary',$_msg);
+	        $this->redirect('this');
+	      }
+
+	      try
       {
         $this->createRegistration($data);
       }
@@ -924,9 +1140,11 @@
      *
      * @return Form
      */
-    protected function createComponentSendSmsForm(): Form
-    {
-      // Definice formuláře
+	    protected function createComponentSendSmsForm(): Form
+	    {
+	      $this->requireStaff();
+
+	      // Definice formuláře
       $form = new Form;
 
       // nastavení ochrany
@@ -959,9 +1177,11 @@
      * @param object $data Data z formuláře
      * @return void
      */
-    public function formSendSmsSucceeded(Form $form,$data): void
-    {
-      // ošetření telefonní čísla
+	    public function formSendSmsSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
+
+	      // ošetření telefonní čísla
       $sms_mobile_numbers = explode('|',$data->sms_mobile_numbers);
 
       if (!count($sms_mobile_numbers))
@@ -1016,9 +1236,11 @@
      *
      * @return void
      */
-    public function handleLoadDataFormOrder(): void
-    {
-      $ID = $this->getParameter('id_diary');
+	    public function handleLoadDataFormOrder(): void
+	    {
+	      $this->requireStaff();
+
+	      $ID = $this->getParameter('id_diary');
 
       $data = $this->factoryManager->getDiary($ID);
 

@@ -30,6 +30,14 @@ download it following [the instructions](https://doc.nette.org/composer). Then u
 Make directories `temp/` and `log/` writable.
 
 
+Configuration
+-------------
+
+Runtime secrets are read from environment variables. Use `.env.example` as a
+reference for required variable names, or configure the same values directly in
+the web server/process manager environment.
+
+
 Web Server Setup
 ----------------
 

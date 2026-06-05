@@ -28,25 +28,12 @@
      *
      * @return void
      */
-    public function startup(): void
-    {
-      parent::startup();
+	    public function startup(): void
+	    {
+	      parent::startup();
 
-      if (!$this->getUser()->isLoggedIn())
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-        $this->redirect('Homepage:');
-        die;
-      }
-
-      if ($this->role != 'admin')
-      {
-        $this->flashMessage('Chyba! Pokus o neoprávněný přístup uživatelem '.$this->userName.'!','danger');
-        $this->eventlog('log','Chyba! Pokus o neoprávněný přístup uživatelem '.$this->userName.'!');
-        $this->redirect('Homepage:');
-        die;
-      }
-    }
+	      $this->requireAdmin();
+	    }
 
 
     /**

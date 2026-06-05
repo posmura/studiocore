@@ -89,15 +89,11 @@
      * @param object $data Data prodeje
      * @return bool
      */
-    public function deleteProdej($data)
-    {
-      //dump($data);
-      //$rst = $this->database->fetch(SqlCommands::getPermanentka(),$data->id);
-      //dump($rst);
-      //die;
-      return $this->database->query(SqlCommands::deleteProdej(),
-          $data->deleted_by,
-          $data->id
+	    public function deleteProdej($data)
+	    {
+	      return $this->database->query(SqlCommands::deleteProdej(),
+	          $data->deleted_by,
+	          $data->id
       );
     }
 

@@ -1,0 +1,8 @@
+{
+    "git.enabled": true,
+    "svn.enabled": false,
+    "svn.ignoreMissingSvnWarning": true,
+    "svn.detectExternals": false,
+    "scm.defaultViewMode": "list",
+    "workbench.editor.enablePreview": false
+}

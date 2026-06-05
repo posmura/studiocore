@@ -1,6 +1,6 @@
 {block content}
 <div id="banner">
-    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "admin")}
+    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor")}
         <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
             <strong>ADMINISTRACE: Permanentky</strong></div>
     {/if}
@@ -10,11 +10,13 @@
 
     {if $user->isLoggedIn()}
         <div class="mt-3">
-            <div class="text-right pb-3" style="text-align: right;">
-                <a n:href="MembershipCard:edit 0" class="btn btn-sm btn-success">
-                    <i class="bi bi-plus"></i> Přidat novou permanentku
-                </a>
-            </div>
+            {if $user->identity->role == "admin"}
+                <div class="text-right pb-3" style="text-align: right;">
+                    <a n:href="MembershipCard:edit 0" class="btn btn-sm btn-success">
+                        <i class="bi bi-plus"></i> Přidat novou permanentku
+                    </a>
+                </div>
+            {/if}
 
             <div class="border border-1 p-2">
                 <table id="tbl-membershipCard" class="display" style="width:100%;">
@@ -26,7 +28,7 @@
                             <th>Cena</th>
                             <th>Platnost</th>
                             <th>Počet vstupů</th>
-                            <th>Aktivní</th> 
+                            <th>Aktivní</th>
                             <th></th>
                         </tr>
                     </thead>
@@ -46,18 +48,17 @@
                                         <a n:href="MembershipCard:edit $item->id" class="btn btn-sm btn-success">
                                             <i class="bi bi-pencil-square"></i>
                                         </a>
-                                        <a n:href="MembershipCard:delete $item->id" class="btn btn-sm btn-danger" onclick="return confirm('Opravdu chcete záznam odstranit?');">
-                                            <i class="bi bi-trash"></i>
-                                        </a>
+                                        {var $deleteFormId = 'deletePermanentkaForm-' . $item->id}
+                                        {form $deleteFormId}{input send}{/form}
                                     {/if}
                                 </td>
                             </tr>
                         {/foreach}
                     </tbody>
                 </table>
-            </div> 
-                    
-        </div> 
+            </div>
+
+        </div>
     {/if}
 </div>
 
@@ -76,4 +77,3 @@
         });
     </script>
 {/if}
-

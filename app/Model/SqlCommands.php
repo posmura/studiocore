@@ -1759,6 +1759,39 @@ SQL;
 
 
     /**
+     * REGISTRACE: Vrací registraci podle jejího ID
+     *
+     * @return string
+     */
+    public static function getRegistraceByID(): string
+    {
+      return <<<SQL
+SELECT
+  a.`ID` AS `registration_id`,
+  a.`user_id` AS `user_id`,
+  a.`diary_id` AS `diary_id`,
+  a.`aktivita_id` AS `aktivita_id`,
+  a.`sales_id` AS `sales_id`,
+  b.`date` AS `diary_date`,
+  b.`hour_from` AS `hour_from`,
+  b.`min_from` AS `min_from`,
+  d.`zruseni_zdarma_ts` AS `zruseni_zdarma_ts`
+FROM
+  `blog_registration` AS a
+LEFT JOIN
+  `blog_diary` AS b ON b.`ID` = a.`diary_id`
+LEFT JOIN
+  `blog_activity` AS d ON d.`id` = a.`aktivita_id`
+WHERE
+  a.`ID` = ?
+  AND a.`deleted` = 0
+  AND b.`deleted` = 0
+  AND d.`deleted` = 0
+SQL;
+    }
+
+
+	    /**
      * LEKCE: Vrací detail lekce podle diary_id
      *
      * @return string

@@ -2,9 +2,10 @@
 
   declare(strict_types=1);
 
-  namespace App\Presenters;
+	  namespace App\Presenters;
 
-  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Multiplier;
 
   /**
    * Třída presenteru pro aktivity
@@ -18,17 +19,12 @@
      *
      * @return void
      */
-    public function startup(): void
-    {
-      parent::startup();
+	    public function startup(): void
+	    {
+	      parent::startup();
 
-      if (!$this->getUser()->isLoggedIn())
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-
-        $this->redirect('Homepage:');
-      }
-    }
+	      $this->requireStaff();
+	    }
 
 
     /**
@@ -48,12 +44,54 @@
      * @param int $id ID permanentky
      * @return void
      */
-    public function renderDelete($id): void
-    {
-      $data = self::array_to_object(['id' => $id, 'deleted_by' => $this->userName]);
+	    public function renderDelete($id): void
+	    {
+	      $this->requireAdmin();
 
-      try
-      {
+	      $this->error('Mazání aktivity je nutné provést formulářem.',405);
+	    }
+
+
+	    /**
+	     * Formuláře pro mazání aktivity.
+	     *
+	     * @return Multiplier
+	     */
+	    protected function createComponentDeleteAktivitaForm(): Multiplier
+	    {
+	      $this->requireAdmin();
+
+	      return new Multiplier(function (string $id)
+	      {
+	        $form = new Form;
+	        $form->setHtmlAttribute('style','display:inline;');
+	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	        $form->addHidden('id',$id);
+	        $form->addSubmit('send','Odstranit')
+	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
+	        $form->onSuccess[] = [$this,'deleteAktivitaFormSucceeded'];
+
+	        return $form;
+	      });
+	    }
+
+
+	    /**
+	     * Akce po odeslání formuláře pro mazání aktivity.
+	     *
+	     * @param Form $form Objekt formuláře
+	     * @param type $data Data z formuláře
+	     * @return void
+	     */
+	    public function deleteAktivitaFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+
+	      try
+	      {
         $this->activityManager->deleteAktivita($data);
       }
       catch (\Exception $e)
@@ -77,9 +115,11 @@
      * @param int $id ID permanentky
      * @return void
      */
-    public function renderEdit(int $id = 0): void
-    {
-      $params = self::array_to_object(array('id' => $id));
+	    public function renderEdit(int $id = 0): void
+	    {
+	      $this->requireAdmin();
+
+	      $params = self::array_to_object(array('id' => $id));
 
       $data = $this->activityManager->getAktivita($params);
 
@@ -94,9 +134,11 @@
      *
      * @return Form
      */
-    protected function createComponentAktivitaForm(): Form
-    {
-      $form = new Form;
+	    protected function createComponentAktivitaForm(): Form
+	    {
+	      $this->requireAdmin();
+
+	      $form = new Form;
 
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
@@ -160,9 +202,11 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formAktivitaSucceeded(Form $form,$data): void
-    {
-      if ($data->id == 0)
+	    public function formAktivitaSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      if ($data->id == 0)
       {
         $operace = 'insert';
       }

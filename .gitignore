@@ -1,0 +1,4 @@
+.env
+.env.*
+!.env.example
+/config/local.secret.neon

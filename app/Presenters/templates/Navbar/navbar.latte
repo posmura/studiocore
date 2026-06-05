@@ -2,7 +2,7 @@
 
     <div class="container-fluid">
         <a class="navbar-brand" href="https://studiocore.cz" target="_blank">
-            <img 
+            <img
                 class='logo-image d-none d-lg-inline-block'
                 src='/images/rs_logo_50.png'
                 alt='Studio Core'
@@ -23,7 +23,7 @@
                 </li>
 
 
-                {if $user->isLoggedIn()}                
+                {if $user->isLoggedIn()}
                     {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
                         <li class="nav-item mx-2">
                             <a n:href="Sales:default" class="nav-link nav-rs">PRODEJ</a>
@@ -54,7 +54,7 @@
                                 </li>
                                 <li>
                                     <a class="dropdown-item" n:href="EventLog:default" class="nav-link">EventLog</a>
-                                </li>                    
+                                </li>
                             {/if}
                         </ul>
                     </li>
@@ -70,8 +70,8 @@
                 <span style="white-space: nowrap;" class="padding-right-20 text-white" title="{$user->identity->email}">Uživatel: <strong>{$user->identity->username}</strong></span>
                 {if $user->identity->role == "klient"}
                     <button class="btn btn-outline-light mx-2 px-2" data-bs-toggle="modal" data-bs-target="#modalKlientKredity"><span style="white-space: nowrap;"><i class="bi bi-credit-card pe-2"></i> Kredity</span></button>                {/if}
-                
-                <a n:href="Sign:out" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-box-arrow-left pe-2"></i> Odhlášení</span></a>
+
+	                {form signoutForm}{input send}{/form}
             {else}
                 <a n:href="Sign:in" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-box-arrow-in-right pe-2"></i> Přihlášení</span></a>
                 <a n:href="Sign:up" class="btn btn-outline-light mx-2 px-2" type="button"><span style="white-space: nowrap;"><i class="bi bi-person-circle pe-2"></i> Registrace</span></a>
@@ -81,7 +81,7 @@
     </div>
 
 </nav>
-        
+
 {if $user->isLoggedIn() && $user->identity->role == "klient"}
     <div class="modal fade" id="modalKlientKredity" data-bs-backdrop="static" data-bs-keyboard="false">
         <div class="modal-dialog modal-dialog-scrollable">
@@ -90,7 +90,7 @@
                     <h5 class="modal-title">Vaše kredity</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
-                
+
                 <div class="modal-body">
                     <table class="table">
                         <tr>
@@ -110,4 +110,3 @@
         </div>
     </div>
 {/if}
-

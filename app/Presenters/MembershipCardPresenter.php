@@ -2,9 +2,10 @@
 
   declare(strict_types=1);
 
-  namespace App\Presenters;
+	  namespace App\Presenters;
 
-  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Multiplier;
 
   /**
    * Třída presenteru pro permanentky
@@ -24,17 +25,13 @@
      *
      * @return void
      */
-    public function startup(): void
-    {
-      parent::startup();
+	    public function startup(): void
+	    {
+	      parent::startup();
 
-      if (!$this->getUser()->isLoggedIn() && !in_array($this->getAction(), $this->allowedActions, true))
-      {
-        $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
-
-        $this->redirect('Homepage:');
-      }
-    }
+	      if (!in_array($this->getAction(),$this->allowedActions,true))
+	        $this->requireStaff();
+	    }
 
 
     /**
@@ -65,12 +62,54 @@
      * @param int $id ID permanentky
      * @return void
      */
-    public function renderDelete($id): void
-    {
-      $data = self::array_to_object(['id' => $id, 'deleted_by' => $this->userName]);
+	    public function renderDelete($id): void
+	    {
+	      $this->requireAdmin();
 
-      try
-      {
+	      $this->error('Mazání permanentky je nutné provést formulářem.',405);
+	    }
+
+
+	    /**
+	     * Formuláře pro mazání permanentky.
+	     *
+	     * @return Multiplier
+	     */
+	    protected function createComponentDeletePermanentkaForm(): Multiplier
+	    {
+	      $this->requireAdmin();
+
+	      return new Multiplier(function (string $id)
+	      {
+	        $form = new Form;
+	        $form->setHtmlAttribute('style','display:inline;');
+	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	        $form->addHidden('id',$id);
+	        $form->addSubmit('send','Odstranit')
+	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
+	        $form->onSuccess[] = [$this,'deletePermanentkaFormSucceeded'];
+
+	        return $form;
+	      });
+	    }
+
+
+	    /**
+	     * Akce po odeslání formuláře pro mazání permanentky.
+	     *
+	     * @param Form $form Objekt formuláře
+	     * @param type $data Data z formuláře
+	     * @return void
+	     */
+	    public function deletePermanentkaFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+
+	      try
+	      {
         $this->membershipCardManager->deletePermanentka($data);
       }
       catch (\Exception $e)
@@ -94,9 +133,11 @@
      * @param int $id ID permanentky
      * @return void
      */
-    public function renderEdit(int $id = 0): void
-    {
-      $params = self::array_to_object(array('id' => $id));
+	    public function renderEdit(int $id = 0): void
+	    {
+	      $this->requireAdmin();
+
+	      $params = self::array_to_object(array('id' => $id));
 
       $data = $this->membershipCardManager->getPermanentka($params);
 
@@ -111,9 +152,11 @@
      *
      * @return Form
      */
-    protected function createComponentPermanentkaForm(): Form
-    {
-      // seznam uživatelských rolí
+	    protected function createComponentPermanentkaForm(): Form
+	    {
+	      $this->requireAdmin();
+
+	      // seznam uživatelských rolí
       $_aktivni = $this->userManager->getListFromEnum(
         array(
           'db' => self::DB_NAME,
@@ -178,9 +221,11 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formPermanentkaSucceeded(Form $form,$data): void
-    {
-      if ($data->id == 0)
+	    public function formPermanentkaSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      if ($data->id == 0)
       {
         $operace = 'insert';
       }

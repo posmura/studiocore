@@ -35,6 +35,17 @@
     const DIARY_LESSON_REPEAT_NUMBER = 52;
 
     /**
+     * Role v aplikaci
+     */
+    const ROLE_ADMIN = 'admin';
+    const ROLE_LECTOR = 'lektor';
+    const ROLE_CLIENT = 'klient';
+    const ROLES_STAFF = [self::ROLE_ADMIN,self::ROLE_LECTOR];
+
+    #[\Nette\DI\Attributes\Inject]
+    public Nette\Database\Connection $dbConnection;
+
+    /**
      * Objekt příspěvky
      * @var object
      */
@@ -242,6 +253,10 @@
    {
      parent::beforeRender();
      $this->template->kredity = $this->kredity;
+
+     $url = $this->getHttpRequest()->getUrl();
+     $this->template->isDevEnvironment = $url->getHost() === 'localhost' && $url->getPort() === 8203;
+     $this->template->isDevDatabase = str_contains($this->dbConnection->getDsn(), '127.0.0.1');
    }
 
     /**
@@ -409,11 +424,116 @@
      * @param array $params Pole s parametry
      * @return object
      */
-    public static function array_to_object(array $params = array()): object
-    {
-      $data = new \stdClass;
-      Arrays::toObject($params,$data);
+	    public static function array_to_object(array $params = array()): object
+	    {
+	      $data = new \stdClass;
+	      Arrays::toObject($params,$data);
 
-      return $data;
-    }
-  }
+	      return $data;
+	    }
+
+
+	    /**
+	     * Vyžaduje přihlášeného uživatele.
+	     */
+	    protected function requireLogin(): void
+	    {
+	      if ($this->getUser()->isLoggedIn())
+	        return;
+
+	      $this->flashMessage('Z důvodu nečinnosti jste byl(a) automaticky odhlášen(a) z aplikace.','danger');
+	      $this->redirect('Homepage:');
+	    }
+
+
+	    /**
+	     * Vyžaduje jednu z povolených rolí.
+	     */
+	    protected function requireRoles(array $roles): void
+	    {
+	      $this->requireLogin();
+
+	      if (in_array($this->role,$roles,true))
+	        return;
+
+	      $this->denyAccess();
+	    }
+
+
+	    /**
+	     * Vyžaduje roli administrátora.
+	     */
+	    protected function requireAdmin(): void
+	    {
+	      $this->requireRoles([self::ROLE_ADMIN]);
+	    }
+
+
+	    /**
+	     * Vyžaduje administrátora nebo lektora.
+	     */
+	    protected function requireStaff(): void
+	    {
+	      $this->requireRoles(self::ROLES_STAFF);
+	    }
+
+
+	    /**
+	     * Vrací příznak, zda je přihlášen administrátor.
+	     */
+	    protected function isAdmin(): bool
+	    {
+	      return $this->role === self::ROLE_ADMIN;
+	    }
+
+
+	    /**
+	     * Vrací příznak, zda je přihlášen administrátor nebo lektor.
+	     */
+	    protected function isStaff(): bool
+	    {
+	      return in_array($this->role,self::ROLES_STAFF,true);
+	    }
+
+
+	    /**
+	     * Ukončí požadavek jako nepovolený.
+	     */
+	    protected function denyAccess(): void
+	    {
+	      $username = $this->getUser()->isLoggedIn() ? $this->getUser()->identity->username : null;
+	      $this->eventlog($this->getName(),'Chyba! Pokus o neoprávněný přístup uživatelem '.$username.'.');
+
+	      throw new Nette\Application\ForbiddenRequestException('Nemáte oprávnění pro tuto akci.');
+	    }
+
+
+	    /**
+	     * Formulář pro odhlášení uživatele.
+	     */
+	    protected function createComponentSignoutForm(): Nette\Application\UI\Form
+	    {
+	      $this->requireLogin();
+
+	      $form = new Nette\Application\UI\Form;
+	      $form->setHtmlAttribute('style','display:inline;');
+	      $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	      $form->addSubmit('send','Odhlášení')
+	        ->setHtmlAttribute('class','btn btn-outline-light mx-2 px-2');
+	      $form->onSuccess[] = [$this,'signoutFormSucceeded'];
+
+	      return $form;
+	    }
+
+
+	    /**
+	     * Odhlášení uživatele po odeslání formuláře.
+	     */
+	    public function signoutFormSucceeded(Nette\Application\UI\Form $form,$data): void
+	    {
+	      $this->requireLogin();
+	      $this->eventlog('sign','Uživatel byl odhlášen.');
+	      $this->getUser()->logout();
+	      $this->redirect('Homepage:');
+	    }
+	  }

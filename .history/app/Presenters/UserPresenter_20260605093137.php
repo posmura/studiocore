@@ -2,10 +2,10 @@
 
   declare(strict_types=1);
 
-  namespace App\Presenters;
+	  namespace App\Presenters;
 
-  use Nette\Application\UI\Form;
-  use Nette\Application\UI\Multiplier;
+	  use Nette\Application\UI\Form;
+	  use Nette\Application\UI\Multiplier;
   use Nette\Security\Passwords;
   use Nette\Utils\Arrays;
 
@@ -37,11 +37,11 @@
      *
      * @return void
      */
-    public function startup(): void
-    {
-      parent::startup();
+	    public function startup(): void
+	    {
+	      parent::startup();
 
-      $this->requireLogin();
+	      $this->requireLogin();
 
       // načtu seznam aktivit
       $this->_aktivity = $this->aktivita;
@@ -56,11 +56,11 @@
      *
      * @return void
      */
-    public function renderDefault(): void
-    {
-      $this->requireStaff();
+	    public function renderDefault(): void
+	    {
+	      $this->requireStaff();
 
-      // načtu klienty
+	      // načtu klienty
       $data = $this->userManager->getAllUsers();
 
       // doplním kredity pro jednotlivé aktivity klienta
@@ -82,13 +82,13 @@
      *
      * @return void
      */
-    public function renderUser($userID): void
-    {
+	    public function renderUser($userID): void
+	    {
 
-      if (!$userID)
-        $userID = $this->userID;
+	      if (!$userID)
+	        $userID = $this->userID;
 
-      $this->requireUserAccess((int) $userID);
+	      $this->requireUserAccess((int) $userID);
 
       $ts = strtotime(date('Y-m-d 23:59:59'));
 
@@ -126,54 +126,54 @@
      *
      * @return void
      */
-    public function renderDelete($userId,$deleteBy): void
-    {
-      $this->requireAdmin();
+	    public function renderDelete($userId,$deleteBy): void
+	    {
+	      $this->requireAdmin();
 
-      $this->error('Mazání uživatele je nutné provést formulářem.',405);
-    }
-
-
-    /**
-     * Formuláře pro mazání uživatele.
-     *
-     * @return Multiplier
-     */
-    protected function createComponentDeleteUserForm(): Multiplier
-    {
-      $this->requireAdmin();
-
-      return new Multiplier(function (string $id)
-      {
-        $form = new Form;
-        $form->setHtmlAttribute('style','display:inline;');
-        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
-        $form->addHidden('userId',$id);
-        $form->addSubmit('send','Odstranit')
-          ->setHtmlAttribute('class','btn btn-sm btn-danger')
-          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
-        $form->onSuccess[] = [$this,'deleteUserFormSucceeded'];
-
-        return $form;
-      });
-    }
+	      $this->error('Mazání uživatele je nutné provést formulářem.',405);
+	    }
 
 
-    /**
-     * Akce po odeslání formuláře pro mazání uživatele.
-     *
-     * @param Form $form Objekt formuláře
-     * @param type $data Data z formuláře
-     * @return void
-     */
-    public function deleteUserFormSucceeded(Form $form,$data): void
-    {
-      $this->requireAdmin();
+	    /**
+	     * Formuláře pro mazání uživatele.
+	     *
+	     * @return Multiplier
+	     */
+	    protected function createComponentDeleteUserForm(): Multiplier
+	    {
+	      $this->requireAdmin();
 
-      $userId = (int) $data->userId;
-      $deleteBy = $this->userName;
+	      return new Multiplier(function (string $id)
+	      {
+	        $form = new Form;
+	        $form->setHtmlAttribute('style','display:inline;');
+	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
+	        $form->addHidden('userId',$id);
+	        $form->addSubmit('send','Odstranit')
+	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
+	        $form->onSuccess[] = [$this,'deleteUserFormSucceeded'];
 
-      try
+	        return $form;
+	      });
+	    }
+
+
+	    /**
+	     * Akce po odeslání formuláře pro mazání uživatele.
+	     *
+	     * @param Form $form Objekt formuláře
+	     * @param type $data Data z formuláře
+	     * @return void
+	     */
+	    public function deleteUserFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireAdmin();
+
+	      $userId = (int) $data->userId;
+	      $deleteBy = $this->userName;
+
+	      try
       {
         $this->userManager->deleteUser($userId,$deleteBy);
       }
@@ -195,11 +195,11 @@
      *
      * @return Form
      */
-    protected function createComponentUserForm(): Form
-    {
-      $this->requireLogin();
+	    protected function createComponentUserForm(): Form
+	    {
+	      $this->requireLogin();
 
-      // seznam uživatelských rolí
+	      // seznam uživatelských rolí
       $_roles = $this->userManager->getListFromEnum(
         array(
           'db' => self::DB_NAME,
@@ -297,20 +297,20 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formUserFormSucceeded(Form $form,$data): void
-    {
-      $this->requireUserAccess((int) $data->id);
+	    public function formUserFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireUserAccess((int) $data->id);
 
-      if (!$this->isAdmin())
-      {
-        $userData = $this->userManager->getUserByID(self::array_to_object(['id' => (int) $data->id]));
-        if (!$userData)
-          $this->denyAccess();
+	      if (!$this->isAdmin())
+	      {
+	        $userData = $this->userManager->getUserByID(self::array_to_object(['id' => (int) $data->id]));
+	        if (!$userData)
+	          $this->denyAccess();
 
-        $data->role = $userData['role'];
-      }
+	        $data->role = $userData['role'];
+	      }
 
-      $data->updated_by = $this->userName;
+	      $data->updated_by = $this->userName;
 
       try
       {
@@ -334,11 +334,11 @@
      *
      * @return Form
      */
-    protected function createComponentUserpasswordForm(): Form
-    {
-      $this->requireLogin();
+	    protected function createComponentUserpasswordForm(): Form
+	    {
+	      $this->requireLogin();
 
-      $form = new Form;
+	      $form = new Form;
 
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
@@ -383,11 +383,11 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formUserpasswordFormSucceeded(Form $form,$data): void
-    {
-      $this->requireUserAccess((int) $data->id);
+	    public function formUserpasswordFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireUserAccess((int) $data->id);
 
-      $data->updated_by = $this->userName;
+	      $data->updated_by = $this->userName;
 
       // nastavení hesla
       $passwords = new Passwords();
@@ -415,11 +415,11 @@
      *
      * @return Form
      */
-    protected function createComponentKreditForm(): Form
-    {
-      $this->requireStaff();
+	    protected function createComponentKreditForm(): Form
+	    {
+	      $this->requireStaff();
 
-      $form = new Form;
+	      $form = new Form;
 
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
@@ -451,11 +451,11 @@
      * @param type $data Data z formuláře
      * @return void
      */
-    public function formKreditFormSucceeded(Form $form,$data): void
-    {
-      $this->requireStaff();
+	    public function formKreditFormSucceeded(Form $form,$data): void
+	    {
+	      $this->requireStaff();
 
-      $data->updated_by = $this->userName;
+	      $data->updated_by = $this->userName;
 
       $params = array();
 
@@ -532,31 +532,31 @@
      * @param type $userName pole všech uživatelských jmen
      * @return bool
      */
-    public function checkUsername($userName): bool
-    {
-      return in_array(mb_strtolower($userName),$this->userNames);
-    }
+	    public function checkUsername($userName): bool
+	    {
+	      return in_array(mb_strtolower($userName),$this->userNames);
+	    }
 
 
-    /**
-     * Vrací příznak, zda může přihlášený uživatel pracovat s profilem.
-     */
-    private function canAccessUser(int $userID): bool
-    {
-      return $this->isStaff() || $userID === (int) $this->userID;
-    }
+	    /**
+	     * Vrací příznak, zda může přihlášený uživatel pracovat s profilem.
+	     */
+	    private function canAccessUser(int $userID): bool
+	    {
+	      return $this->isStaff() || $userID === (int) $this->userID;
+	    }
 
 
-    /**
-     * Vyžaduje přístup k danému profilu.
-     */
-    private function requireUserAccess(int $userID): void
-    {
-      $this->requireLogin();
+	    /**
+	     * Vyžaduje přístup k danému profilu.
+	     */
+	    private function requireUserAccess(int $userID): void
+	    {
+	      $this->requireLogin();
 
-      if ($this->canAccessUser($userID))
-        return;
+	      if ($this->canAccessUser($userID))
+	        return;
 
-      $this->denyAccess();
-    }
-  }
+	      $this->denyAccess();
+	    }
+	  }

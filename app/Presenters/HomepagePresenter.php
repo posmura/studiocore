@@ -34,6 +34,9 @@ final class HomepagePresenter extends BasePresenter
    */
   public function renderDelete($postId,$deletedBy): void
   {
+    $this->requireAdmin();
+    $this->error('Mazání příspěvku je nutné provést formulářem.',405);
+
     try {
       $this->postManager->deletePost($postId,$deletedBy);
       $this->flashMessage('Příspěvěk byl smazán.');
@@ -55,9 +58,12 @@ final class HomepagePresenter extends BasePresenter
    */
   protected function createComponentPostForm(): Form
   {
+    $this->requireAdmin();
+
     $userName = $this->getUser()->identity->name;
 
     $form = new Form;
+    $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
     $form->addText('title','Nadpis:')
       ->setHtmlAttribute("class","form-control")
@@ -88,6 +94,8 @@ final class HomepagePresenter extends BasePresenter
    */
   public function formSucceeded(Form $form,$data): void
   {
+    $this->requireAdmin();
+
     $postId = isset($data->id) ? $data->id : 0;
 
     try

@@ -30,39 +30,25 @@
         modalDiaryForm.show();
     }
 
-    function cleanDiaryForm() {
-        $('#frm-registerForm-lekce_info_text').html('');
-        $('#frm-registerForm-diary_id').val('');
-        $('#frm-registerForm-aktivita_id').val('');
-        $('#frm-registerForm-date').val('');
-        $('#frm-registerForm-user_id').val('');
-        $('#frm-registerForm-akce_id').val('');
-        $('#frm-registerForm-akce_desc').val('');
-        $('#frm-registerForm-sales_id').val('');
-        $('#frm-registerForm-zruseni_zdarma_ts').val('');
-    }
+	    function cleanDiaryForm() {
+	        $('#frm-registerForm-lekce_info_text').html('');
+	        $('#frm-registerForm-diary_id').val('');
+	        $('#frm-registerForm-akce_desc').val('');
+	    }
 
     function loadDataLekce(id) {
         $.getJSON({
             type: "POST",
             url: {plink LoadDataLekce!},
-            data: {
-                ID: id
-            },
-            success: function (data) {
-                console.log(data);
-                const dataLekce = JSON.parse(data);
-                console.log(dataLekce);
-                $('#frm-registerForm-lekce_info_text').html(dataLekce.lekce_info_text);
-                $('#frm-registerForm-diary_id').val(dataLekce.diary_id);
-                $('#frm-registerForm-aktivita_id').val(dataLekce.aktivita_id);
-                $('#frm-registerForm-date').val(dataLekce.date);
-                $('#frm-registerForm-user_id').val(dataLekce.user_id);
-                $('#frm-registerForm-akce_id').val(dataLekce.akce_id);
-                $('#frm-registerForm-akce_desc').val(dataLekce.akce_desc);
-                $('#frm-registerForm-sales_id').val(dataLekce.sales_id);
-                $('#frm-registerForm-zruseni_zdarma_ts').val(dataLekce.zruseni_zdarma_ts);
-            },
+	            data: {
+	                ID: id
+	            },
+	            success: function (data) {
+	                const dataLekce = JSON.parse(data);
+	                $('#frm-registerForm-lekce_info_text').html(dataLekce.lekce_info_text);
+	                $('#frm-registerForm-diary_id').val(dataLekce.diary_id);
+	                $('#frm-registerForm-akce_desc').val(dataLekce.akce_desc);
+	            },
             error: function (jqXHR, textStatus, errorThrown) {
                 alert('LEKCE\nCHYBA - Načtení údajů selhalo.');
             }

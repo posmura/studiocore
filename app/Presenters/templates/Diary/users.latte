@@ -37,22 +37,22 @@
   UNIX_TIMESTAMP(STR_TO_DATE(b.`date`, '%Y%m%d')) AS `ts_diary_date`,
   DATE_FORMAT(STR_TO_DATE(b.`date`, '%Y%m%d'), '%d.%m.%Y') AS `lekce_datum`,
   TIME_FORMAT(MAKETIME(b.`hour_from`, b.`min_from`, 0), '%H:%i') AS `lekce_cas_od`,
-  TIME_FORMAT(MAKETIME(b.`hour_to`, b.`min_to`, 0), '%H:%i') AS `lekce_cas_do`      
+  TIME_FORMAT(MAKETIME(b.`hour_to`, b.`min_to`, 0), '%H:%i') AS `lekce_cas_do`
 *}
 
 <div id="content">
-	
+
 {if $user->isLoggedIn()}
     {* hlavní blok *}
-    <div class="row"> 
-              
+    <div class="row">
+
         {* levý sloupec *}
-        <div class="col-md-8" style="background-color: #FFFBBF;"> 
-            
+        <div class="col-md-8" style="background-color: #FFFBBF;">
+
             {* lekce info blok *}
             <div class="p-2 mx-1 my-4">
-                <div class="row"> 
-                    <div class="col-md-6"> 
+                <div class="row">
+                    <div class="col-md-6">
                         <ul style="color: #666; font-style: italic;">
                             <li>Aktivita: <strong>{$info['aktivita_nazev']}</strong></li>
                             <li>Název lekce: <strong>{$info['diary_nazev']}</strong></li>
@@ -60,7 +60,7 @@
                             <li>Datum a čas: <strong>{$info['lekce_datum']}</strong>, <strong>{$info['lekce_cas_od']} - {$info['lekce_cas_do']}</strong></li>
                         </ul>
                     </div>
-                    <div class="col-md-6"> 
+                    <div class="col-md-6">
                         <ul style="color: #666; font-style: italic;">
                             <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
                             <li>Zrušení klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
@@ -71,7 +71,7 @@
                 </div>
             </div>
             {* lekce info blok - konec*}
-            
+
             {* *** SEZNAM KLIENTŮ *** *}
             <div class="border border-2 border-warning p-2 mx-1 my-4" style="background-color: #fff;">
                 {foreach $data as $key => $items}
@@ -89,15 +89,15 @@
                             </thead>
                             <tbody>
                     {/if}
-                    
+
                     {if $items['registrace_deleted'] == 0}
                         <tr>
                             <td>
                                 <div class="form-check">
-                                    <input class="form-check-input multi-check" 
-                                           type="checkbox" 
-                                           id="sms-{$key|noescape}" 
-                                           name="sms_{$key|noescape}" 
+                                    <input class="form-check-input multi-check"
+                                           type="checkbox"
+                                           id="sms-{$key|noescape}"
+                                           name="sms_{$key|noescape}"
                                            value="{$items['user_mobil_number']|noescape}"
                                            >
                                     <label class="form-check-label"></label>
@@ -110,11 +110,11 @@
                             <td>
                                 {ifset $items->kredity}
                                     {foreach $items->kredity as $akey => $aitems}
-                                        {if $aitems['kredity'] < 0} 
-                                            {var $astyle='color: red;'} 
-                                        {elseif $aitems['kredity'] == 0} 
+                                        {if $aitems['kredity'] < 0}
+                                            {var $astyle='color: red;'}
+                                        {elseif $aitems['kredity'] == 0}
                                             {var $astyle='color: blue;'}
-                                        {else} 
+                                        {else}
                                             {var $astyle='color: green;'}
                                         {/if}
                                         <div>
@@ -130,17 +130,16 @@
                                 <script>
                                     $('#frm-{$confirmFormId|noescape}-ucast').val({$items['registrace_ucast']});
                                 </script>
-                                
+
                             <td class="text-center">
-                                <a n:href="Diary:cancelRegistration ,$items['user_id'],$items['diary_id'],$items['aktivita_id'],$items['sales_id'],$info['aktivita_zruseni_zdarma_ts'],$info['diary_date'].' '.$info['lekce_cas_od']" 
-                                   onclick="return confirm('Opravdu si přejete zrušit tuto rezervaci?');" 
-                                   style="color: red !important" 
-                                   title="zrušit registraci">
-                                    <i class="bi bi-x-circle-fill"></i></a>
+                                {var $cancelFormId = 'cancelRegistrationForm-' . $items['registrace_id']}
+                                {form $cancelFormId}
+                                    {input send}
+                                {/form}
                             </td>
                         </tr>
                     {/if}
-                                         
+
                     {if $iterator->last}
                             </tbody>
                         </table>
@@ -148,8 +147,8 @@
                 {else}
                     <div class="text-center">Nebyl nalezen žádná záznam.</div>
                 {/foreach}
-            </div> 
-                        
+            </div>
+
             {* *** VSTUPY *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Přehled všech registrací na lekci</div>
@@ -167,13 +166,13 @@
                             </thead>
                             <tbody>
                     {/if}
-                    
+
                     {if $items['registrace_deleted'] == 0}
                         {var $color = 'color: green;'}
                     {else}
                         {var $color = 'color: red;'}
                     {/if}
-                    
+
                     <tr>
                         <td style="{$color|noescape}">{$items['user_surname']} {$items['user_firstname']}</td>
                         <td style="{$color|noescape}">{$items['registrace_created_at']}</td>
@@ -181,7 +180,7 @@
                         <td style="{$color|noescape}">{$items['registrace_deleted_at']}</td>
                         <td style="{$color|noescape}">{$items['registrace_deleted_by']}</td>
                     </tr>
-                                         
+
                     {if $iterator->last}
                             </tbody>
                         </table>
@@ -191,13 +190,13 @@
                 {/foreach}
                 <div>&nbsp;</div>
             </div>
-            
+
         {* levý sloupec - konec*}
-        </div> 
-        
-        
+        </div>
+
+
         {* pravý sloupec *}
-        <div class="col-md-4"> 
+        <div class="col-md-4">
             {* *** REGISTRACE KLIENTA *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Registrovat klienta na lekci</div>
@@ -213,14 +212,13 @@
                         <div class="text-center">Lekce je obsazena.</div>
                     {/if}
                 </div>
-                    
+
                 <script>
                     $('#frm-registerByAdminForm-diary_id').val({$info['diary_id']});
-                    $('#frm-registerByAdminForm-aktivita_id').val({$info['aktivita_id']});
                 </script>
 
             </div>
-            
+
             {* *** SMS *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">SMS zpráva označeným klientům</div>
@@ -232,13 +230,13 @@
                     {/form}
                 </div>
             </div>
-                        
+
         {* pravý sloupec - konec*}
-        </div> 
-    
+        </div>
+
     {* hlavní blok - konec *}
-    </div> 
-        
+    </div>
+
 {/if}
 </div>
 
@@ -248,7 +246,7 @@
         document.addEventListener('DOMContentLoaded', function () {
             const checkboxes = document.querySelectorAll('.multi-check');
             const hiddenInput = document.getElementById('frm-sendSmsForm-sms_mobile_numbers');
-            
+
             function updateHiddenInput() {
                 // vezmeme všechny zaškrtnuté checkboxy
                 const values = Array.from(checkboxes)
@@ -271,19 +269,19 @@
                 search: "Vyhledávání v tabulce:",
                 searchPlaceholder: "zadejte hledaný text"
             },
-        
+
             // výchozí řazení podle "Klient" (2. sloupec = index 1)
             order: [[1, 'asc']],
 
             columnDefs: [
                 // povolit třídění jen u sloupce "Klient"
-                { 
-                    orderable: true, targets: 1 
+                {
+                    orderable: true, targets: 1
                 },
-                
+
                 // všechny ostatní sloupce netřídit
-                { 
-                    orderable: false, targets: [0, 2, 3, 4, 5] 
+                {
+                    orderable: false, targets: [0, 2, 3, 4, 5]
                 }
             ]
         });
