@@ -42,10 +42,10 @@
    ```
    Výsledek zaznamenat — slouží pro srovnání po migraci a případnou komunikaci s uživateli.
 
-3. **Zkontrolovat, zda constraint ještě neexistuje** (při opakovaném spuštění je bezpečný díky `IF NOT EXISTS`):
+3. **Zkontrolovat aktuální databázi a strukturu tabulky**:
    ```sql
-   SELECT CONSTRAINT_NAME FROM information_schema.CHECK_CONSTRAINTS
-   WHERE TABLE_NAME = 'blog_credits' AND CONSTRAINT_SCHEMA = DATABASE();
+   SELECT DATABASE() AS aktualni_databaze;
+   SHOW CREATE TABLE blog_credits;
    ```
 
 ## Vhodný čas nasazení
@@ -62,7 +62,7 @@ mysql -h <host> -u <user> -p<pass> <db> < 20260605.sql
 
 Výstup bude obsahovat výsledky PRE-CHECK a POST-CHECK. Zkontrolovat:
 - `POST-FIX: počet záznamů s kredity < -1 (musí být 0)` → **0**
-- `POST-CHECK: CHECK constraint chk_kredity_min` → řádek s `kredity >= -1`
+- `SHOW CREATE TABLE blog_credits` → obsahuje `chk_kredity_min`
 - `POST-CHECK: triggery blog_registration` → všechny tři triggery (`br_ad`, `br_ai`, `br_au`)
 
 ## Ověření po nasazení
@@ -72,9 +72,7 @@ Výstup bude obsahovat výsledky PRE-CHECK a POST-CHECK. Zkontrolovat:
 SELECT COUNT(*) FROM blog_credits WHERE kredity < -1;  -- musí být 0
 
 -- 2. Constraint existuje
-SELECT CONSTRAINT_NAME, CHECK_CLAUSE
-FROM information_schema.CHECK_CONSTRAINTS
-WHERE TABLE_NAME = 'blog_credits' AND CONSTRAINT_SCHEMA = DATABASE();
+SHOW CREATE TABLE blog_credits;
 
 -- 3. Triggery jsou aktuální
 SHOW TRIGGERS LIKE 'blog_registration';

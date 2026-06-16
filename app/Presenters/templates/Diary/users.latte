@@ -63,6 +63,8 @@
                     <div class="col-md-6">
                         <ul style="color: #666; font-style: italic;">
                             <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
+                            <li>Obsazenost: <strong>{$participantCount}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
+                            <li>Náhradníci: <strong>{$substituteCount}</strong> / <strong>{$maxSubstitutes}</strong></li>
                             <li>Zrušení klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
                             <li>Zrušení pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
                             <li>Konec registrace: <strong>{$info['aktivita_registrace_konec']}</strong> hod před zahájením</li>
@@ -81,6 +83,7 @@
                                 <tr>
                                     <th>SMS</th>
                                     <th>Klient</th>
+                                    <th>Stav</th>
                                     <th>Mobil</th>
                                     <th>Kredity</th>
                                     <th>Potvrzení<br>účasti</th>
@@ -91,7 +94,8 @@
                     {/if}
 
                     {if $items['registrace_deleted'] == 0}
-                        <tr>
+                        {var $isSubstitute = (($items['registration_status'] ?? 'ucastnik') == 'nahradnik')}
+                        <tr {if $isSubstitute}class="table-warning"{/if}>
                             <td>
                                 <div class="form-check">
                                     <input class="form-check-input multi-check"
@@ -105,6 +109,11 @@
                             </td>
                             <td>
                                 <a n:href="User:user $items['user_id']" style="color: #e67c2f !important;"><strong>{$items['user_surname']} {$items['user_firstname']}</strong></a>
+                            </td>
+                            <td>
+                                <span class="badge {if $isSubstitute}text-bg-warning{else}text-bg-success{/if}">
+                                    {if $isSubstitute}Náhradník{else}Účastník{/if}
+                                </span>
                             </td>
                             <td>{$items['user_mobil_number']}</td>
                             <td>
@@ -124,19 +133,26 @@
                                 {/ifset}
                             </td>
                             <td>
-                                {var $confirmFormId = "confirmForm-" . $items['registrace_id']}
-                                {form $confirmFormId}{input ucast}{/form}
+                                {if !$isSubstitute}
+                                    {var $confirmFormId = "confirmForm-" . $items['registrace_id']}
+                                    {form $confirmFormId}{input ucast}{/form}
 
-                                <script>
-                                    $('#frm-{$confirmFormId|noescape}-ucast').val({$items['registrace_ucast']});
-                                </script>
+                                    <script>
+                                        $('#frm-{$confirmFormId|noescape}-ucast').val({$items['registrace_ucast']});
+                                    </script>
+                                {else}
+                                    <span class="text-muted">-</span>
+                                {/if}
+                            </td>
 
                             <td class="text-center">
                                 {var $cancelFormId = 'cancelRegistrationForm-' . $items['registrace_id']}
                                 {form $cancelFormId}
-                                    <label class="small fw-bold me-3 px-1 py-1 my-1" style="background-color:#fff3cd;">
-                                        {input vratit_vstup} vrátit kredit
-                                    </label>
+                                    {if !$isSubstitute}
+                                        <label class="small fw-bold me-3 px-1 py-1 my-1" style="background-color:#fff3cd;">
+                                            {input vratit_vstup} vrátit kredit
+                                        </label>
+                                    {/if}
                                     {input send}
                                 {/form}
                             </td>
@@ -161,6 +177,7 @@
                             <thead>
                                 <tr>
                                     <th>Klient</th>
+                                    <th>Stav</th>
                                     <th>Datum registrace</th>
                                     <th>Kdo registroval</th>
                                     <th>Datum zrušení registrace</th>
@@ -170,7 +187,10 @@
                             <tbody>
                     {/if}
 
-                    {if $items['registrace_deleted'] == 0}
+                    {var $isSubstituteHistory = (($items['registration_status'] ?? 'ucastnik') == 'nahradnik')}
+                    {if $items['registrace_deleted'] == 0 && $isSubstituteHistory}
+                        {var $color = 'color: #b26a00;'}
+                    {elseif $items['registrace_deleted'] == 0}
                         {var $color = 'color: green;'}
                     {else}
                         {var $color = 'color: red;'}
@@ -178,6 +198,7 @@
 
                     <tr>
                         <td style="{$color|noescape}">{$items['user_surname']} {$items['user_firstname']}</td>
+                        <td style="{$color|noescape}">{if $isSubstituteHistory}Náhradník{else}Účastník{/if}</td>
                         <td style="{$color|noescape}">{$items['registrace_created_at']}</td>
                         <td style="{$color|noescape}">{$items['registrace_created_by']}</td>
                         <td style="{$color|noescape}">{$items['registrace_deleted_at']}</td>
@@ -211,8 +232,16 @@
                                 {input send}
                             </div>
                         {/form}
+                    {elseif $substituteCount < $maxSubstitutes}
+                        <div class="alert alert-warning small">Lekce je obsazena, klient bude zapsán jako náhradník.</div>
+                        {form registerByAdminForm}
+                            {input user_id}
+                            <div class="p-2">
+                                {input send}
+                            </div>
+                        {/form}
                     {else}
-                        <div class="text-center">Lekce je obsazena.</div>
+                        <div class="text-center">Lekce i seznam náhradníků jsou obsazeny.</div>
                     {/if}
                 </div>
 

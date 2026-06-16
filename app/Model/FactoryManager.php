@@ -510,6 +510,8 @@
      */
     public function insertRegistrace($data): int
     {
+      $registrationStatus = $data->registration_status ?? 'ucastnik';
+
       $this->database->beginTransaction();
       try {
         $res = $this->database->query(
@@ -517,6 +519,7 @@
           $data->user_id,
           $data->diary_id,
           $data->aktivita_id,
+          $registrationStatus,
           $data->created_by,
           $data->sales_id
         );
@@ -535,16 +538,25 @@
           return 9998;
         }
 
-        // když není permice, odečtu jen kredit
-        if ((int) $data->sales_id === 0)
+        // Náhradníkovi se kredit odečte až při povýšení mezi účastníky.
+        if ($registrationStatus === 'ucastnik' && (int) $data->sales_id === 0)
         {
-          $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->created_by,$data->user_id,$data->aktivita_id);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
         }
 
-        // když je permice, odečtu jen permici
-        if ((int) $data->sales_id > 0)
+        if ($registrationStatus === 'ucastnik' && (int) $data->sales_id > 0)
         {
-          $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
         }
 
         $this->database->commit();
@@ -680,14 +692,94 @@
      * @param object $data Data pro registraci
      * @return bool
      */
-	    public function getSalesId($data)
-	    {
-	      return $this->database->fetch(SqlCommands::getSalesId(),$data->user_id,$data->diary_id);
-	    }
+    public function getSalesId($data)
+    {
+      return $this->database->fetch(SqlCommands::getSalesId(),$data->user_id,$data->diary_id);
+    }
 
 
-	    /**
-	     * REGISTRACE: Vrací registraci podle jejího ID.
+    /**
+     * REGISTRACE: Vrací počet účastníků a náhradníků lekce.
+     *
+     * @param int $diary_id ID lekce
+     * @return mixed
+     */
+    public function getRegistrationCounts(int $diary_id)
+    {
+      return $this->database->fetch(SqlCommands::getRegistrationCounts(),$diary_id);
+    }
+
+
+    /**
+     * REGISTRACE: Vrací prvního náhradníka lekce.
+     *
+     * @param int $diary_id ID lekce
+     * @return mixed
+     */
+    public function getFirstSubstituteRegistration(int $diary_id)
+    {
+      return $this->database->fetch(SqlCommands::getFirstSubstituteRegistration(),$diary_id);
+    }
+
+
+    /**
+     * REGISTRACE: Povýší náhradníka mezi účastníky a odečte mu kredit.
+     *
+     * @param object $data Data pro povýšení náhradníka
+     * @return int
+     */
+    public function promoteSubstituteToParticipant($data): int
+    {
+      $this->database->beginTransaction();
+      try {
+        $res = $this->database->query(
+          SqlCommands::promoteSubstituteToParticipant(),
+          $data->updated_by,
+          $data->registration_id,
+          $data->diary_id
+        );
+
+        if ($res->getRowCount() !== 1)
+        {
+          $this->database->rollBack();
+          return 9999;
+        }
+
+        if ((int) $data->sales_id === 0)
+        {
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->updated_by,$data->user_id,$data->aktivita_id);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
+        }
+
+        if ((int) $data->sales_id > 0)
+        {
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->updated_by,$data->sales_id);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
+        }
+
+        $this->database->commit();
+        return 0;
+      }
+      catch (\Nette\Database\DriverException $e)
+      {
+        $this->database->rollBack();
+        if ($e->getDriverCode() == 4025)
+          return 4;
+        return 1;
+      }
+    }
+
+
+    /**
+     * REGISTRACE: Vrací registraci podle jejího ID.
 	     *
 	     * @param int $registration_id ID registrace
 	     * @return mixed

@@ -135,6 +135,7 @@
                                         <td>Datum</td>
                                         <td>Čas</td>
                                         <td>Lekce</td>
+                                        <td>Stav</td>
                                         <td>Lektor</td>
                                     </tr>
                                 {/if}
@@ -147,6 +148,7 @@
                                     </td>
                                     <td>{$item->lekce_cas}</td>
                                     <td><strong>{$item->lekce_nazev}</strong></td>
+                                    <td>{if ($item->registration_status ?? 'ucastnik') == 'nahradnik'}Náhradník{else}Účastník{/if}</td>
                                     <td>{$lektor[$item->lektor_id] ?? '—'}</td>
                                 </tr>
                                 {if $iterator->last}
@@ -281,4 +283,3 @@
 
                                                             </script>
                                                         {/if}
-

@@ -120,7 +120,12 @@
                                         <div class="row">
                                             <div class="col-12-sm mb-3">
                                                 <span><strong>{$items['diaryTimeFrom']}{if $items['diaryTimeTo']} - {$items['diaryTimeTo']}{/if}</strong></span>
-                                                <span style='float: right;'><strong>{$items['aktivita_vstupy_aktualni']}/{$items['aktivita_vstupy_max']}</strong></span>
+                                                <span style='float: right; text-align: right;'>
+                                                    <strong>{$items['aktivita_vstupy_aktualni']}/{$items['aktivita_vstupy_max']}</strong>
+                                                    {if ($items['aktivita_nahradnici_aktualni'] ?? 0) > 0}
+                                                        <br><small>N {$items['aktivita_nahradnici_aktualni']}/{$maxSubstitutes}</small>
+                                                    {/if}
+                                                </span>
                                             </div>
                                         </div>
 
@@ -157,15 +162,16 @@
                                         
                                         {if $user->isLoggedIn()}
                                             
-                                            {ifset $userRegistered[$items['diaryID']]}
+                                            {var $registrationStatus = $userRegistered[$items['diaryID']] ?? null}
+                                            {if $registrationStatus}
                                                 <div class="row">
                                                     <div class="col-12-sm text-center" style="text-align: center;">
-                                                        <a href="#" class="btn btn-sm btn-success border border-1 border-white">
-                                                            <i class="bi bi-person-check-fill"></i> Registrace
+                                                        <a href="#" class="btn btn-sm {if $registrationStatus == 'nahradnik'}btn-warning{else}btn-success{/if} border border-1 border-white">
+                                                            <i class="bi bi-person-check-fill"></i> {if $registrationStatus == 'nahradnik'}Náhradník{else}Registrace{/if}
                                                         </a>
                                                     </div>
                                                 </div>
-                                            {/ifset}
+                                            {/if}
                                         {/if}
                                         
                                         {if $user->isLoggedIn()}

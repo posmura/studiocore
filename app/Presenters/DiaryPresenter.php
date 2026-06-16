@@ -14,6 +14,9 @@
    */
   final class DiaryPresenter extends BasePresenter
   {
+    const REGISTRATION_STATUS_PARTICIPANT = 'ucastnik';
+    const REGISTRATION_STATUS_SUBSTITUTE = 'nahradnik';
+    const MAX_SUBSTITUTES = 3;
 
     /** @var Sender @inject */
     public $sender;
@@ -83,6 +86,7 @@
 
       // události
       $this->template->diaryEvents = $this->getDiaryEvents($diaryWeek);
+      $this->template->maxSubstitutes = self::MAX_SUBSTITUTES;
 
       // události přihlášeného klienta
       $userRegistered = array();
@@ -92,7 +96,7 @@
         $data = $this->userManager->getRegistraceByUserID($params);
         foreach ($data as $key => $items)
         {
-          $userRegistered[$items['diary_id']] = $items['diary_id'];
+          $userRegistered[$items['diary_id']] = $items['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT;
         }
       }
       $this->template->userRegistered = $userRegistered;
@@ -228,19 +232,27 @@
       // načtu záznamy pro lekci podle diary_id
       $data = $this->factoryManager->getLekceDetail($_data);
 
-      // doplním kredity pro jednotlivé aktivity klienta a zjistím počet nesmazaných registrací
-      $dataCount = 0;
+      // doplním kredity pro jednotlivé aktivity klienta a zjistím počty aktivních registrací
+      $participantCount = 0;
+      $substituteCount = 0;
       foreach ($data as $key => $items)
       {
         $kredity = $this->userManager->getKredityKlienta($items['user_id'],$this->userName);
         $data[$key]['kredity'] = $kredity;
 
-        // upravím počet nesmazaných registrací
         if ($items['registrace_deleted'] == 0)
-          $dataCount++;
+        {
+          if (($items['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT) === self::REGISTRATION_STATUS_SUBSTITUTE)
+            $substituteCount++;
+          else
+            $participantCount++;
+        }
       }
       $this->template->data = $data;
-      $this->template->dataCount = $dataCount;
+      $this->template->dataCount = $participantCount;
+      $this->template->participantCount = $participantCount;
+      $this->template->substituteCount = $substituteCount;
+      $this->template->maxSubstitutes = self::MAX_SUBSTITUTES;
 
       // načtu názvy aktivit pro zobrazní v šabloně
       $this->template->aktivita = $this->aktivita;
@@ -340,6 +352,7 @@
 	          'user_id' => (int) $registration['user_id'],
 	          'diary_id' => (int) $registration['diary_id'],
 	          'aktivita_id' => (int) $registration['aktivita_id'],
+	          'registration_status' => $registration['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT,
 	          'sales_id' => (int) $registration['sales_id'],
 	          'kredit_zmena' => 0,
 	          'zruseni_zdarma_ts' => $_zruseni_zdarma_ts,
@@ -511,6 +524,7 @@
           b.`vstupy_min` AS `aktivita_vstupy_min`,
           b.`vstupy_max` AS `aktivita_vstupy_max`,
           COALESCE(c.`total`, 0) AS `aktivita_vstupy_aktualni`,
+          COALESCE(n.`total`, 0) AS `aktivita_nahradnici_aktualni`,
           b.`zruseni_zdarma` AS `zruseni_zdarma`,
           b.`zruseni_zdarma_ts` AS `zruseni_zdarma_ts`,
           b.`zruseni_neucast` AS `aktivita_zruseni_neucast`,
@@ -526,6 +540,7 @@
           $res[$i]['popis'] = $eventItems['popis'];
           $res[$i]['aktivita_vstupy_aktualni'] = $eventItems['aktivita_vstupy_aktualni'];
           $res[$i]['aktivita_vstupy_max'] = $eventItems['aktivita_vstupy_max'];
+          $res[$i]['aktivita_nahradnici_aktualni'] = $eventItems['aktivita_nahradnici_aktualni'];
           $res[$i]['ts_now'] = $eventItems['ts_now'];
           $res[$i]['ts_event'] = $eventItems['ts_event'];
           $res[$i]['diaryID'] = $eventItems['ID'];
@@ -910,30 +925,42 @@
 	        }
 	        elseif ($is_registered == 0)
 	        {
-	          if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
+	          $kredity = $this->userManager->getKredityKlienta($userId,$this->userName);
+	          $kredit = $kredity[$aktivitaId]['kredity'] ?? 0;
+
+	          if ($kredit < 0)
 	          {
-	            $_msg = 'Lekce je obsazena.';
+	            $_msg = 'Nemáte dostatečný počet vstupů.';
 	            $this->flashMessage($_msg,'warning');
 	            $this->eventlog('diary',$_msg);
 	          }
 	          else
 	          {
-	            $kredity = $this->userManager->getKredityKlienta($userId,$this->userName);
-	            $kredit = $kredity[$aktivitaId]['kredity'] ?? 0;
-
-	            if ($kredit < 0)
+	            $registrationStatus = self::REGISTRATION_STATUS_PARTICIPANT;
+	            if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
 	            {
-	              $_msg = 'Nemáte dostatečný počet vstupů.';
-	              $this->flashMessage($_msg,'warning');
-	              $this->eventlog('diary',$_msg);
+	              $counts = $this->factoryManager->getRegistrationCounts((int) $lesson['ID']);
+	              if ((int) ($counts['substitutes'] ?? 0) >= self::MAX_SUBSTITUTES)
+	              {
+	                $_msg = 'Lekce je obsazena a seznam náhradníků je plný.';
+	                $this->flashMessage($_msg,'warning');
+	                $this->eventlog('diary',$_msg);
+	                $registrationStatus = null;
+	              }
+	              else
+	              {
+	                $registrationStatus = self::REGISTRATION_STATUS_SUBSTITUTE;
+	              }
 	            }
-	            else
+
+	            if ($registrationStatus !== null)
 	            {
 	              $registrationData = self::array_to_object(
 	                [
 	                  'user_id' => $userId,
 	                  'diary_id' => (int) $lesson['ID'],
 	                  'aktivita_id' => $aktivitaId,
+	                  'registration_status' => $registrationStatus,
 	                  'sales_id' => (int) ($this->aktivniPermanentkyID[$aktivitaId] ?? 0),
 	                ]
 	              );
@@ -950,6 +977,7 @@
 	              'user_id' => $userId,
 	              'diary_id' => (int) $lesson['ID'],
 	              'aktivita_id' => $aktivitaId,
+	              'registration_status' => $_sales['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT,
 	              'sales_id' => (int) ($_sales['sales_id'] ?? 0),
 	              'kredit_zmena' => 0,
 	              'zruseni_zdarma_ts' => $this->getLessonCancelFreeTimestamp($lesson),
@@ -1113,13 +1141,30 @@
 
 	      $data->diary_id = (int) $lesson['ID'];
 	      $data->aktivita_id = (int) $lesson['aktivita_id'];
+	      $data->registration_status = self::REGISTRATION_STATUS_PARTICIPANT;
 
 	      if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
 	      {
-	        $_msg = 'Lekce je obsazena.';
-	        $this->flashMessage($_msg,'warning');
-	        $this->eventlog('diary',$_msg);
-	        $this->redirect('this');
+	        $counts = $this->factoryManager->getRegistrationCounts((int) $lesson['ID']);
+	        if ((int) ($counts['substitutes'] ?? 0) >= self::MAX_SUBSTITUTES)
+	        {
+	          $_msg = 'Lekce je obsazena a seznam náhradníků je plný.';
+	          $this->flashMessage($_msg,'warning');
+	          $this->eventlog('diary',$_msg);
+	          $this->redirect('this');
+	        }
+
+	        $kredity = $this->userManager->getKredityKlienta((int) $data->user_id,$this->userName);
+	        $kredit = $kredity[$data->aktivita_id]['kredity'] ?? 0;
+	        if ($kredit < 0)
+	        {
+	          $_msg = 'Klient nemá dostatečný počet vstupů pro zařazení mezi náhradníky.';
+	          $this->flashMessage($_msg,'warning');
+	          $this->eventlog('diary',$_msg);
+	          $this->redirect('this');
+	        }
+
+	        $data->registration_status = self::REGISTRATION_STATUS_SUBSTITUTE;
 	      }
 
 	      try
@@ -1413,41 +1458,52 @@ TEXT;
         {
           // lze registrovat - zkontroluji kredity
           $kredity = $this->userManager->getKredityKlienta($rst['user_id'],$this->userName);
+          $kredit = $kredity[$rst['aktivita_id']]['kredity'] ?? 0;
 
-          if (!$lekce_obsazena)
+          if ($kredit < 0)
           {
-            $kredit = $kredity[$rst['aktivita_id']]['kredity'];
-            if ($kredit < 0)
-            {
-              // nelze registrovat - nejsou kredity
-              $rst['akce_id'] = 'neni_kredit';
-              $rst['akce_desc'] = 'NEMÁTE DOSTATEČNÝ POČET VSTUPŮ';
-            }
-            else
-            {
-              // lze registrovat - jsou kredity
-              $rst['akce_id'] = 'registrovat';
-              $rst['akce_desc'] = 'REGISTROVAT';
+            // nelze registrovat - nejsou kredity
+            $rst['akce_id'] = 'neni_kredit';
+            $rst['akce_desc'] = 'NEMÁTE DOSTATEČNÝ POČET VSTUPŮ';
+          }
+          elseif (!$lekce_obsazena)
+          {
+            // lze registrovat - jsou kredity
+            $rst['akce_id'] = 'registrovat';
+            $rst['akce_desc'] = 'REGISTROVAT';
 
-              // zjistím aktuální permanentku
-              $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
-            }
+            // zjistím aktuální permanentku
+            $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
           }
           else
           {
-            // nelze registrovat - nejsou kredity
-            $rst['akce_id'] = 'lekce_obsazena';
-            $rst['akce_desc'] = 'LEKCE JE OBSAZENA';
+            if ((int) ($data['aktivita_nahradnici_aktualni'] ?? 0) < self::MAX_SUBSTITUTES)
+            {
+              $rst['akce_id'] = 'nahradnik';
+              $rst['akce_desc'] = 'PŘIHLÁSIT JAKO NÁHRADNÍK';
+              $rst['sales_id'] = $this->aktivniPermanentkyID[$rst['aktivita_id']] ?? 0;
+            }
+            else
+            {
+              $rst['akce_id'] = 'lekce_obsazena';
+              $rst['akce_desc'] = 'LEKCE I NÁHRADNÍCI JSOU OBSAZENI';
+            }
           }
         }
         elseif ($is_registered > 0)
         {
-          // klient je již registrován - nedovolím další registraci
-          $rst['akce_id'] = 'odregistrovat';
-          $rst['akce_desc'] = 'ZRUŠIT REGISTRACI';
-
           // zjistím permanentku při registraci klientem
           $_sales = $this->factoryManager->getSalesId($_data);
+          $registrationStatus = $_sales['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT;
+
+          // klient je již registrován - nedovolím další registraci
+          $rst['akce_id'] = $registrationStatus === self::REGISTRATION_STATUS_SUBSTITUTE
+            ? 'odregistrovat_nahradnik'
+            : 'odregistrovat';
+          $rst['akce_desc'] = $registrationStatus === self::REGISTRATION_STATUS_SUBSTITUTE
+            ? 'ZRUŠIT NÁHRADNÍKA'
+            : 'ZRUŠIT REGISTRACI';
+
           $rst['sales_id'] = $_sales['sales_id'] ?? 0;
         }
         else
@@ -1459,6 +1515,7 @@ TEXT;
       }
 
       $data['sales_id_text'] = $rst['sales_id'] ?? '-';
+      $data['max_nahradnici'] = self::MAX_SUBSTITUTES;
       $_lektor_name = $this->lektorName[$data['lektor_id']] ?? '—';
 
       $rst['lekce_info_text'] = <<<TEXT
@@ -1470,6 +1527,7 @@ TEXT;
           <div><strong>Registrace možná do:</strong> {$data['aktivita_registrace_konec']}</div>
           <div><strong>Minimální počet klientů pro otevření lekce:</strong> {$data['aktivita_vstupy_min']}</div>
           <div><strong>Obsazenost lekce:</strong> {$data['aktivita_vstupy_aktualni']}/{$data['aktivita_vstupy_max']}</div>
+          <div><strong>Náhradníci:</strong> {$data['aktivita_nahradnici_aktualni']}/{$data['max_nahradnici']}</div>
           <div><strong>ID permanentky:</strong> {$data['sales_id_text']}</div>
         </div>
 TEXT;
@@ -1491,23 +1549,33 @@ TEXT;
     public function cancelRegistration($data, bool $forceVratitKredit = false)
     {
       $data->deleted_by = $this->userName;
+      $registrationStatus = $data->registration_status ?? self::REGISTRATION_STATUS_PARTICIPANT;
+      $isParticipant = $registrationStatus === self::REGISTRATION_STATUS_PARTICIPANT;
 
-      $zruseni_zdarma = $forceVratitKredit || $this->isCancelRegistrationFree($data->zruseni_zdarma_ts);
-
-      // nastavení hodnoty změny kreditu
-      if ($zruseni_zdarma)
+      if ($isParticipant)
       {
-        // kredit bude vrácen
-        $data->kredit_zmena = 1;
-        $msg_kredit_zmena = $forceVratitKredit
-          ? "Kredit byl vrácen. Vstup byl vrácen manuálně administrátorem."
-          : "Kredit byl vrácen. Zrušení registrace proběhlo před termínem konce bezplatného storna.";
+        $zruseni_zdarma = $forceVratitKredit || $this->isCancelRegistrationFree($data->zruseni_zdarma_ts);
+
+        // nastavení hodnoty změny kreditu
+        if ($zruseni_zdarma)
+        {
+          // kredit bude vrácen
+          $data->kredit_zmena = 1;
+          $msg_kredit_zmena = $forceVratitKredit
+            ? "Kredit byl vrácen. Vstup byl vrácen manuálně administrátorem."
+            : "Kredit byl vrácen. Zrušení registrace proběhlo před termínem konce bezplatného storna.";
+        }
+        else
+        {
+          // kredit vrácen nebude
+          $data->kredit_zmena = 0;
+          $msg_kredit_zmena = "Kredit nebyl vrácen. Zrušení registrace proběhlo po termínu konce bezplatného storna.";
+        }
       }
       else
       {
-        // kredit vrácen nebude
         $data->kredit_zmena = 0;
-        $msg_kredit_zmena = "Kredit nebyl vrácen. Zrušení registrace proběhlo po termínu konce bezplatného storna.";
+        $msg_kredit_zmena = "Náhradníkovi nebyl kredit účtován.";
       }
 
       $rst = $this->factoryManager->deleteRegistrace($data);
@@ -1525,7 +1593,126 @@ TEXT;
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
+      if ($isParticipant)
+      {
+        $this->promoteFirstSubstitute((int) $data->diary_id);
+      }
+
       return true;
+    }
+
+
+    /**
+     * Přesune prvního náhradníka mezi účastníky lekce.
+     *
+     * @param int $diaryId ID lekce v rozvrhu
+     * @return bool
+     */
+    private function promoteFirstSubstitute(int $diaryId): bool
+    {
+      $lesson = $this->factoryManager->getLekceById($diaryId);
+      if (!$lesson)
+        return false;
+
+      if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
+        return false;
+
+      $substitute = $this->factoryManager->getFirstSubstituteRegistration($diaryId);
+      if (!$substitute)
+        return false;
+
+      $kredity = $this->userManager->getKredityKlienta((int) $substitute['user_id'],$this->userName);
+      $kredit = $kredity[(int) $substitute['aktivita_id']]['kredity'] ?? 0;
+      if ($kredit < 0)
+      {
+        $_msg = sprintf('Náhradník klient ID=%s nemá dostatek kreditů pro přesun mezi účastníky.',$substitute['user_id']);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+      $aktivniPermanentkyID = $this->userManager->getAktivniPermanentkyID((int) $substitute['user_id']);
+      $salesId = (int) ($aktivniPermanentkyID[(int) $substitute['aktivita_id']] ?? 0);
+
+      $data = self::array_to_object(
+        [
+          'registration_id' => (int) $substitute['registration_id'],
+          'user_id' => (int) $substitute['user_id'],
+          'diary_id' => (int) $substitute['diary_id'],
+          'aktivita_id' => (int) $substitute['aktivita_id'],
+          'sales_id' => $salesId,
+          'kredit_zmena' => -1,
+          'updated_by' => $this->userName,
+        ]
+      );
+
+      $rst = $this->factoryManager->promoteSubstituteToParticipant($data);
+      if ($rst != 0)
+      {
+        $_desc = $rst == 4
+          ? sprintf('Náhradník klient ID=%s nemá dostatek kreditů pro přesun mezi účastníky.',$data->user_id)
+          : ($rst == 5
+            ? sprintf('Náhradníkovi klient ID=%s se nepodařilo odečíst kredit nebo permanentku.',$data->user_id)
+            : sprintf('Náhradník klient ID=%s nebyl přesunut mezi účastníky.',$data->user_id));
+        $_msg = sprintf('Chyba %d! %s',$rst,$_desc);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+      $_msg = sprintf('Náhradník klient ID=%s byl přesunut mezi účastníky lekce ID=%s.',$data->user_id,$data->diary_id);
+      $this->flashMessage($_msg);
+      $this->eventlog('diary',$_msg);
+
+      $this->sendSubstitutePromotionSms($substitute);
+
+      return true;
+    }
+
+
+    /**
+     * Odešle SMS náhradníkovi po přesunu mezi účastníky.
+     *
+     * @param mixed $substitute Data náhradníka
+     * @return bool
+     */
+    private function sendSubstitutePromotionSms($substitute): bool
+    {
+      $smsPhone = $this->checkSmsPhone($substitute['user_mobil_number'] ?? '');
+      $smsName = trim(sprintf('%s %s',$substitute['user_surname'] ?? '',$substitute['user_firstname'] ?? ''));
+
+      if (!$smsPhone)
+      {
+        $_msg = sprintf('Chyba! Chybný formát telefonního čísla náhradníka "%s". SMS pro "%s" nebyla odeslána.',$substitute['user_mobil_number'] ?? '',$smsName);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('diary',$_msg);
+
+        return false;
+      }
+
+      $smsText = sprintf(
+        'STUDIO CORE | Uvolnilo se misto na lekci %s %s od %s. Jste prihlasen/a.',
+        $substitute['diary_nazev'],
+        $substitute['lekce_datum'],
+        $substitute['lekce_cas']
+      );
+
+      if ($this->sender->send(new Sms($smsPhone,$smsText)))
+      {
+        $_msg = sprintf('SMS %s pro náhradníka "%s" byla předána k odeslání: %s',$smsPhone,$smsName,$smsText);
+        $this->flashMessage($_msg);
+        $this->eventlog('diary',$_msg);
+
+        return true;
+      }
+
+      $_msg = sprintf('Chyba: Problém při předání SMS %s pro náhradníka "%s" k odeslání.',$smsPhone,$smsName);
+      $this->flashMessage($_msg,'danger');
+      $this->eventlog('diary',$_msg);
+
+      return false;
     }
 
 
@@ -1555,6 +1742,7 @@ TEXT;
       $data->created_by = $this->userName;
 
       $data->user_id = (int) $data->user_id;
+      $data->registration_status = $data->registration_status ?? self::REGISTRATION_STATUS_PARTICIPANT;
 
       if ($data->user_id == 0)
       {
@@ -1575,7 +1763,7 @@ TEXT;
       }
 
       // nastavení změny kreditu
-      $data->kredit_zmena = -1;
+      $data->kredit_zmena = $data->registration_status === self::REGISTRATION_STATUS_PARTICIPANT ? -1 : 0;
 
       $rst = $this->factoryManager->insertRegistrace($data);
 
@@ -1585,6 +1773,8 @@ TEXT;
           $_desc = sprintf('Klient ID=%s je již na lekci registrován.',$data->user_id);
         elseif ($rst == 4)
           $_desc = sprintf('Klient ID=%s nemá dostatek kreditů (kredit by klesl pod -1).',$data->user_id);
+        elseif ($rst == 5)
+          $_desc = sprintf('Klientovi ID=%s se nepodařilo odečíst kredit nebo permanentku.',$data->user_id);
         else
           $_desc = sprintf('Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
 
@@ -1595,8 +1785,11 @@ TEXT;
         return false;
       }
 
-      $_msg = sprintf('Registrace na klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
-      //$this->flashMessage($_msg);
+      $_msg = $data->registration_status === self::REGISTRATION_STATUS_SUBSTITUTE
+        ? sprintf('Náhradník klient ID=%s byl zapsán uživatelem %s.',$data->user_id,$data->created_by)
+        : sprintf('Registrace na klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+      if ($data->registration_status === self::REGISTRATION_STATUS_SUBSTITUTE)
+        $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
       return true;

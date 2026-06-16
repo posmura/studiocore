@@ -955,6 +955,7 @@ SELECT
   b.`vstupy_min` AS `aktivita_vstupy_min`,
   b.`vstupy_max` AS `aktivita_vstupy_max`,
   COALESCE(c.`total`, 0) AS `aktivita_vstupy_aktualni`,
+  COALESCE(n.`total`, 0) AS `aktivita_nahradnici_aktualni`,
   b.`zruseni_zdarma` AS `aktivita_zruseni_zdarma`,
   b.`zruseni_zdarma_ts` AS `aktivita_zruseni_zdarma_ts`,
   b.`zruseni_neucast` AS `aktivita_zruseni_neucast`,
@@ -965,8 +966,32 @@ FROM
   `blog_diary` AS a
 LEFT JOIN `blog_activity` AS b
   ON b.`id` = a.`aktivita_id`
-LEFT JOIN `mv_lekce_ucast` AS c
+LEFT JOIN (
+  SELECT
+    diary_id,
+    COUNT(*) AS total
+  FROM
+    blog_registration
+  WHERE
+    deleted = 0
+    AND registration_status = 'ucastnik'
+  GROUP BY
+    diary_id
+) AS c
   ON c.`diary_id` = a.`ID`
+LEFT JOIN (
+  SELECT
+    diary_id,
+    COUNT(*) AS total
+  FROM
+    blog_registration
+  WHERE
+    deleted = 0
+    AND registration_status = 'nahradnik'
+  GROUP BY
+    diary_id
+) AS n
+  ON n.`diary_id` = a.`ID`
 WHERE
   a.`date` >= ?
   AND a.`date` <=?
@@ -991,11 +1016,16 @@ SQL;
     {
       return <<<SQL
 SELECT
-  *
+  diary_id,
+  COUNT(*) AS total
 FROM
-  `mv_lekce_ucast`
+  `blog_registration`
 WHERE
-  lekce_id = ?
+  diary_id = ?
+  AND deleted = 0
+  AND registration_status = 'ucastnik'
+GROUP BY
+  diary_id
 SQL;
     }
 
@@ -1568,6 +1598,7 @@ SELECT
   b.`vstupy_min` AS `aktivita_vstupy_min`,
   b.`vstupy_max` AS `aktivita_vstupy_max`,
   COALESCE(c.`total`, 0) AS `aktivita_vstupy_aktualni`,
+  COALESCE(n.`total`, 0) AS `aktivita_nahradnici_aktualni`,
   b.`zruseni_zdarma` AS `aktivita_zruseni_zdarma`,
   b.`zruseni_zdarma_ts` AS `aktivita_zruseni_zdarma_ts`,
   b.`zruseni_neucast` AS `aktivita_zruseni_neucast`,
@@ -1578,8 +1609,32 @@ FROM
   `blog_diary` AS a
 LEFT JOIN `blog_activity` AS b
   ON b.`id` = a.`aktivita_id`
-LEFT JOIN `mv_lekce_ucast` AS c
+LEFT JOIN (
+  SELECT
+    diary_id,
+    COUNT(*) AS total
+  FROM
+    blog_registration
+  WHERE
+    deleted = 0
+    AND registration_status = 'ucastnik'
+  GROUP BY
+    diary_id
+) AS c
   ON c.`diary_id` = a.`ID`
+LEFT JOIN (
+  SELECT
+    diary_id,
+    COUNT(*) AS total
+  FROM
+    blog_registration
+  WHERE
+    deleted = 0
+    AND registration_status = 'nahradnik'
+  GROUP BY
+    diary_id
+) AS n
+  ON n.`diary_id` = a.`ID`
 WHERE
   a.`ID` = ?
   AND a.`deleted` = 0
@@ -1651,12 +1706,13 @@ INSERT IGNORE INTO blog_registration
   user_id,
   diary_id,
   aktivita_id,
+  registration_status,
   created_at,
   created_by,
   sales_id
 )
 VALUES
-  (?,?,?,NOW(),?,?);
+  (?,?,?,?,NOW(),?,?);
 SQL;
     }
 
@@ -1691,7 +1747,8 @@ SQL;
     {
       return <<<SQL
 SELECT
-  COUNT(`diary_id`) AS `pocet`
+  COUNT(`diary_id`) AS `pocet`,
+  MAX(`registration_status`) AS `registration_status`
 FROM
   `blog_registration`
 WHERE
@@ -1711,13 +1768,100 @@ SQL;
     {
       return <<<SQL
 SELECT
-  `sales_id`
+  `sales_id`,
+  `registration_status`
 FROM
   `blog_registration`
 WHERE
   `user_id`=?
   AND `diary_id`=?
   AND `deleted` = 0
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Vrací počet účastníků a náhradníků lekce
+     *
+     * @return string
+     */
+    public static function getRegistrationCounts(): string
+    {
+      return <<<SQL
+SELECT
+  COUNT(CASE WHEN `deleted` = 0 AND `registration_status` = 'ucastnik' THEN 1 END) AS `participants`,
+  COUNT(CASE WHEN `deleted` = 0 AND `registration_status` = 'nahradnik' THEN 1 END) AS `substitutes`
+FROM
+  `blog_registration`
+WHERE
+  `diary_id` = ?
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Vrací prvního náhradníka lekce
+     *
+     * @return string
+     */
+    public static function getFirstSubstituteRegistration(): string
+    {
+      return <<<SQL
+SELECT
+  a.`ID` AS `registration_id`,
+  a.`user_id` AS `user_id`,
+  a.`diary_id` AS `diary_id`,
+  a.`aktivita_id` AS `aktivita_id`,
+  a.`registration_status` AS `registration_status`,
+  a.`sales_id` AS `sales_id`,
+  a.`created_at` AS `created_at`,
+  b.`nazev` AS `diary_nazev`,
+  b.`date` AS `diary_date`,
+  b.`hour_from` AS `diary_hour_from`,
+  b.`min_from` AS `diary_min_from`,
+  DATE_FORMAT(STR_TO_DATE(b.`date`, '%Y%m%d'), '%d.%m.%Y') AS `lekce_datum`,
+  TIME_FORMAT(MAKETIME(b.`hour_from`, b.`min_from`, 0), '%H:%i') AS `lekce_cas`,
+  c.`surname` AS `user_surname`,
+  c.`firstname` AS `user_firstname`,
+  c.`mobil_number` AS `user_mobil_number`
+FROM
+  `blog_registration` AS a
+LEFT JOIN
+  `blog_diary` AS b ON b.`ID` = a.`diary_id`
+LEFT JOIN
+  `blog_users` AS c ON c.`id` = a.`user_id`
+WHERE
+  a.`diary_id` = ?
+  AND a.`deleted` = 0
+  AND a.`registration_status` = 'nahradnik'
+  AND b.`deleted` = 0
+  AND c.`deleted` = 0
+ORDER BY
+  a.`created_at`,
+  a.`ID`
+LIMIT 1
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Povýší náhradníka mezi účastníky lekce
+     *
+     * @return string
+     */
+    public static function promoteSubstituteToParticipant(): string
+    {
+      return <<<SQL
+UPDATE blog_registration
+SET
+  `registration_status` = 'ucastnik',
+  `updated_at` = NOW(),
+  `updated_by` = ?
+WHERE
+  `ID` = ?
+  AND `diary_id` = ?
+  AND `deleted` = 0
+  AND `registration_status` = 'nahradnik'
 SQL;
     }
 
@@ -1735,6 +1879,7 @@ SELECT
   a.`user_id` AS `user_id`,
   a.`diary_id` AS `diary_id`,
   a.`aktivita_id` AS `aktivita_id`,
+  a.`registration_status` AS `registration_status`,
   b.`nazev` AS `lekce_nazev`,
   b.`date` AS `lekce_date`,
   DATE_FORMAT(STR_TO_DATE(b.`date`, '%Y%m%d'), '%d.%m.%Y') AS `lekce_datum`,
@@ -1771,6 +1916,7 @@ SELECT
   a.`user_id` AS `user_id`,
   a.`diary_id` AS `diary_id`,
   a.`aktivita_id` AS `aktivita_id`,
+  a.`registration_status` AS `registration_status`,
   a.`sales_id` AS `sales_id`,
   b.`date` AS `diary_date`,
   b.`hour_from` AS `hour_from`,
@@ -1801,6 +1947,7 @@ SQL;
       return <<<SQL
 SELECT
   a.`ID` as `registrace_id`,
+  a.`registration_status` as `registration_status`,
   a.`ucast` as `registrace_ucast`,
   a.`desc` as `registrace_desc`,
   a.`created_at` as `registrace_created_at`,
@@ -1851,6 +1998,8 @@ WHERE
   b.`ID` = ?
   AND c.`id` > 0
 ORDER BY
+  a.`deleted`,
+  CASE WHEN a.`registration_status` = 'ucastnik' THEN 0 ELSE 1 END,
   a.ID desc
 SQL;
     }

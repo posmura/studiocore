@@ -16,6 +16,12 @@
 -- ============================================================
 
 
+-- Pokud skript spouštíte ručně v phpMyAdmin, musí být vybraná aplikační
+-- databáze, ne information_schema. Pro tuto instalaci typicky:
+-- USE d373504_rezerva;
+SELECT DATABASE() AS aktualni_databaze;
+
+
 -- ============================================================
 -- KROK 0: PRE-CHECK (jen čtení, nic nemění)
 -- ============================================================
@@ -123,18 +129,6 @@ DELIMITER ;
 -- KROK 5: POST-CHECK (ověření výsledku)
 -- ============================================================
 
-SELECT 'POST-CHECK: CHECK constraint chk_kredity_min' AS info,
-       CONSTRAINT_NAME,
-       CHECK_CLAUSE
-FROM information_schema.CHECK_CONSTRAINTS
-WHERE CONSTRAINT_SCHEMA = DATABASE()
-  AND TABLE_NAME = 'blog_credits'
-  AND CONSTRAINT_NAME = 'chk_kredity_min';
+SHOW CREATE TABLE blog_credits;
 
-SELECT 'POST-CHECK: triggery blog_registration' AS info,
-       TRIGGER_NAME,
-       ACTION_STATEMENT
-FROM information_schema.TRIGGERS
-WHERE TRIGGER_SCHEMA = DATABASE()
-  AND EVENT_OBJECT_TABLE = 'blog_registration'
-ORDER BY TRIGGER_NAME;
+SHOW TRIGGERS LIKE 'blog_registration';
