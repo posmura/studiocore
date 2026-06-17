@@ -179,7 +179,7 @@
         $this->user->login($data->username,$data->password);
         $this->user->setExpiration('14 days');
         //$this->user->setExpiration($data->remember ? '14 days' : '20 minutes',!$data->remember);
-        $this->eventlog('sign','Uživatel \''.$data->username.'\' byl přihlášen.');
+	        $this->eventlog('sign',sprintf('Uživatel %s byl přihlášen.',$this->logUserLabel($this->getUser()->identity)));
         $this->redirect('Homepage:default');
 	      }
 	      catch (Nette\Security\AuthenticationException $e)
@@ -325,7 +325,7 @@
       if ($this->checkUsername($data->username))
       {
         $this->flashMessage('Uživateslké jméno \''.$data->username.'\' již existuje!','danger');
-        $this->eventlog('sign','Uživateslké jméno \''.$data->username.'\' již existuje!');
+	        $this->eventlog('sign',sprintf('Uživatelské jméno pro nový účet %s již existuje.',$this->logUserLabel($data)));
         $this->redirect('Sign:up');
       }
 
@@ -337,12 +337,12 @@
       catch (\Exception $e)
       {
         $this->flashMessage('Chyba! Uživatelský účet \''.$data->username.'\' nebyl vytvořen!','danger');
-        $this->eventlog('sign','Chyba! Uživatel \''.$data->username.'\' nebyl vytvořen!');
+	        $this->eventlog('sign',sprintf('Chyba! Uživatel %s nebyl vytvořen!',$this->logUserLabel($data)));
         $this->redirect('Sign:up');
       }
 
       $this->flashMessage('Uživatelský účet byl \''.$data->username.'\' vytvořen! Můžete se přihlásit.');
-      $this->eventlog('sign','Uživatelský účet \''.$data->username.'\' byl vytvořen!');
+	      $this->eventlog('sign',sprintf('Uživatelský účet %s byl vytvořen!',$this->logUserLabel($data)));
       $this->redirect('Sign:in',$data->username);
     }
 
@@ -412,14 +412,14 @@
 	      // připravím text pro SMS
 	      $pin_text = sprintf("STUDIO CORE | Rezervacni system: PIN pro obnovu hesla je %s",$pin);
 
-	      $this->eventlog('sign',sprintf('Byl vygenerován PIN pro obnovu hesla uživatele %s.',$user[0]['username']));
+		      $this->eventlog('sign',sprintf('Byl vygenerován PIN pro obnovu hesla uživatele %s.',$this->logUserLabel($user[0],(int) $user[0]['id'])));
 
       // validace telefonního čísla
       if (!$this->checkSmsPhone($_data->mobil_number))
       {
         $_msg = sprintf('Chyba! Chybný formát telefonního čísla \'%s\'. SMS pro \'%s\' nebyla odeslána.',
           $_data->mobil_number,
-          $_data->username,
+	          $this->logUserLabel($user[0],(int) $user[0]['id']),
         );
         $this->flashMessage($_msg,'danger');
         $this->eventlog('sign',$_msg);
@@ -432,7 +432,7 @@
       {
         $_msg = sprintf('SMS \'%s\' (%s) byla předána k odeslání.',
           $_data->mobil_number,
-          $_data->username,
+	          $this->logUserLabel($user[0],(int) $user[0]['id']),
 	        );
 	        $this->flashMessage($_msg);
 	        $this->eventlog('sign',$_msg);
@@ -443,7 +443,7 @@
       {
         $_msg = sprintf('Chyba! SMS \'%s\' (%s) nemohla být předána k odeslání.',
           $_data->mobil_number,
-          $_data->username,
+	          $this->logUserLabel($user[0],(int) $user[0]['id']),
         );
 
 	        $this->flashMessage($_msg,'danger');
@@ -535,12 +535,12 @@
       if (!$rst)
       {
         $this->flashMessage('Chyba! Heslo pro '.$data->username.' nebylo změněno!','danger');
-        $this->eventlog('sign','Chyba! Heslo pro '.$data->username.' nebylo změněno!');
+	        $this->eventlog('sign',sprintf('Chyba! Heslo pro %s nebylo změněno!',$this->logUserLabel($user[0],(int) $user[0]['id'])));
         $this->redirect('Sign:Recoverypassword');
       }
 
       $this->flashMessage('Heslo pro '.$data->username.' bylo změněno.');
-      $this->eventlog('sign','Heslo pro '.$data->username.' bylo změněno.');
+	      $this->eventlog('sign',sprintf('Heslo pro %s bylo změněno.',$this->logUserLabel($user[0],(int) $user[0]['id'])));
       $this->redirect('Sign:In');
     }
 

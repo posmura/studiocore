@@ -106,7 +106,3 @@ DELIMITER ;
 SHOW COLUMNS FROM blog_registration LIKE 'registration_status';
 
 SHOW TRIGGERS LIKE 'blog_registration';
-
--- KROK 5: Modifikace sloupce action v tabulce blog_eventlog
-
-ALTER TABLE `blog_eventlog` CHANGE `action` `action` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL;

@@ -91,13 +91,14 @@
 	    {
 	      $this->requireAdmin();
 
-	      $data = self::array_to_object(
-	        [
-	          'id' => $data->id,
-	          'deleted_by' => $this->userName,
-	          'updated_by' => $this->userName,
-	        ]
-	      );
+		      $data = self::array_to_object(
+		        [
+		          'id' => $data->id,
+		          'deleted_by' => $this->userName,
+		          'updated_by' => $this->userName,
+		        ]
+		      );
+		      $saleLabel = $this->logSaleLabelById((int) $data->id);
 
 	      try
 	      {
@@ -110,7 +111,7 @@
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Prodej ID=%s nebyl smazán.',$data->id);
+	        $_msg = sprintf('Chyba! %s nebyl smazán.',$saleLabel);
         $this->eventlog('sale',$_msg);
         $this->flashMessage($_msg,'danger');
         $this->redirect('Sales:default');
@@ -135,7 +136,7 @@
        *
        */
 
-      $_msg = sprintf('Prodej ID=%s byl smazán.',$data->id);
+	      $_msg = sprintf('%s byl smazán.',$saleLabel);
       $this->flashMessage($_msg);
       $this->eventlog('sale',$_msg);
       $this->redirect('Sales:default');
@@ -156,7 +157,7 @@
 
       $this->template->data = $data;
 
-      $this->eventlog('sales','Editace prodeje ID='.$id.'.');
+	      $this->eventlog('sales',sprintf('Zobrazena editace %s.',$this->logSaleLabel($data,$id)));
     }
 
 
@@ -248,7 +249,7 @@
       }
       else
       {
-        $_msg = sprintf('Chyba! Neplatná operace pro prodej ID=%s.',$data->id);
+	        $_msg = sprintf('Chyba! Neplatná operace pro %s.',$this->logSaleLabel($data,(int) $data->id));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('membership_card',$_msg);
         $this->redirect('MembershipCard:default');
@@ -273,13 +274,13 @@
         }
         catch (\Exception $e)
         {
-          $_msg = sprintf('Chyba! Nový prodej nebyl uložen.');
+	          $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, nebyl uložen.',$data->username_full,$data->aktivita_name);
           $this->flashMessage($_msg,'danger');
           $this->eventlog('sale',$_msg);
           $this->redirect('Sales:default');
         }
 
-        $_msg = sprintf('Nový prodej byl uložen.');
+	        $_msg = sprintf('Nový prodej pro klienta %s, permanentka %s, byl uložen.',$data->username_full,$data->aktivita_name);
         $this->flashMessage($_msg);
         $this->eventlog('sale',$_msg);
         $this->redirect('Sales:default');

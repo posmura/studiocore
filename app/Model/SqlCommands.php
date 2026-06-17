@@ -1739,6 +1739,66 @@ SQL;
 
 
     /**
+     * REGISTRACE: Zruší konkrétní registraci na lekci
+     *
+     * @return string
+     */
+    public static function deleteRegistraceByID(): string
+    {
+      return <<<SQL
+UPDATE blog_registration
+SET
+  `deleted`=1,
+  `deleted_at`=NOW(),
+  `deleted_by`=?
+WHERE
+  `ID`=?
+  AND `user_id`=?
+  AND `diary_id`=?
+  AND `deleted`=0;
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Ochrani pocitadlo obsazenosti pred odectem stareho triggeru pri ruseni nahradnika
+     *
+     * @return string
+     */
+    public static function protectLekceUcastBeforeSubstituteDelete(): string
+    {
+      return <<<SQL
+INSERT INTO mv_lekce_ucast (diary_id, total)
+VALUES (?, 1)
+ON DUPLICATE KEY UPDATE total = total + 1
+SQL;
+    }
+
+
+    /**
+     * REGISTRACE: Prepocita pocitadlo obsazenosti lekce podle aktivnich ucastniku
+     *
+     * @return string
+     */
+    public static function refreshLekceUcast(): string
+    {
+      return <<<SQL
+INSERT INTO mv_lekce_ucast (diary_id, total)
+SELECT
+  ? AS diary_id,
+  COUNT(*) AS total
+FROM
+  blog_registration
+WHERE
+  diary_id = ?
+  AND deleted = 0
+  AND registration_status = 'ucastnik'
+ON DUPLICATE KEY UPDATE total = VALUES(total)
+SQL;
+    }
+
+
+    /**
      * REGISTRACE: Kontrouje registraci klienta na lekci
      *
      * @return string
@@ -1768,6 +1828,7 @@ SQL;
     {
       return <<<SQL
 SELECT
+  `ID` AS `registration_id`,
   `sales_id`,
   `registration_status`
 FROM
@@ -2000,6 +2061,8 @@ WHERE
 ORDER BY
   a.`deleted`,
   CASE WHEN a.`registration_status` = 'ucastnik' THEN 0 ELSE 1 END,
+  CASE WHEN a.`registration_status` = 'nahradnik' THEN a.`created_at` END,
+  CASE WHEN a.`registration_status` = 'nahradnik' THEN a.`ID` END,
   a.ID desc
 SQL;
     }

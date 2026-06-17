@@ -111,8 +111,8 @@
                                 <a n:href="User:user $items['user_id']" style="color: #e67c2f !important;"><strong>{$items['user_surname']} {$items['user_firstname']}</strong></a>
                             </td>
                             <td>
-                                <span class="badge {if $isSubstitute}text-bg-warning{else}text-bg-success{/if}">
-                                    {if $isSubstitute}Náhradník{else}Účastník{/if}
+                                <span class="badge {if $isSubstitute}text-bg-warning{else}text-bg-success{/if}" {if $isSubstitute}title="Pořadí v seznamu náhradníků"{/if}>
+                                    {if $isSubstitute}Náhradník{if ($items['substitute_order'] ?? null)} #{$items['substitute_order']}{/if}{else}Účastník{/if}
                                 </span>
                             </td>
                             <td>{$items['user_mobil_number']}</td>
@@ -198,7 +198,7 @@
 
                     <tr>
                         <td style="{$color|noescape}">{$items['user_surname']} {$items['user_firstname']}</td>
-                        <td style="{$color|noescape}">{if $isSubstituteHistory}Náhradník{else}Účastník{/if}</td>
+                        <td style="{$color|noescape}">{if $isSubstituteHistory}Náhradník{if ($items['substitute_order'] ?? null)} #{$items['substitute_order']}{/if}{else}Účastník{/if}</td>
                         <td style="{$color|noescape}">{$items['registrace_created_at']}</td>
                         <td style="{$color|noescape}">{$items['registrace_created_by']}</td>
                         <td style="{$color|noescape}">{$items['registrace_deleted_at']}</td>

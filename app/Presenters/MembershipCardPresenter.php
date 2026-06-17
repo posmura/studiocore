@@ -106,7 +106,8 @@
 	    {
 	      $this->requireAdmin();
 
-	      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+		      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+		      $cardLabel = $this->logMembershipCardLabelById((int) $data->id);
 
 	      try
 	      {
@@ -114,13 +115,13 @@
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Permanentka ID=%s nebyla smazána.',$data->id);
+	        $_msg = sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel);
         $this->eventlog('membership_card',$_msg);
         $this->flashMessage($_msg,'danger');
         $this->redirect('MembershipCard:default');
       }
 
-      $_msg = sprintf('Permanentka ID=%s byla smazána.',$data->id);
+	      $_msg = sprintf('Permanentka %s byla smazána.',$cardLabel);
       $this->flashMessage($_msg);
       $this->eventlog('membership_card',$_msg);
       $this->redirect('MembershipCard:default');
@@ -143,7 +144,7 @@
 
       $this->template->data = $data;
 
-      $this->eventlog('membership_card','Editace permanenty ID='.$id.'.');
+	      $this->eventlog('membership_card',sprintf('Zobrazena editace permanentky %s.',$this->logMembershipCardLabel($data,$id)));
     }
 
 
@@ -235,7 +236,7 @@
       }
       else
       {
-        $_msg = sprintf('Chyba! Neplatná operace pro permanentku ID=%s.',$data->id);
+	        $_msg = sprintf('Chyba! Neplatná operace pro permanentku %s.',$this->logMembershipCardLabel($data,(int) $data->id));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('membership_card',$_msg);
         $this->redirect('MembershipCard:default');
@@ -255,13 +256,13 @@
         }
         catch (\Exception $e)
         {
-          $_msg = sprintf('Chyba! Nová permanentka nebyla uložena.');
+	          $_msg = sprintf('Chyba! Nová permanentka %s nebyla uložena.',$this->logMembershipCardLabel($data));
           $this->flashMessage($_msg,'danger');
           $this->eventlog('membership_card',$_msg);
           $this->redirect('MembershipCard:default');
         }
 
-        $_msg = sprintf('Nová permanentka byla uložena.');
+	        $_msg = sprintf('Nová permanentka %s byla uložena.',$this->logMembershipCardLabel($data));
         $this->flashMessage($_msg);
         $this->eventlog('membership_card',$_msg);
         $this->redirect('MembershipCard:default');
@@ -276,13 +277,13 @@
         }
         catch (\Exception $e)
         {
-          $_msg = sprintf('Chyba! Permanentka ID=%s nebyla uložena.',$data->id);
+	          $_msg = sprintf('Chyba! Permanentka %s nebyla uložena.',$this->logMembershipCardLabel($data,(int) $data->id));
           $this->flashMessage($_msg,'danger');
           $this->eventlog('membership_card',$_msg);
           $this->redirect('MembershipCard:default');
         }
 
-        $_msg = sprintf('Permanentka ID=%s byla uložena.',$data->id);
+	        $_msg = sprintf('Permanentka %s byla uložena.',$this->logMembershipCardLabel($data,(int) $data->id));
         $this->flashMessage($_msg);
         $this->eventlog('membership_card',$_msg);
         $this->redirect('MembershipCard:default');

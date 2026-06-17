@@ -581,9 +581,34 @@
      */
     public function deleteRegistrace($data): int
     {
+      $isSubstitute = ($data->registration_status ?? 'ucastnik') === 'nahradnik';
+
       $this->database->beginTransaction();
       try {
-        $this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id);
+        if ($isSubstitute)
+        {
+          $this->database->query(SqlCommands::protectLekceUcastBeforeSubstituteDelete(),$data->diary_id);
+        }
+
+        if ((int) ($data->registration_id ?? 0) > 0)
+        {
+          $res = $this->database->query(SqlCommands::deleteRegistraceByID(),$data->deleted_by,$data->registration_id,$data->user_id,$data->diary_id);
+        }
+        else
+        {
+          $res = $this->database->query(SqlCommands::deleteRegistrace(),$data->deleted_by,$data->user_id,$data->diary_id);
+        }
+
+        if ($res->getRowCount() !== 1)
+        {
+          $this->database->rollBack();
+          return 9999;
+        }
+
+        if ($isSubstitute)
+        {
+          $this->database->query(SqlCommands::refreshLekceUcast(),$data->diary_id,$data->diary_id);
+        }
 
         // když není permice, vrátím jen kredit
         if ((int) $data->sales_id === 0 && $data->kredit_zmena != 0)
@@ -603,6 +628,7 @@
       catch (\Nette\Database\DriverException $e)
       {
         $this->database->rollBack();
+        $data->delete_error = $e->getMessage();
         return 1;
       }
     }

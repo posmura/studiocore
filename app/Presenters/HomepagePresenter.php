@@ -36,6 +36,7 @@ final class HomepagePresenter extends BasePresenter
   {
     $this->requireAdmin();
     $this->error('Mazání příspěvku je nutné provést formulářem.',405);
+    $postLabel = $this->logPostLabel(null,(int) $postId);
 
     try {
       $this->postManager->deletePost($postId,$deletedBy);
@@ -43,10 +44,11 @@ final class HomepagePresenter extends BasePresenter
     }
     catch (\Exception $e)
     {
-      $this->eventlog('home','Chyba! Položka '.$postId.' nebyla smazána!');
+      $this->eventlog('home','Chyba! Příspěvek '.$postLabel.' nebyl smazán!');
       $this->flashMessage('Chyba! Příspěvěk nebyl smazán!',"danger");
+      $this->redirect('Homepage:');
     }
-    $this->eventlog('home','Položka '.$postId.' byla smazána!');
+    $this->eventlog('home','Příspěvek '.$postLabel.' byl smazán!');
     $this->redirect('Homepage:');
   }
 
@@ -97,6 +99,7 @@ final class HomepagePresenter extends BasePresenter
     $this->requireAdmin();
 
     $postId = isset($data->id) ? $data->id : 0;
+    $postLabel = $this->logPostLabel($data,(int) $postId);
 
     try
     {
@@ -105,11 +108,12 @@ final class HomepagePresenter extends BasePresenter
     }
     catch (\Exception $e)
     {
-      $this->eventlog('home','Chyba! Položka '.$postId.' nebyla zveřejněna!');
+      $this->eventlog('home','Chyba! Příspěvek '.$postLabel.' nebyl zveřejněn!');
       $this->flashMessage('Chyba! Příspěvěk nebyl zveřejněn!',"danger");
+      $this->redirect('Homepage:');
     }
 
-    $this->eventlog('home','Položka '.$postId.' byla zveřejněna!');
+    $this->eventlog('home','Příspěvek '.$postLabel.' byl zveřejněn!');
     $this->redirect('Homepage:');
   }
 

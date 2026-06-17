@@ -170,21 +170,23 @@
     {
       $this->requireAdmin();
 
-      $userId = (int) $data->userId;
-      $deleteBy = $this->userName;
+	      $userId = (int) $data->userId;
+	      $deleteBy = $this->userName;
+	      $userLabel = $this->logUserLabelById($userId);
 
-      try
-      {
+	      try
+	      {
         $this->userManager->deleteUser($userId,$deleteBy);
       }
-      catch (\Exception $e)
-      {
-        $this->eventlog('user','Chyba! Uživatel ID='.$userId.' nebyl odstraněn uživatelem '.$deleteBy.'.');
-        $this->flashMessage('Chyba! Uživatel ID='.$userId.' nebyl odstraněn uživatelem '.$deleteBy.'.');
-      }
+	      catch (\Exception $e)
+	      {
+	        $this->eventlog('user','Chyba! Uživatel '.$userLabel.' nebyl odstraněn uživatelem '.$deleteBy.'.');
+	        $this->flashMessage('Chyba! Uživatel '.$userLabel.' nebyl odstraněn uživatelem '.$deleteBy.'.');
+	        $this->redirect('User:');
+	      }
 
-      $this->eventlog('user','Uživatel ID='.$userId.' byl odstraněn uživatelem '.$deleteBy.'.');
-      $this->flashMessage('Uživatel ID='.$userId.' byl odstraněn uživatelem '.$deleteBy.'.');
+	      $this->eventlog('user','Uživatel '.$userLabel.' byl odstraněn uživatelem '.$deleteBy.'.');
+	      $this->flashMessage('Uživatel '.$userLabel.' byl odstraněn uživatelem '.$deleteBy.'.');
 
       $this->redirect('User:');
     }
@@ -318,13 +320,13 @@
       }
       catch (\Exception $e)
       {
-        $this->flashMessage('Chyba! Uživatelský účet \''.$data->username.'\' nebyl aktualizován!','danger');
-        $this->eventlog('sign','Chyba! Uživatel \''.$data->username.'\' nebyl aktualizován!');
-        $this->redirect('User:user',$data->id);
-      }
+	        $this->flashMessage('Chyba! Uživatelský účet \''.$data->username.'\' nebyl aktualizován!','danger');
+	        $this->eventlog('sign',sprintf('Chyba! Uživatel %s nebyl aktualizován!',$this->logUserLabel($data,(int) $data->id)));
+	        $this->redirect('User:user',$data->id);
+	      }
 
-      $this->flashMessage('Uživatelský účet \''.$data->username.'\' byl aktualizován.');
-      $this->eventlog('sign','Uživatelský účet \''.$data->username.'\' byl aktualizován!');
+	      $this->flashMessage('Uživatelský účet \''.$data->username.'\' byl aktualizován.');
+	      $this->eventlog('sign',sprintf('Uživatelský účet %s byl aktualizován!',$this->logUserLabel($data,(int) $data->id)));
       $this->redirect('User:user',$data->id);
     }
 
@@ -399,13 +401,13 @@
       }
       catch (\Exception $e)
       {
-        $this->flashMessage('Chyba! Heslo pro uživatelský účet \''.$data->username.'\' nebylo změněno!','danger');
-        $this->eventlog('sign','Heslo pro uživatelský účet \''.$data->username.'\' nebylo změněno!');
-        $this->redirect('User:user',$data->id);
-      }
+	        $this->flashMessage('Chyba! Heslo pro uživatelský účet \''.$data->username.'\' nebylo změněno!','danger');
+	        $this->eventlog('sign',sprintf('Chyba! Heslo pro uživatelský účet %s nebylo změněno!',$this->logUserLabelById((int) $data->id)));
+	        $this->redirect('User:user',$data->id);
+	      }
 
-      $this->flashMessage('Heslo pro uživatelský účet \''.$data->username.'\' bylo změněno!');
-      $this->eventlog('sign','Heslo pro uživatelský účet \''.$data->username.'\' bylo změněno!');
+	      $this->flashMessage('Heslo pro uživatelský účet \''.$data->username.'\' bylo změněno!');
+	      $this->eventlog('sign',sprintf('Heslo pro uživatelský účet %s bylo změněno!',$this->logUserLabelById((int) $data->id)));
       $this->redirect('User:user',$data->id);
     }
 
@@ -490,14 +492,21 @@
         }
         catch (\Exception $e)
         {
-          $_msg = 'Chyba! Kredity pro uživatele ID='.$data->user_id.' nebyly změněny!';
+	          $_msg = sprintf('Chyba! Kredity pro uživatele %s, aktivita %s, nebyly změněny o %s.',$this->logUserLabelById((int) $data->user_id),$this->logActivityLabelById((int) $_data->aktivita_id),$_data->kredit);
           $this->flashMessage($_msg,'danger');
           $this->eventlog('sign',$_msg);
           $this->redirect('User:user',$data->user_id);
           }
       }
 
-      $_msg = 'Kredity pro uživatele ID='.$data->user_id.' byly změněny!';
+	      $_changes = array();
+	      foreach ($params as $items)
+	      {
+	        if (!$items['kredit'] || $items['kredit'] == 0)
+	          continue;
+	        $_changes[] = sprintf('%s: %+d',$this->logActivityLabelById((int) $items['aktivita_id']),(int) $items['kredit']);
+	      }
+	      $_msg = sprintf('Kredity pro uživatele %s byly změněny (%s).',$this->logUserLabelById((int) $data->user_id),implode(', ',$_changes));
       //$this->flashMessage($_msg);
       $this->eventlog('sign',$_msg);
       $this->redirect('User:user',$data->user_id);

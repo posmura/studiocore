@@ -141,23 +141,23 @@
 
 	      try
 	      {
-	        if ($opakovat > 1)
-	        {
-	          $this->factoryManager->deleteDiaryByLekceId($data->lekce_id,$data->date,$deleted_by);
-	          $_msg = sprintf('Události lekce ID=%d byly smazány od %d a výše.',$data->lekce_id,$data->date);
-	        }
-	        else
-	        {
-	          $this->factoryManager->deleteDiary($data->ID,$deleted_by);
-	          $_msg = sprintf('Událost ID=%d byla smazána.',$data->ID);
-	        }
+		        if ($opakovat > 1)
+		        {
+		          $this->factoryManager->deleteDiaryByLekceId($data->lekce_id,$data->date,$deleted_by);
+		          $_msg = sprintf('Opakované události lekce %s byly smazány od %s a výše.',$this->logLessonLabel($data,(int) $data->ID),$this->dateOrderToDateForm((string) $data->date));
+		        }
+		        else
+		        {
+		          $this->factoryManager->deleteDiary($data->ID,$deleted_by);
+		          $_msg = sprintf('Událost lekce %s byla smazána.',$this->logLessonLabel($data,(int) $data->ID));
+		        }
 
         $this->flashMessage($_msg);
         $this->eventlog('diary',$_msg);
       }
 	      catch (\Exception $e)
 	      {
-	        $_msg = sprintf('Chyba! Událost ID=%d nebyla smazána.',$data->ID);
+		        $_msg = sprintf('Chyba! Událost lekce %s nebyla smazána.',$this->logLessonLabel($data,(int) $data->ID));
 	        $this->flashMessage($_msg,'danger');
 	        $this->eventlog('diary',$_msg);
 	      }
@@ -235,19 +235,43 @@
       // doplním kredity pro jednotlivé aktivity klienta a zjistím počty aktivních registrací
       $participantCount = 0;
       $substituteCount = 0;
+      $substituteRows = array();
       foreach ($data as $key => $items)
       {
+        $data[$key]['substitute_order'] = null;
+
         $kredity = $this->userManager->getKredityKlienta($items['user_id'],$this->userName);
         $data[$key]['kredity'] = $kredity;
 
         if ($items['registrace_deleted'] == 0)
         {
           if (($items['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT) === self::REGISTRATION_STATUS_SUBSTITUTE)
+          {
             $substituteCount++;
+            $createdAt = $items['registrace_created_at'] ?? null;
+            $substituteRows[] = [
+              'key' => $key,
+              'created_at_ts' => $createdAt instanceof \DateTimeInterface ? $createdAt->getTimestamp() : (strtotime((string) $createdAt) ?: 0),
+              'registration_id' => (int) $items['registrace_id'],
+            ];
+          }
           else
             $participantCount++;
         }
       }
+
+      usort($substituteRows, function ($a,$b): int {
+        if ($a['created_at_ts'] === $b['created_at_ts'])
+          return $a['registration_id'] <=> $b['registration_id'];
+
+        return $a['created_at_ts'] <=> $b['created_at_ts'];
+      });
+
+      foreach ($substituteRows as $order => $substituteRow)
+      {
+        $data[$substituteRow['key']]['substitute_order'] = $order + 1;
+      }
+
       $this->template->data = $data;
       $this->template->dataCount = $participantCount;
       $this->template->participantCount = $participantCount;
@@ -349,6 +373,7 @@
 
 	      $data = self::array_to_object(
 	        [
+	          'registration_id' => (int) $registration['registration_id'],
 	          'user_id' => (int) $registration['user_id'],
 	          'diary_id' => (int) $registration['diary_id'],
 	          'aktivita_id' => (int) $registration['aktivita_id'],
@@ -764,7 +789,7 @@
       // kontrola a nastavení časů udállstri od a do
       if ((int) $data->from > (int) $data->to)
       {
-        $_msg = sprintf('Chyba! Čas události Od je vyšší než čas Do. Událost ID=%a nebyla upravena.',$data->ID);
+	        $_msg = sprintf('Chyba! Čas události Od je vyšší než čas Do. Událost lekce %s nebyla upravena.',$this->logLessonLabel($data,(int) $data->ID));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
         $this->redirect('Diary:',$tsDiaryDate);
@@ -798,7 +823,7 @@
           {
             $last_ID = $this->factoryManager->insertDiary($data);
 
-            $_msg = sprintf('Událost %d (ID=%d) byla uložena.',$data->lekce_id,$last_ID);
+	            $_msg = sprintf('Událost lekce %s byla uložena.',$this->logLessonLabel($data,(int) $last_ID));
             $this->eventlog('diary',$_msg);
           }
           elseif ($opakovat > 1)
@@ -811,10 +836,10 @@
 
               $i++;
 
-              $_msg = sprintf('Událost %d (ID=%d) byla uložena.',$data->lekce_id,$last_ID);
+	              $_msg = sprintf('Událost lekce %s byla uložena.',$this->logLessonLabel($data,(int) $last_ID));
               $this->eventlog('diary',$_msg);
             }
-            $_msg = sprintf('Událost %d byla uložena %d x.',$data->lekce_id,$i);
+	            $_msg = sprintf('Opakovaná lekce %s byla uložena %d x.',$this->logLessonLabel($data),$i);
             $this->eventlog('diary',$_msg);
           }
         }
@@ -828,21 +853,21 @@
           {
             $this->factoryManager->updateDiary($data);
 
-            $_msg = sprintf('Událost %d (ID=%d) byla upravena.',$data->lekce_id,$data->ID);
+	            $_msg = sprintf('Událost lekce %s byla upravena.',$this->logLessonLabel($data,(int) $data->ID));
             $this->eventlog('diary',$_msg);
           }
           elseif ($opakovat > 1)
           {
             $this->factoryManager->updateDiaryByLekceId($data);
 
-            $_msg = sprintf('Události %d byla upravena od ID=%d výše.',$data->lekce_id,$data->ID);
+	            $_msg = sprintf('Opakované události lekce %s byly upraveny od ID=%d výše.',$this->logLessonLabel($data,(int) $data->ID),$data->ID);
             $this->eventlog('diary',$_msg);
           }
         }
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Událost ID=%d nebyla uložena.',$data->ID);
+	        $_msg = sprintf('Chyba! Událost lekce %s nebyla uložena.',$this->logLessonLabel($data,(int) $data->ID));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
       }
@@ -890,18 +915,20 @@
 	    {
 	      $this->requireLogin();
 
-	      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
-	      if (!$lesson)
-	      {
-	        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena.',(int) $data->diary_id);
+		      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
+		      if (!$lesson)
+		      {
+		        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena pro registraci klienta %s.',(int) $data->diary_id,$this->logUserLabelById((int) $this->userID));
 	        $this->flashMessage($_msg,'danger');
 	        $this->eventlog('diary',$_msg);
 	        $this->redirect('Diary:default',$this->tsToday);
 	      }
 
-	      $tsDiaryDate = $this->getTsDiaryDateFromLesson($lesson);
-	      $userId = (int) $this->userID;
-	      $aktivitaId = (int) $lesson['aktivita_id'];
+		      $tsDiaryDate = $this->getTsDiaryDateFromLesson($lesson);
+		      $userId = (int) $this->userID;
+		      $aktivitaId = (int) $lesson['aktivita_id'];
+		      $userLabel = $this->logUserLabelById($userId);
+		      $lessonLabel = $this->logLessonLabel($lesson,(int) $lesson['ID']);
 
 	      $_data = self::array_to_object(
 	        [
@@ -917,9 +944,9 @@
 
 	        if ($this->getLessonRegistrationEndTimestamp($lesson) <= time())
 	        {
-	          $_msg = $is_registered > 0
-	            ? 'Registrace na lekci již nelze upravit.'
-	            : 'Na lekci se již nelze registrovat.';
+		          $_msg = $is_registered > 0
+		            ? sprintf('Registraci klienta %s na lekci %s již nelze upravit.',$userLabel,$lessonLabel)
+		            : sprintf('Klienta %s již nelze registrovat na lekci %s.',$userLabel,$lessonLabel);
 	          $this->flashMessage($_msg,'warning');
 	          $this->eventlog('diary',$_msg);
 	        }
@@ -930,7 +957,7 @@
 
 	          if ($kredit < 0)
 	          {
-	            $_msg = 'Nemáte dostatečný počet vstupů.';
+		            $_msg = sprintf('Klient %s nemá dostatečný počet vstupů pro registraci na lekci %s.',$userLabel,$lessonLabel);
 	            $this->flashMessage($_msg,'warning');
 	            $this->eventlog('diary',$_msg);
 	          }
@@ -942,7 +969,7 @@
 	              $counts = $this->factoryManager->getRegistrationCounts((int) $lesson['ID']);
 	              if ((int) ($counts['substitutes'] ?? 0) >= self::MAX_SUBSTITUTES)
 	              {
-	                $_msg = 'Lekce je obsazena a seznam náhradníků je plný.';
+		                $_msg = sprintf('Lekce %s je obsazena a seznam náhradníků je plný. Klient: %s.',$lessonLabel,$userLabel);
 	                $this->flashMessage($_msg,'warning');
 	                $this->eventlog('diary',$_msg);
 	                $registrationStatus = null;
@@ -977,6 +1004,7 @@
 	              'user_id' => $userId,
 	              'diary_id' => (int) $lesson['ID'],
 	              'aktivita_id' => $aktivitaId,
+	              'registration_id' => (int) ($_sales['registration_id'] ?? 0),
 	              'registration_status' => $_sales['registration_status'] ?? self::REGISTRATION_STATUS_PARTICIPANT,
 	              'sales_id' => (int) ($_sales['sales_id'] ?? 0),
 	              'kredit_zmena' => 0,
@@ -989,7 +1017,7 @@
 	      }
 	      catch (\Exception $e)
 	      {
-	        $_msg = sprintf('Chyba! Registrace nebyla uložena.');
+		        $_msg = sprintf('Chyba! Registrace klienta %s na lekci %s nebyla uložena.',$userLabel,$lessonLabel);
 	        $this->flashMessage($_msg,'danger');
 	        $this->eventlog('diary',$_msg);
 	      }
@@ -1051,21 +1079,24 @@
 	    {
 	      $this->requireStaff();
 
-	      $data->ID = (int) $data->id;
-      //$data->ucast;
-      $data->updated_by = $this->userName;
+		      $data->ID = (int) $data->id;
+	      //$data->ucast;
+	      $data->updated_by = $this->userName;
+	      $registration = $this->factoryManager->getRegistraceByID((int) $data->ID);
+	      $userLabel = $registration ? $this->logUserLabelById((int) $registration['user_id']) : 'neznámý klient';
+	      $lessonLabel = $registration ? $this->logLessonLabelById((int) $registration['diary_id']) : 'neznámá lekce';
 
-      try
-      {
-        $rst = $this->factoryManager->updateUcast($data);
+	      try
+	      {
+	        $rst = $this->factoryManager->updateUcast($data);
 
-        $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.",$data->ucast);
-        //$this->flashMessage($_msg);
-        $this->eventlog('diary',$_msg);
-      }
-      catch (\Exception $e)
-      {
-        $_msg = sprintf("Chyba! Účast klienta na lekci nebyla změněna na stav '%s'.",$data->ucast);
+	        $_msg = sprintf("Účast klienta %s na lekci %s byla změněna na stav '%s'.",$userLabel,$lessonLabel,$data->ucast);
+	        //$this->flashMessage($_msg);
+	        $this->eventlog('diary',$_msg);
+	      }
+	      catch (\Exception $e)
+	      {
+	        $_msg = sprintf("Chyba! Účast klienta %s na lekci %s nebyla změněna na stav '%s'.",$userLabel,$lessonLabel,$data->ucast);
         $this->flashMessage($_msg);
         $this->eventlog('diary',$_msg);
       }
@@ -1130,25 +1161,27 @@
 	    {
 	      $this->requireStaff();
 
-	      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
-	      if (!$lesson)
-	      {
-	        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena.',(int) $data->diary_id);
+		      $lesson = $this->factoryManager->getLekceById((int) $data->diary_id);
+		      if (!$lesson)
+		      {
+		        $_msg = sprintf('Chyba! Lekce ID=%d nebyla nalezena pro registraci klienta %s.',(int) $data->diary_id,$this->logUserLabelById((int) $data->user_id));
 	        $this->flashMessage($_msg,'danger');
 	        $this->eventlog('diary',$_msg);
 	        $this->redirect('this');
 	      }
 
-	      $data->diary_id = (int) $lesson['ID'];
-	      $data->aktivita_id = (int) $lesson['aktivita_id'];
-	      $data->registration_status = self::REGISTRATION_STATUS_PARTICIPANT;
+		      $data->diary_id = (int) $lesson['ID'];
+		      $data->aktivita_id = (int) $lesson['aktivita_id'];
+		      $data->registration_status = self::REGISTRATION_STATUS_PARTICIPANT;
+		      $userLabel = $this->logUserLabelById((int) $data->user_id);
+		      $lessonLabel = $this->logLessonLabel($lesson,(int) $lesson['ID']);
 
 	      if ((int) $lesson['aktivita_vstupy_aktualni'] >= (int) $lesson['aktivita_vstupy_max'])
 	      {
 	        $counts = $this->factoryManager->getRegistrationCounts((int) $lesson['ID']);
 	        if ((int) ($counts['substitutes'] ?? 0) >= self::MAX_SUBSTITUTES)
 	        {
-	          $_msg = 'Lekce je obsazena a seznam náhradníků je plný.';
+		          $_msg = sprintf('Lekce %s je obsazena a seznam náhradníků je plný. Klient: %s.',$lessonLabel,$userLabel);
 	          $this->flashMessage($_msg,'warning');
 	          $this->eventlog('diary',$_msg);
 	          $this->redirect('this');
@@ -1158,7 +1191,7 @@
 	        $kredit = $kredity[$data->aktivita_id]['kredity'] ?? 0;
 	        if ($kredit < 0)
 	        {
-	          $_msg = 'Klient nemá dostatečný počet vstupů pro zařazení mezi náhradníky.';
+		          $_msg = sprintf('Klient %s nemá dostatečný počet vstupů pro zařazení mezi náhradníky na lekci %s.',$userLabel,$lessonLabel);
 	          $this->flashMessage($_msg,'warning');
 	          $this->eventlog('diary',$_msg);
 	          $this->redirect('this');
@@ -1173,7 +1206,7 @@
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Registrace %s nebyla uložena.','');
+	        $_msg = sprintf('Chyba! Registrace klienta %s na lekci %s nebyla uložena.',$userLabel,$lessonLabel);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
       }
@@ -1227,13 +1260,17 @@
 	    public function formSendSmsSucceeded(Form $form,$data): void
 	    {
 	      $this->requireStaff();
+	      $tsDiaryDate = $this->getParameter('tsDiaryDate');
+	      $diaryDateText = $this->diaryDate
+	        ? $this->dateOrderToDateForm($this->diaryDate)
+	        : ($tsDiaryDate ? date('d.m.Y',(int) $tsDiaryDate) : 'aktuální zobrazený termín');
 
 	      // ošetření telefonní čísla
-      $sms_mobile_numbers = explode('|',$data->sms_mobile_numbers);
+      $sms_mobile_numbers = array_filter(array_map('trim',explode('|',$data->sms_mobile_numbers)), 'strlen');
 
       if (!count($sms_mobile_numbers))
       {
-        $_msg = sprintf('Chyba! Nebylo zvoleno žádné číslo mobilního telefonu.','');
+        $_msg = sprintf('Chyba! Nebylo zvoleno žádné číslo mobilního telefonu pro SMS z diáře na termín %s.',$diaryDateText);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
         $this->redirect('this');
@@ -1244,7 +1281,7 @@
 
       if (!$sms_msg)
       {
-        $_msg = sprintf('Chyba! Nebyl zadán text SMS zprávy.','');
+        $_msg = sprintf('Chyba! Nebyl zadán text SMS zprávy z diáře na termín %s.',$diaryDateText);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
         $this->redirect('this');
@@ -1258,9 +1295,9 @@
         // validace telefonního čísla
         if (!$this->checkSmsPhone($sms_mobile_number))
         {
-          $_msg = sprintf('Chyba! Chybný formát telefonního čísla %s.',$sms_mobile_number);
+          $_msg = sprintf('Chyba! Chybný formát telefonního čísla %s pro SMS z diáře na termín %s.',$sms_mobile_number,$diaryDateText);
           $this->flashMessage($_msg,'danger');
-          $this->eventlog('sign',$_msg);
+          $this->eventlog('diary',$_msg);
 
           continue;
         }
@@ -1268,8 +1305,14 @@
         // odeslání SMS
         if ($this->sender->send(new Sms($sms_mobile_number,$sms_msg)))
         {
-          $_msg = sprintf('SMS %s byla předána k odeslání.',$sms_mobile_number);
+          $_msg = sprintf('SMS %s z diáře na termín %s byla předána k odeslání.',$sms_mobile_number,$diaryDateText);
           $this->flashMessage($_msg);
+          $this->eventlog('diary',$_msg);
+        }
+        else
+        {
+          $_msg = sprintf('Chyba: SMS %s z diáře na termín %s nemohla být předána k odeslání.',$sms_mobile_number,$diaryDateText);
+          $this->flashMessage($_msg,'danger');
           $this->eventlog('diary',$_msg);
         }
       }
@@ -1546,11 +1589,13 @@ TEXT;
      * @param object $data Data pro zrušení registrace klienta na lekci
      * @return bool
      */
-    public function cancelRegistration($data, bool $forceVratitKredit = false)
-    {
-      $data->deleted_by = $this->userName;
-      $registrationStatus = $data->registration_status ?? self::REGISTRATION_STATUS_PARTICIPANT;
-      $isParticipant = $registrationStatus === self::REGISTRATION_STATUS_PARTICIPANT;
+	    public function cancelRegistration($data, bool $forceVratitKredit = false)
+	    {
+	      $data->deleted_by = $this->userName;
+	      $registrationStatus = $data->registration_status ?? self::REGISTRATION_STATUS_PARTICIPANT;
+	      $isParticipant = $registrationStatus === self::REGISTRATION_STATUS_PARTICIPANT;
+	      $userLabel = $this->logUserLabelById((int) $data->user_id);
+	      $lessonLabel = $this->logLessonLabelById((int) $data->diary_id);
 
       if ($isParticipant)
       {
@@ -1582,14 +1627,20 @@ TEXT;
 
       if ($rst != 0)
       {
-        $_msg = sprintf('Chyba %d! Registrace klienta ID=%s nebyla zrušena uživatelem %s.',$rst,$data->user_id,$data->deleted_by);
+        $_desc = $rst == 9999
+          ? 'Registrace nebyla nalezena, již byla zrušena, nebo nebylo možné jednoznačně určit záznam registrace.'
+	          : sprintf('Registrace klienta %s na lekci %s nebyla zrušena uživatelem %s.',$userLabel,$lessonLabel,$data->deleted_by);
+        $_eventDesc = $_desc;
+        if (isset($data->delete_error))
+          $_eventDesc .= sprintf(' DB chyba: %s',$data->delete_error);
+        $_msg = sprintf('Chyba %d! %s',$rst,$_desc);
         $this->flashMessage($_msg,'danger');
-        $this->eventlog('diary',$_msg);
+        $this->eventlog('diary',sprintf('Chyba %d! %s',$rst,$_eventDesc));
 
         return false;
       }
 
-      $_msg = sprintf('Registrace klienta ID=%s byla zrušena uživatelem %s. %s',$data->user_id,$data->deleted_by,$msg_kredit_zmena);
+	      $_msg = sprintf('Registrace klienta %s na lekci %s byla zrušena uživatelem %s. %s',$userLabel,$lessonLabel,$data->deleted_by,$msg_kredit_zmena);
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
@@ -1625,7 +1676,7 @@ TEXT;
       $kredit = $kredity[(int) $substitute['aktivita_id']]['kredity'] ?? 0;
       if ($kredit < 0)
       {
-        $_msg = sprintf('Náhradník klient ID=%s nemá dostatek kreditů pro přesun mezi účastníky.',$substitute['user_id']);
+	        $_msg = sprintf('Náhradník %s nemá dostatek kreditů pro přesun mezi účastníky lekce %s.',$this->logUserLabel($substitute,(int) $substitute['user_id']),$this->logLessonLabel($substitute,(int) $substitute['diary_id']));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
@@ -1651,10 +1702,10 @@ TEXT;
       if ($rst != 0)
       {
         $_desc = $rst == 4
-          ? sprintf('Náhradník klient ID=%s nemá dostatek kreditů pro přesun mezi účastníky.',$data->user_id)
-          : ($rst == 5
-            ? sprintf('Náhradníkovi klient ID=%s se nepodařilo odečíst kredit nebo permanentku.',$data->user_id)
-            : sprintf('Náhradník klient ID=%s nebyl přesunut mezi účastníky.',$data->user_id));
+	          ? sprintf('Náhradník %s nemá dostatek kreditů pro přesun mezi účastníky lekce %s.',$this->logUserLabel($substitute,(int) $substitute['user_id']),$this->logLessonLabel($substitute,(int) $substitute['diary_id']))
+	          : ($rst == 5
+	            ? sprintf('Náhradníkovi %s se nepodařilo odečíst kredit nebo permanentku pro lekci %s.',$this->logUserLabel($substitute,(int) $substitute['user_id']),$this->logLessonLabel($substitute,(int) $substitute['diary_id']))
+	            : sprintf('Náhradník %s nebyl přesunut mezi účastníky lekce %s.',$this->logUserLabel($substitute,(int) $substitute['user_id']),$this->logLessonLabel($substitute,(int) $substitute['diary_id'])));
         $_msg = sprintf('Chyba %d! %s',$rst,$_desc);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
@@ -1662,7 +1713,7 @@ TEXT;
         return false;
       }
 
-      $_msg = sprintf('Náhradník klient ID=%s byl přesunut mezi účastníky lekce ID=%s.',$data->user_id,$data->diary_id);
+	      $_msg = sprintf('Náhradník %s byl přesunut mezi účastníky lekce %s.',$this->logUserLabel($substitute,(int) $substitute['user_id']),$this->logLessonLabel($substitute,(int) $substitute['diary_id']));
       $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);
 
@@ -1770,13 +1821,13 @@ TEXT;
       if ($rst != 0)
       {
         if ($rst == 9999)
-          $_desc = sprintf('Klient ID=%s je již na lekci registrován.',$data->user_id);
-        elseif ($rst == 4)
-          $_desc = sprintf('Klient ID=%s nemá dostatek kreditů (kredit by klesl pod -1).',$data->user_id);
-        elseif ($rst == 5)
-          $_desc = sprintf('Klientovi ID=%s se nepodařilo odečíst kredit nebo permanentku.',$data->user_id);
-        else
-          $_desc = sprintf('Registrace klienta ID=%s nebyla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+	          $_desc = sprintf('Klient %s je již registrován na lekci %s.',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id));
+	        elseif ($rst == 4)
+	          $_desc = sprintf('Klient %s nemá dostatek kreditů pro lekci %s (kredit by klesl pod -1).',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id));
+	        elseif ($rst == 5)
+	          $_desc = sprintf('Klientovi %s se nepodařilo odečíst kredit nebo permanentku pro lekci %s.',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id));
+	        else
+	          $_desc = sprintf('Registrace klienta %s na lekci %s nebyla vytvořena uživatelem %s.',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id),$data->created_by);
 
         $_msg = sprintf('Chyba %d! %s',$rst,$_desc);
         $this->flashMessage($_msg,'danger');
@@ -1785,9 +1836,9 @@ TEXT;
         return false;
       }
 
-      $_msg = $data->registration_status === self::REGISTRATION_STATUS_SUBSTITUTE
-        ? sprintf('Náhradník klient ID=%s byl zapsán uživatelem %s.',$data->user_id,$data->created_by)
-        : sprintf('Registrace na klienta ID=%s byla vytvořena uživatelem %s.',$data->user_id,$data->created_by);
+	      $_msg = $data->registration_status === self::REGISTRATION_STATUS_SUBSTITUTE
+	        ? sprintf('Náhradník %s byl zapsán na lekci %s uživatelem %s.',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id),$data->created_by)
+	        : sprintf('Registrace klienta %s na lekci %s byla vytvořena uživatelem %s.',$this->logUserLabelById((int) $data->user_id),$this->logLessonLabelById((int) $data->diary_id),$data->created_by);
       if ($data->registration_status === self::REGISTRATION_STATUS_SUBSTITUTE)
         $this->flashMessage($_msg);
       $this->eventlog('diary',$_msg);

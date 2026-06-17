@@ -88,7 +88,8 @@
 	    {
 	      $this->requireAdmin();
 
-	      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+		      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
+		      $activityLabel = $this->logActivityLabelById((int) $data->id);
 
 	      try
 	      {
@@ -96,13 +97,13 @@
       }
       catch (\Exception $e)
       {
-        $_msg = sprintf('Chyba! Aktivita ID=%s nebyla smazána.',$data->id);
+	        $_msg = sprintf('Chyba! Aktivita %s nebyla smazána.',$activityLabel);
         $this->eventlog('activity',$_msg);
         $this->flashMessage($_msg,'danger');
         $this->redirect('Activity:default');
       }
 
-      $_msg = sprintf('Aktivita ID=%s byla smazána.',$data->id);
+	      $_msg = sprintf('Aktivita %s byla smazána.',$activityLabel);
       $this->flashMessage($_msg);
       $this->eventlog('activity',$_msg);
       $this->redirect('Activity:default');
@@ -125,7 +126,7 @@
 
       $this->template->data = $data;
 
-      $this->eventlog('activity','Editace aktivity ID='.$id.'.');
+	      $this->eventlog('activity',sprintf('Zobrazena editace aktivity %s.',$this->logActivityLabel($data,$id)));
     }
 
 
@@ -216,7 +217,7 @@
       }
       else
       {
-        $_msg = sprintf('Chyba! Neplatná operace pro aktivitu ID=%s.',$data->id);
+	        $_msg = sprintf('Chyba! Neplatná operace pro aktivitu %s.',$this->logActivityLabel($data,(int) $data->id));
         $this->flashMessage($_msg,'danger');
         $this->eventlog('activity',$_msg);
         $this->redirect('Activity:default');
@@ -238,13 +239,13 @@
         }
         catch (\Exception $e)
         {
-          $_msg = sprintf('Chyba! Nová aktivita nebyla uložena.');
+	          $_msg = sprintf('Chyba! Nová aktivita %s nebyla uložena.',$this->logActivityLabel($data));
           $this->flashMessage($_msg,'danger');
           $this->eventlog('activity',$_msg);
           $this->redirect('Activity:default');
         }
 
-        $_msg = sprintf('Nová aktivita byla uložena.');
+	        $_msg = sprintf('Nová aktivita %s byla uložena.',$this->logActivityLabel($data));
         $this->flashMessage($_msg);
         $this->eventlog('activity',$_msg);
         $this->redirect('Activity:default');
@@ -259,13 +260,13 @@
         }
         catch (\Exception $e)
         {
-          $_msg = sprintf('Chyba! Aktivita ID=%s nebyla uložena.',$data->id);
+	          $_msg = sprintf('Chyba! Aktivita %s nebyla uložena.',$this->logActivityLabel($data,(int) $data->id));
           $this->flashMessage($_msg,'danger');
           $this->eventlog('activity',$_msg);
           $this->redirect('Activity:default');
         }
 
-        $_msg = sprintf('Aktivita ID=%s byla uložena.',$data->id);
+	        $_msg = sprintf('Aktivita %s byla uložena.',$this->logActivityLabel($data,(int) $data->id));
         $this->flashMessage($_msg);
         $this->eventlog('activity',$_msg);
         $this->redirect('Activity:default');

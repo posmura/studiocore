@@ -66,23 +66,24 @@ final class SmsPresenter extends BasePresenter
   public function renderDefault($orderDate = null,$showForm = true): void
   {
     $this->template->showTable = true;
+    $orderDateText = $this->dateOrderToDateForm($this->orderDate);
 
     if($this->orderDate <= $this->orderDateToday)
     {
       $this->flashMessage('Chyba! Nelze odeslat SMS pro dnešní nebo starší objednávky.','danger');
-      $this->eventlog('sms','Chyba! Nelze odeslat SMS pro dnešní nebo starší objednávky.');
+      $this->eventlog('sms',sprintf('Chyba! Nelze odeslat SMS pro objednávky na den %s, protože jde o dnešní nebo starší datum.',$orderDateText));
 
       $this->template->showTable = false;
     }
 
     $this->template->orderDate = $this->orderDate;
-    $this->template->formDate = $this->dateOrderToDateForm($this->orderDate);
+    $this->template->formDate = $orderDateText;
 
     $this->template->showForm = $showForm;
 
     $this->template->smsRecipients = $this->smsRecipients;
 
-    $this->eventlog('sms','Seznam příjemců SMS pro den '.$this->orderDate.' byl zobrazen.');
+    $this->eventlog('sms',sprintf('Seznam příjemců SMS pro den %s byl zobrazen (%d příjemců).',$orderDateText,$this->smsRecipientsCount));
   }
 
 
@@ -244,6 +245,7 @@ final class SmsPresenter extends BasePresenter
 
 	    // inicializace zpracování dat
     $send_status = false;
+    $orderDateText = $this->dateOrderToDateForm($this->orderDate);
 
     // nastavení textu
     $data_text_sms = trim(htmlspecialchars($data['text_sms']));
@@ -252,7 +254,7 @@ final class SmsPresenter extends BasePresenter
     if(!$data_text_sms)
     {
       $this->flashMessage('Chyba! Nebyl zadán text SMS zprávy. SMS nebyly odeslány.','danger');
-      $this->eventlog('sms','Chyba! Nebyl zadán text SMS zprávy. SMS nebyly odeslány.');
+      $this->eventlog('sms',sprintf('Chyba! Nebyl zadán text SMS zprávy pro objednávky na den %s. SMS nebyly odeslány.',$orderDateText));
       $this->redirect('Sms:',$this->orderDate,false);
       die();
     }
@@ -286,20 +288,20 @@ final class SmsPresenter extends BasePresenter
       if (!$sms_phone)
       {
         $this->flashMessage('Chyba! Chybný formát telefonního čísla "'.$data[$i_phone].'". SMS pro "'.$sms_name.'" nebyla odeslána.','danger');
-        $this->eventlog('sms','Chyba! Chybný formát telefonního čísla "'.$data[$i_phone].'". SMS pro "'.$sms_name.'" nebyla odeslána.');
+        $this->eventlog('sms',sprintf('Chyba! Chybný formát telefonního čísla "%s". SMS pro "%s" na termín %s %s nebyla odeslána.',$data[$i_phone],$sms_name,$sms_date,$sms_time));
         continue;
       }
 
 	        // odeslání SMS
 	        if ($this->renderSend($sms_phone,$sms_text))
 	        {
-          $this->flashMessage('SMS "'.$sms_phone.'" pro "'.$sms_name.'" byla předána k odelání: '.$sms_text);
-          $this->eventlog('sms','SMS "'.$sms_phone.' pro "'.$sms_name.'" byla předána k odelání: '.$sms_text);
+          $this->flashMessage('SMS "'.$sms_phone.'" pro "'.$sms_name.'" byla předána k odeslání: '.$sms_text);
+          $this->eventlog('sms',sprintf('SMS "%s" pro "%s" na termín %s %s byla předána k odeslání: %s',$sms_phone,$sms_name,$sms_date,$sms_time,$sms_text));
         }
         else
         {
-          $this->flashMessage('Chyba: Problém při předání SMS "'.$sms_phone.'" pro "'.$sms_name.'" k odelání.','danger');
-	          $this->eventlog('sms','Chyba: Problém při předání SMS "'.$sms_phone.'" pro "'.$sms_name.'" k odelání.');
+          $this->flashMessage('Chyba: Problém při předání SMS "'.$sms_phone.'" pro "'.$sms_name.'" k odeslání.','danger');
+	          $this->eventlog('sms',sprintf('Chyba: Problém při předání SMS "%s" pro "%s" na termín %s %s k odeslání.',$sms_phone,$sms_name,$sms_date,$sms_time));
 	        }
 
 	    }
@@ -308,7 +310,7 @@ final class SmsPresenter extends BasePresenter
     if(!$send_status)
     {
       $this->flashMessage('Chyba! Nebyl vybrán žádný odsílatel. SMS nebyly odeslány.','danger');
-      $this->eventlog('sms','Chyba! Nebyl vybrán žádný odsílatel. SMS nebyly odeslány.');
+      $this->eventlog('sms',sprintf('Chyba! Nebyl vybrán žádný příjemce SMS pro objednávky na den %s. SMS nebyly odeslány.',$orderDateText));
     }
 
     $this->redirect('Sms:',$this->orderDate,false);
