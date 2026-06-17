@@ -107,6 +107,47 @@ SHOW COLUMNS FROM blog_registration LIKE 'registration_status';
 
 SHOW TRIGGERS LIKE 'blog_registration';
 
--- KROK 5: Modifikace sloupce action v tabulce blog_eventlog
+-- KROK 7: Modifikace sloupce action v tabulce blog_eventlog
 
 ALTER TABLE `blog_eventlog` CHANGE `action` `action` TEXT CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NULL DEFAULT NULL;
+
+
+-- KROK 8: Bezpecnejsi obnova hesla
+-- password_recovery_pin od teto verze uklada hash PIN, ne PIN v citelne podobe.
+ALTER TABLE blog_users
+  ADD COLUMN IF NOT EXISTS password_recovery_pin_created_at DATETIME NULL DEFAULT NULL
+    AFTER password_recovery_pin;
+
+ALTER TABLE blog_users
+  ADD COLUMN IF NOT EXISTS password_recovery_pin_attempts TINYINT UNSIGNED NOT NULL DEFAULT 0
+    AFTER password_recovery_pin_created_at;
+
+UPDATE blog_users
+SET
+  password_recovery_pin = NULL,
+  password_recovery_pin_created_at = NULL,
+  password_recovery_pin_attempts = 0
+WHERE password_recovery_pin IS NOT NULL;
+
+SHOW COLUMNS FROM blog_users LIKE 'password_recovery_pin_created_at';
+SHOW COLUMNS FROM blog_users LIKE 'password_recovery_pin_attempts';
+
+
+-- KROK 9: Serverovy rate limit prihlaseni a obnovy hesla
+CREATE TABLE IF NOT EXISTS blog_security_rate_limit (
+  id INT NOT NULL AUTO_INCREMENT,
+  rate_key CHAR(40) NOT NULL,
+  scope VARCHAR(50) NOT NULL,
+  identifier VARCHAR(255) DEFAULT NULL,
+  remote_ip VARCHAR(45) DEFAULT NULL,
+  attempts INT UNSIGNED NOT NULL DEFAULT 0,
+  first_at DATETIME NOT NULL,
+  blocked_until DATETIME DEFAULT NULL,
+  updated_at DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  UNIQUE KEY ux_blog_security_rate_limit_key (rate_key),
+  KEY ix_blog_security_rate_limit_scope_ip (scope, remote_ip),
+  KEY ix_blog_security_rate_limit_updated_at (updated_at)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_general_ci;
+
+SHOW TABLES LIKE 'blog_security_rate_limit';

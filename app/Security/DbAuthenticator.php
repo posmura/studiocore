@@ -36,13 +36,13 @@
       $rst = $this->userManager->getUser($data);
 
       if (!$rst)
-        throw new AuthenticationException('Uživatel neexistuje!');
+        throw new AuthenticationException('Neplatné uživatelské jméno nebo heslo!');
 
       if (count($rst) > 1)
-        throw new AuthenticationException('Existuje více uživatelů se stejným username.');
+        throw new AuthenticationException('Přihlášení nelze dokončit.');
 
       if (!$this->passwords->verify($password,$rst[0]['password_hash']))
-        throw new AuthenticationException('Heslo není platné!');
+        throw new AuthenticationException('Neplatné uživatelské jméno nebo heslo!');
 
       // (volitelné) rehash podle aktuálního costu
       /*

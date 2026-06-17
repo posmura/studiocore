@@ -41,6 +41,16 @@
     const PASSWORD_RECOVERY_PIN_LENGTH = 8;
 
     /**
+     * Platnost PIN pro obnovení hesla v minutách
+     */
+    const PASSWORD_RECOVERY_PIN_EXPIRATION_MINUTES = 15;
+
+    /**
+     * Maximální počet pokusů o zadání PIN pro obnovení hesla
+     */
+    const PASSWORD_RECOVERY_PIN_MAX_ATTEMPTS = 5;
+
+    /**
      * Objekt ActivityManager
      * @var object
      */
@@ -168,6 +178,51 @@
 
 
     /**
+     * Vrací stav rate limitu podle klíče
+     *
+     * @param string $key Klíč rate limitu
+     * @return array|false
+     */
+    public function getSecurityRateLimit(string $key)
+    {
+      return $this->database->fetch(SqlCommands::getSecurityRateLimit(),$key);
+    }
+
+
+    /**
+     * Uloží stav rate limitu
+     *
+     * @param object $data Data rate limitu
+     * @return bool
+     */
+    public function saveSecurityRateLimit($data)
+    {
+      return $this->database->query(
+        SqlCommands::saveSecurityRateLimit(),
+        $data->rate_key,
+        $data->scope,
+        $data->identifier,
+        $data->remote_ip,
+        $data->attempts,
+        $data->first_at,
+        $data->blocked_until,
+      );
+    }
+
+
+    /**
+     * Vymaže stav rate limitu podle klíče
+     *
+     * @param string $key Klíč rate limitu
+     * @return bool
+     */
+    public function clearSecurityRateLimit(string $key)
+    {
+      return $this->database->query(SqlCommands::clearSecurityRateLimit(),$key);
+    }
+
+
+    /**
      * Vrací uživatele podle username uživatele
      *
      * @param object $data Data uživatele
@@ -228,7 +283,7 @@
      */
     public function getUserByPasswordRecoveryPin($data)
     {
-      return $this->database->fetchAll(SqlCommands::getUserByPasswordRecoveryPin(),$data->username,$data->password_recovery_pin);
+      return $this->database->fetchAll(SqlCommands::getUserByPasswordRecoveryPin(),$data->username);
     }
 
 
@@ -241,6 +296,30 @@
     public function updatePasswordRecoveryPin($data)
     {
       return $this->database->query(SqlCommands::updatePasswordRecoveryPin(),$data->password_recovery_pin,$data->username,$data->id);
+    }
+
+
+    /**
+     * Navýší počet neúspěšných pokusů o PIN pro obnovení hesla
+     *
+     * @param object $data Data uživatele
+     * @return array
+     */
+    public function increasePasswordRecoveryPinAttempts($data)
+    {
+      return $this->database->query(SqlCommands::increasePasswordRecoveryPinAttempts(),$data->username,$data->id);
+    }
+
+
+    /**
+     * Vymaže PIN pro obnovení hesla
+     *
+     * @param object $data Data uživatele
+     * @return array
+     */
+    public function clearPasswordRecoveryPin($data)
+    {
+      return $this->database->query(SqlCommands::clearPasswordRecoveryPin(),$data->username,$data->id);
     }
 
 

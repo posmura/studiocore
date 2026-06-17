@@ -666,7 +666,7 @@ SQL;
     public static function getUserByPasswordRecoveryPin(): string
     {
       return <<<SQL
-SELECT * FROM blog_users WHERE username=? AND password_recovery_pin=? AND deleted=0
+SELECT * FROM blog_users WHERE username=? AND password_recovery_pin IS NOT NULL AND deleted=0
 SQL;
     }
 
@@ -679,7 +679,58 @@ SQL;
     public static function updatePasswordRecoveryPin(): string
     {
       return <<<SQL
-UPDATE blog_users SET password_recovery_pin=?, updated_by=?, updated_at=NOW() WHERE id=?
+UPDATE
+  blog_users
+SET
+  password_recovery_pin=?,
+  password_recovery_pin_created_at=NOW(),
+  password_recovery_pin_attempts=0,
+  updated_by=?,
+  updated_at=NOW()
+WHERE
+  id=?
+SQL;
+    }
+
+
+    /**
+     * UŽIVATEL: Navýší počet pokusů o PIN pro obnovu hesla
+     *
+     * @return string
+     */
+    public static function increasePasswordRecoveryPinAttempts(): string
+    {
+      return <<<SQL
+UPDATE
+  blog_users
+SET
+  password_recovery_pin_attempts=password_recovery_pin_attempts + 1,
+  updated_by=?,
+  updated_at=NOW()
+WHERE
+  id=?
+SQL;
+    }
+
+
+    /**
+     * UŽIVATEL: Vymaže PIN pro obnovu hesla
+     *
+     * @return string
+     */
+    public static function clearPasswordRecoveryPin(): string
+    {
+      return <<<SQL
+UPDATE
+  blog_users
+SET
+  password_recovery_pin=NULL,
+  password_recovery_pin_created_at=NULL,
+  password_recovery_pin_attempts=0,
+  updated_by=?,
+  updated_at=NOW()
+WHERE
+  id=?
 SQL;
     }
 
@@ -692,7 +743,17 @@ SQL;
     public static function updatePassword(): string
     {
       return <<<SQL
-UPDATE blog_users SET password_hash=?, password_recovery_pin=NULL, updated_by=?, updated_at=NOW() WHERE id=?
+UPDATE
+  blog_users
+SET
+  password_hash=?,
+  password_recovery_pin=NULL,
+  password_recovery_pin_created_at=NULL,
+  password_recovery_pin_attempts=0,
+  updated_by=?,
+  updated_at=NOW()
+WHERE
+  id=?
 SQL;
     }
 
@@ -714,6 +775,53 @@ SQL;
     {
       return <<<SQL
 SELECT username FROM blog_users
+SQL;
+    }
+
+
+    /**
+     * BEZPEČNOST: Vrací stav rate limitu podle klíče
+     *
+     * @return string
+     */
+    public static function getSecurityRateLimit(): string
+    {
+      return <<<SQL
+SELECT * FROM blog_security_rate_limit WHERE rate_key=?
+SQL;
+    }
+
+
+    /**
+     * BEZPEČNOST: Uloží stav rate limitu
+     *
+     * @return string
+     */
+    public static function saveSecurityRateLimit(): string
+    {
+      return <<<SQL
+INSERT INTO blog_security_rate_limit
+  (rate_key,scope,identifier,remote_ip,attempts,first_at,blocked_until,updated_at)
+VALUES
+  (?,?,?,?,?,?,?,NOW())
+ON DUPLICATE KEY UPDATE
+  attempts=VALUES(attempts),
+  first_at=VALUES(first_at),
+  blocked_until=VALUES(blocked_until),
+  updated_at=NOW()
+SQL;
+    }
+
+
+    /**
+     * BEZPEČNOST: Vymaže stav rate limitu
+     *
+     * @return string
+     */
+    public static function clearSecurityRateLimit(): string
+    {
+      return <<<SQL
+DELETE FROM blog_security_rate_limit WHERE rate_key=?
 SQL;
     }
 
@@ -794,6 +902,8 @@ UPDATE
 SET
   password_hash=?,
   password_recovery_pin=NULL,
+  password_recovery_pin_created_at=NULL,
+  password_recovery_pin_attempts=0,
   updated_by=?
 WHERE
   id=?

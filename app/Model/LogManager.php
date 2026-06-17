@@ -5,6 +5,7 @@
   namespace App\Model;
 
   use App\Model\DatabaseManager;
+  use Nette\Database\DriverException;
 
 
   /**
@@ -20,7 +21,21 @@
      */
     public function insertEvenlog($data)
     {
-      return $this->database->query(SqlCommands::insertEvenlog(),$data['username'],$data['presenter'],$data['action'],$data['remote_ip']);
+      try
+      {
+        return $this->database->query(SqlCommands::insertEvenlog(),$data['username'],$data['presenter'],$data['action'],$data['remote_ip']);
+      }
+      catch (DriverException $e)
+      {
+        if ((string) $e->getCode() !== '22001' && strpos($e->getMessage(),'Data too long') === false)
+          throw $e;
+
+        $action = (string) $data['action'];
+        if (mb_strlen($action,'UTF-8') > 252)
+          $action = mb_substr($action,0,252,'UTF-8').'...';
+
+        return $this->database->query(SqlCommands::insertEvenlog(),$data['username'],$data['presenter'],$action,$data['remote_ip']);
+      }
     }
 
 
