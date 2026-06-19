@@ -252,18 +252,6 @@
 
 
     /**
-     * Vrací uživatele podle e-mailové adresy
-     *
-     * @param object $data Data uživatele
-     * @return array
-     */
-    public function getUserByEmail($data)
-    {
-      return $this->database->fetchAll(SqlCommands::getUserByEmail(),$data->username,$data->email);
-    }
-
-
-    /**
      * Vrací uživatele podle čísla mobilního telefonu
      *
      * @param object $data Data uživatele
@@ -504,73 +492,6 @@
 
 
     /**
-     * Vrací počet kreditů (vstupů) klienta
-     *
-     * @param int $userID ID klienta
-     * @param string $userName Username klienta, který se na kredity dotazuje
-     * @return array
-     */
-    public function XXXgetKredityKlienta($userID,$userName): array
-    {
-      $rst = array();
-
-      // načtu seznam aktivit a nastavím výchozí hodnoty kreditů
-      $data = $this->database->fetchAll(SqlCommands::getAllAktivita());
-      foreach ($data as $key => $items)
-      {
-        $rst[$items['id']] = array(
-          'nazev' => $items['nazev'],
-          'kredity' => 0,
-        );
-      }
-      ksort($rst);
-
-      $time_do = strtotime('today 23:59:59');
-
-      // načtu kredity pro jednotlivé aktivity
-      foreach ($rst as $key => $items)
-      {
-        // načtu kredity z tabulky kreditů, pokud záznamy neexistujím vytvořím výchozí prázdný
-        $res_sel = $this->database->fetch(SqlCommands::getKredityKlienta(),$userID,$key);
-        if (!$res_sel)
-        {
-          // záznam neexistuje, vytvořím nový
-          $res_sel['kredity'] = 0;
-          $res_ins = $this->database->query(SqlCommands::createKredityKlienta(),$userID,$key,$res_sel['kredity'],$userName);
-        }
-        else
-        {
-          $rst[$key]['kredity'] = $res_sel['kredity'];
-        }
-
-        // načtu kredity z platných permanentek
-        $pkredit = 0;
-        $res_perm = $this->database->fetchAll(SqlCommands::getPermanentkaProKredit(),$userID,$key,$time_do);
-        foreach ($res_perm as $pkey => $pitems)
-        {
-          $pkredit += $pitems['vstupy_aktualni'];
-        }
-
-
-        if ($rst[$key]['kredity'] == 0 && $pkredit == 0)
-        {
-          $rst[$key]['kredity'] = $pkredit;
-        }
-        elseif ($rst[$key]['kredity'] < 0 && $pkredit == 0)
-        {
-          $rst[$key]['kredity'] = $res_sel['kredity'];
-        }
-        else
-        {
-          $rst[$key]['kredity'] = $pkredit;
-        }
-      }
-
-      return $rst;
-    }
-
-
-    /**
      * Vrací počet kreditů z tabulky blog_credits pro user_id a aktivita_id
      *
      * @param int $user_id ID uživatele
@@ -666,8 +587,6 @@
           $ret[$aktivita_id]['kredity'] = $kredity + $ret[$aktivita_id]['perm_all_vstupy_aktualni'];
         }
 
-        //$refresh = $this->database->query(SqlCommands::refreshKredityKlienta(), $ret[$aktivita_id]['kredity'],$user_name,  $user_id, $aktivita_id);
-
       }
 
       return $ret;
@@ -680,18 +599,6 @@
      * @return array
      */
     public function getAllKredityKlienta(): array
-    {
-      $rst = $this->database->fetchAll(SqlCommands::getAllKredityKlienta());
-      return $rst;
-    }
-
-
-    /**
-     * Seznam permanentek pro načtení a úpravu kreditů
-     *
-     * @return array
-     */
-    public function getPermanentkaProKredit(): array
     {
       $rst = $this->database->fetchAll(SqlCommands::getAllKredityKlienta());
       return $rst;

@@ -24,7 +24,7 @@
 
 
                 {if $user->isLoggedIn()}
-                    {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                    {if $user->identity->role == "admin"}
                         <li class="nav-item mx-2">
                             <a n:href="Sales:default" class="nav-link nav-rs">PRODEJ</a>
                         </li>

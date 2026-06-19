@@ -414,17 +414,6 @@
 
 
     /**
-     * DEBT: Vrací všechny záznamy pohledávky / zakázky podle typu
-     *
-     * @return array
-     */
-    public function getAllDebtsByID(): array
-    {
-      return $this->database->fetch(SqlCommands::getAllDebtsByType());
-    }
-
-
-    /**
      * DEBT: Vloží nový záznam pohledávky / zakázky
      *
      * @param object $data Data pohledávky / zakázky
@@ -551,7 +540,7 @@
 
         if ($registrationStatus === 'ucastnik' && (int) $data->sales_id > 0)
         {
-          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->created_by,$data->sales_id,$data->kredit_zmena);
           if ($creditUpdate->getRowCount() !== 1)
           {
             $this->database->rollBack();
@@ -613,13 +602,23 @@
         // když není permice, vrátím jen kredit
         if ((int) $data->sales_id === 0 && $data->kredit_zmena != 0)
         {
-          $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityKlienta(),$data->kredit_zmena,$data->deleted_by,$data->user_id,$data->aktivita_id);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
         }
 
         // když je permice, vrátím jen permici
         if ((int) $data->sales_id > 0 && $data->kredit_zmena != 0)
         {
-          $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->deleted_by,$data->sales_id,$data->kredit_zmena);
+          if ($creditUpdate->getRowCount() !== 1)
+          {
+            $this->database->rollBack();
+            return 5;
+          }
         }
 
         $this->database->commit();
@@ -783,7 +782,7 @@
 
         if ((int) $data->sales_id > 0)
         {
-          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->updated_by,$data->sales_id);
+          $creditUpdate = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),$data->kredit_zmena,$data->updated_by,$data->sales_id,$data->kredit_zmena);
           if ($creditUpdate->getRowCount() !== 1)
           {
             $this->database->rollBack();

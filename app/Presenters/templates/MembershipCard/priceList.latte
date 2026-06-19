@@ -21,15 +21,13 @@
 
                     <tbody>
                         {foreach $data as $item}
-                            {if $item->aktivni = 'ano'}
-                                <tr>
-                                    <td>{$presenter->aktivita[$item->aktivita_id]}</td>
-                                    <td>{$item->nazev}</td>
-                                    <td style="text-align: right;">{$item->cena},-</td>
-                                    <td style="text-align: right;">{$item->platnost}</td>
-                                    <td style="text-align: right;">{$item->vstupy}</td>
-                                </tr>
-                            {/if}
+                            <tr>
+                                <td>{$presenter->aktivita[$item->aktivita_id]}</td>
+                                <td>{$item->nazev}</td>
+                                <td style="text-align: right;">{$item->cena},-</td>
+                                <td style="text-align: right;">{$item->platnost}</td>
+                                <td style="text-align: right;">{$item->vstupy}</td>
+                            </tr>
                         {/foreach}
                     </tbody>
                 </table>
@@ -37,4 +35,3 @@
         </div> 
                     
 </div>
-

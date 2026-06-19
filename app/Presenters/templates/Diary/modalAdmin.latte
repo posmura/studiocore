@@ -68,7 +68,7 @@ function openNewDiaryAdminForm() {
         keyboard: false,
         backdrop: 'static'
     });
-    cleanDiaryForm();
+    cleanDiaryAdminForm();
     {var $dateDiaryForm = date('d.m.Y')}
     $('#frm-diaryForm-date').val({$dateDiaryForm});
     $('#frm-diaryForm-send_as_new').hide();
@@ -81,7 +81,7 @@ function openUpdateDiaryAdminForm(id) {
         keyboard: false,
         backdrop: 'static'
     });
-    cleanDiaryForm();
+    cleanDiaryAdminForm();
     $('#frm-diaryForm-send_as_new').show();
     $('#frm-diaryForm-send_delete').show();
     loadDataDiaryForm(id);
@@ -89,7 +89,7 @@ function openUpdateDiaryAdminForm(id) {
     setOpakovatLabelText();
 }
 
-function cleanDiaryForm() {
+function cleanDiaryAdminForm() {
     $('#frm-diaryForm-date').val(null);
     $('#frm-diaryForm-ID').val(0);
     $('#frm-diaryForm-lekce_id').val(0);

@@ -166,8 +166,8 @@
                                             {if $registrationStatus}
                                                 <div class="row">
                                                     <div class="col-12-sm text-center" style="text-align: center;">
-                                                        <a href="#" class="btn btn-sm {if $registrationStatus == 'nahradnik'}btn-warning{else}btn-success{/if} border border-1 border-white">
-                                                            <i class="bi bi-person-check-fill"></i> {if $registrationStatus == 'nahradnik'}Náhradník{else}Registrace{/if}
+                                                        <a href="#" class="btn btn-sm {if $registrationStatus == 'nahradnik'}btn-warning{else}btn-success{/if} border border-1 border-white" title="Moje registrace na lekci" onclick="event.stopPropagation(); openUpdateDiaryKlientForm('{$items['diaryID']}'); return false;">
+                                                            <i class="bi bi-person-check-fill"></i> {if $registrationStatus == 'nahradnik'}Jsem náhradník{else}Moje registrace{/if}
                                                         </a>
                                                     </div>
                                                 </div>
@@ -178,8 +178,8 @@
                                             {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
                                                 <div class="row">
                                                     <div class="col-12-sm text-center" style="text-align: center;">
-                                                        <a n:href="Diary:users $items['diaryID']" class="btn btn-sm btn-success border border-1 border-white" onclick="event.stopPropagation();">
-                                                            <i class="bi bi-people-fill"></i> Registrace
+                                                        <a n:href="Diary:users $items['diaryID']" class="btn btn-sm btn-primary border border-1 border-white" onclick="event.stopPropagation();" title="Správa registrací klientů na lekci">
+                                                            <i class="bi bi-people-fill"></i> Správa registrací
                                                         </a>
                                                     </div>
                                                 </div>
@@ -203,8 +203,10 @@
 {if $user->isLoggedIn()}
     {if $user->identity->role == "admin"}
         {include 'modalAdmin.latte'} 
+        {include 'modalKlient.latte'}
     {elseif $user->identity->role == "lektor"}
         {include 'modalAdmin.latte'}
+        {include 'modalKlient.latte'}
     {elseif $user->identity->role == "klient"}
         {include 'modalKlient.latte'}
     {else}

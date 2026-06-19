@@ -7,29 +7,6 @@
 
 
     /**
-     * KREDITY: Seznam permanentek pro načtení a úpravu kreditů
-     *
-     * @return string
-     */
-    public static function getPermanentkaProKredit(): string
-    {
-      return <<<SQL
-SELECT *
-FROM
-  `blog_sales`
-WHERE
-  `user_id`=?
-  AND `aktivita_id` = ?
-  AND `datum_konce` >= ?
-  AND `deleted` = 0
-ORDER BY
-  `datum_konce` ASC,
-  `vstupy_celkem` ASC
-SQL;
-    }
-
-
-    /**
      * KREDITY: Seznam aktivních permanentek pro načtení a úpravu kreditů
      *
      * Pozn.: Aktivní permanentka je ta, která má aktuální počet kreditů > 0 a konec platnosti <= aktuální den
@@ -142,33 +119,13 @@ SQL;
       return <<<SQL
 UPDATE blog_sales
 SET
-  `vstupy_aktualni`= `vstupy_aktualni`+ ?,
+  `vstupy_aktualni`= CAST(`vstupy_aktualni` AS SIGNED) + ?,
   `updated_at`=NOW(),
   `updated_by`=?
  WHERE
    ID=?
    AND deleted=0
-SQL;
-    }
-
-
-    /**
-     * KREDITY: Aktualizuje kredity klienta při načtení stavu registrací
-     *
-     * @return string
-     */
-    public static function refreshKredityKlienta(): string
-    {
-      return <<<SQL
-UPDATE blog_credits
-SET
-  `kredity`= ?,
-  `updated_at`=NOW(),
-  `updated_by`=?
- WHERE
-   user_id=?
-   AND aktivita_id=?
-   AND deleted=0
+   AND (CAST(`vstupy_aktualni` AS SIGNED) + ?) >= 0
 SQL;
     }
 
@@ -235,6 +192,19 @@ SQL;
 
 
     /**
+     * PRODEJ: Vrací počet registrací navázaných na prodej.
+     *
+     * @return string
+     */
+    public static function getRegistrationCountBySalesId(): string
+    {
+      return <<<SQL
+SELECT COUNT(*) AS total FROM blog_registration WHERE sales_id=?
+SQL;
+    }
+
+
+    /**
      * PRODEJ: Vloží prodej
      *
      * @return string
@@ -265,31 +235,6 @@ SQL;
 
 
     /**
-     * PRODEJ: Upraví prodej
-     *
-     * @return string
-     */
-    public static function updateProdej(): string
-    {
-      return <<<SQL
-UPDATE blog_sales
-SET
-  `aktivita_id`=?,
-  `nazev`=?,
-  `cena`=?,
-  `platnost`=?,
-  `platnost_ts`=?,
-  `aktivni`=?,
-  `vstupy`=?,
-  `updated_at`=NOW(),
-  `updated_by`=?
- WHERE
-   id=?
-SQL;
-    }
-
-
-    /**
      * PRODEJ: Smaže prodej
      *
      * @return string
@@ -297,7 +242,7 @@ SQL;
     public static function deleteProdej(): string
     {
       return <<<SQL
-UPDATE blog_sales SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=?
+UPDATE blog_sales SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=? AND deleted=0
 SQL;
     }
 
@@ -323,7 +268,20 @@ SQL;
     public static function getPermanentka(): string
     {
       return <<<SQL
-SELECT * FROM blog_membership_card WHERE id=?
+SELECT * FROM blog_membership_card WHERE id=? AND deleted=0
+SQL;
+    }
+
+
+    /**
+     * PERMANENTKA: Vrací počet prodejů navázaných na permanentku.
+     *
+     * @return string
+     */
+    public static function getSalesCountByPermanentkaId(): string
+    {
+      return <<<SQL
+SELECT COUNT(*) AS total FROM blog_sales WHERE permanentka_id=?
 SQL;
     }
 
@@ -353,11 +311,11 @@ SQL;
 
 
     /**
-     * PRODEJ: Vybere permanentku a odpovídající aktivitu
+     * PERMANENTKA: Vybere aktivní permanentky setříděné podle aktivity a ceny.
      *
      * @return string
      */
-    public static function getPermanentkaActivita(): string
+    public static function getAllAktivniPermanentkaOrderByActivity(): string
     {
       return <<<SQL
 SELECT
@@ -369,7 +327,11 @@ LEFT JOIN
   blog_activity AS  b ON a.aktivita_id = b.id
 WHERE
   a.deleted = 0
-  AND a.id = ?
+  AND a.aktivni = 'ano'
+  AND b.deleted = 0
+ORDER BY
+  b.nazev,
+  a.cena
 SQL;
     }
 
@@ -391,20 +353,9 @@ LEFT JOIN
   blog_activity AS  b ON a.aktivita_id = b.id
 WHERE
   a.deleted = 0
+  AND a.aktivni = 'ano'
+  AND b.deleted = 0
   AND a.id = ?
-SQL;
-    }
-
-
-    /**
-     * PERMANENTKA: Vybere permanentku podle ID
-     *
-     * @return string
-     */
-    public static function getUsersById(): string
-    {
-      return <<<SQL
-SELECT * FROM blog_users WHERE id=? AND deleted=0
 SQL;
     }
 
@@ -456,6 +407,7 @@ SET
   `updated_by`=?
  WHERE
    id=?
+   AND deleted=0
 SQL;
     }
 
@@ -468,7 +420,7 @@ SQL;
     public static function deletePermanentka(): string
     {
       return <<<SQL
-UPDATE blog_membership_card SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=?
+UPDATE blog_membership_card SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=? AND deleted=0
 SQL;
     }
 
@@ -508,6 +460,24 @@ SQL;
     {
       return <<<SQL
 SELECT * FROM blog_activity WHERE id=? AND deleted=0
+SQL;
+    }
+
+
+    /**
+     * AKTIVITA: Vrací počty vazeb na aktivitu.
+     *
+     * @return string
+     */
+    public static function getAktivitaUsageCounts(): string
+    {
+      return <<<SQL
+SELECT
+  (SELECT COUNT(*) FROM blog_diary WHERE aktivita_id=?) AS diary_total,
+  (SELECT COUNT(*) FROM blog_membership_card WHERE aktivita_id=?) AS membership_card_total,
+  (SELECT COUNT(*) FROM blog_sales WHERE aktivita_id=?) AS sales_total,
+  (SELECT COUNT(*) FROM blog_registration WHERE aktivita_id=?) AS registration_total,
+  (SELECT COUNT(*) FROM blog_credits WHERE aktivita_id=? AND deleted=0 AND kredity != 0) AS credits_total
 SQL;
     }
 
@@ -563,6 +533,7 @@ SET
   `updated_by`=?
  WHERE
    id=?
+   AND deleted=0
 SQL;
     }
 
@@ -575,7 +546,7 @@ SQL;
     public static function deleteAktivita(): string
     {
       return <<<SQL
-UPDATE blog_activity SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=?
+UPDATE blog_activity SET deleted=1,deleted_at=NOW(),deleted_by=? WHERE id=? AND deleted=0
 SQL;
     }
 
@@ -628,19 +599,6 @@ SQL;
     {
       return <<<SQL
 SELECT * FROM blog_users WHERE id=? AND deleted=0
-SQL;
-    }
-
-
-    /**
-     * UŽIVATEL: Vybere uživatele podle uživatelského jména a e-malové adresy
-     *
-     * @return string
-     */
-    public static function getUserByEmail(): string
-    {
-      return <<<SQL
-SELECT * FROM blog_users WHERE username=? AND email=? AND deleted=0
 SQL;
     }
 
@@ -758,14 +716,6 @@ SQL;
     }
 
 
-    public static function xxxgetUser(): string
-    {
-      return <<<SQL
-SELECT * FROM blog_users WHERE username=? AND password_hash=? AND deleted=0
-SQL;
-    }
-
-
     /**
      * UŽIVATEL: Vybere všechny uživatele
      *
@@ -847,19 +797,6 @@ INSERT INTO blog_users
     registered_at
   )
 VALUES (?,?,?,?,?,?,?,?,NOW())
-SQL;
-    }
-
-
-    /**
-     * UŽIVATEL: Upraví uživatele
-     *
-     * @return string
-     */
-    public static function XXXupdateUser(): string
-    {
-      return <<<SQL
-UPDATE blog_users SET fullname=?,password_hash=? WHERE id=?
 SQL;
     }
 
@@ -959,19 +896,6 @@ SQL;
     {
       return <<<SQL
 SELECT * FROM blog_eventlog ORDER BY ID DESC $sql_limit;
-SQL;
-    }
-
-
-    /**
-     * EVENTLOG: Vrací počet všech záznamů v tabulce eventlogu
-     *
-     * @return string
-     */
-    public static function getCountEventlog(): string
-    {
-      return <<<SQL
-SELECT COUNT(*) AS pocet FROM blog_eventlog;
 SQL;
     }
 
@@ -1138,67 +1062,6 @@ GROUP BY
   diary_id
 SQL;
     }
-
-
-    public static function XXXgetDiaryEvents(): string
-    {
-      return <<<SQL
-SELECT
-    d.*
-FROM
-    (
-  SELECT
-    a.`ID`,
-    a.`date`,
-    a.`hour_from`,
-    a.`min_from`,
-    a.`hour_to`,
-    a.`min_to`,
-    a.`desc`,
-    b.`surname`,
-    b.`name`,
-    b.`phone`,
-    'order' AS event_type
-  FROM blog_orders AS a
-  LEFT JOIN blog_patients AS b ON b.ID=a.ID_USER
-  WHERE
-    a.date>=?
-    AND a.date <=?
-    AND a.deleted=0
-    AND b.deleted=0
-
-    UNION ALL
-
-    SELECT
-      `ID`,
-      `date`,
-      `hour_from`,
-      `min_from`,
-      `hour_to`,
-      `min_to`,
-      `desc`,
-      '' AS surname,
-      '' AS name,
-      '' AS phone,
-      'event' AS event_type
-    FROM
-      `blog_diary`
-    WHERE
-      `date` >= ?
-      AND `date` <=?
-      AND `deleted` = 0
-
-) AS d
-
-ORDER BY
-    d.date,
-    d.hour_from,
-    d.min_from,
-    d.hour_to,
-    d.min_to
-SQL;
-    }
-
 
     /**
      * AMBULANCE: Vybere všechny objednávky podle ID pacienta
@@ -1542,19 +1405,6 @@ SQL;
 
 
     /**
-     * DEBT: Vybere záznam pohledávky / zakázky podle ID
-     *
-     * @return string
-     */
-    public static function getAllDebtsByID(): string
-    {
-      return <<<SQL
-SELECT * FROM blog_debts WHERE ID=? AND deleted=0 ORDER BY created_at DESC
-SQL;
-    }
-
-
-    /**
      * DEBT: Vloží nový záznam pohledávky / zakázky
      *
      * @return string
@@ -1653,35 +1503,6 @@ SQL;
 
 
     /**
-     *
-     * @return string
-     */
-    public static function getPermitkyByUserAktivita(): string
-    {
-      return <<<SQL
-SELECT
-  user_id,
-  aktivita_id,
-  aktivita_name,
-  ID,
-  datum_prodeje,
-  datum_konce,
-  vstupy_celkem,
-  vstupy_aktualni
-FROM
-  blog_sales
-WHERE
-  user_id = ?
-  AND aktivita_id = ?
-  AND datum_konce >= ?
-  AND COALESCE(deleted, 0) = 0
-ORDER BY
-  datum_konce ASC
-SQL;
-    }
-
-
-    /**
      * DIÁŘ: Vrací informaci o lekci podle ID lekce v diáři
      *
      * @return string
@@ -1751,56 +1572,6 @@ WHERE
   AND b.`deleted` = 0
 SQL;
     }
-
-
-    /**
-     * REGISTRACE: Vloží registraci na lekci
-     *
-     * @return string
-     */
-    public static function XXXinsertRegistrace(): string
-    {
-      return <<<SQL
-INSERT INTO blog_registration
-(
-  `user_id`,
-  `diary_id`,
-  `aktivita_id`,
-  `created_at`,
-  `created_by`,
-  `sales_id`
-
-)
-VALUES
-  (?,?,?,NOW(),?,?);
-SQL;
-    }
-
-
-    /**
-     * REGISTRACE: Vloží registraci na lekci
-     *
-     * @return string
-     */
-    public static function YYYinsertRegistrace(): string
-    {
-      return <<<SQL
-INSERT INTO blog_registration
-(
-  `user_id`,
-  `diary_id`,
-  `aktivita_id`,
-  `created_at`,
-  `created_by`,
-  `sales_id`
-)
-VALUES
-  (?,?,?,NOW(),?,?)
-ON DUPLICATE KEY UPDATE
-  user_id = user_id;
-SQL;
-    }
-
 
 
     /**

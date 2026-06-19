@@ -25,12 +25,12 @@
             keyboard: false,
             backdrop: 'static'
         });
-        cleanDiaryForm();
+        cleanDiaryClientForm();
         loadDataLekce(id);
         modalDiaryForm.show();
     }
 
-	    function cleanDiaryForm() {
+	    function cleanDiaryClientForm() {
 	        $('#frm-registerForm-lekce_info_text').html('');
 	        $('#frm-registerForm-diary_id').val('');
 	        $('#frm-registerForm-akce_desc').val('');

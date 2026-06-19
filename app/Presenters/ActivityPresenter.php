@@ -4,8 +4,9 @@
 
 	  namespace App\Presenters;
 
-	  use Nette\Application\UI\Form;
-	  use Nette\Application\UI\Multiplier;
+		  use App\Model\ActivityManager;
+		  use Nette\Application\UI\Form;
+		  use Nette\Application\UI\Multiplier;
 
   /**
    * Třída presenteru pro aktivity
@@ -39,21 +40,49 @@
 
 
     /**
-     * Mazání permanentky
+     * Mazání aktivity
      *
-     * @param int $id ID permanentky
+     * @param int $id ID aktivity
      * @return void
      */
-	    public function renderDelete($id): void
-	    {
-	      $this->requireAdmin();
+		    public function renderDelete($id): void
+		    {
+		      $this->requireAdmin();
 
-	      $this->error('Mazání aktivity je nutné provést formulářem.',405);
-	    }
+		      $this->error('Mazání aktivity je nutné provést formulářem.',405);
+		    }
 
 
-	    /**
-	     * Formuláře pro mazání aktivity.
+		    /**
+		     * Vrací čitelný přehled vazeb aktivity.
+		     *
+		     * @param array $usage Počty vazeb aktivity
+		     * @return string
+		     */
+		    private function formatActivityUsage(array $usage): string
+		    {
+		      $labels = array(
+		        'diary_total' => 'lekce',
+		        'membership_card_total' => 'permanentky',
+		        'sales_total' => 'prodeje',
+		        'registration_total' => 'registrace',
+		        'credits_total' => 'nenulové kredity',
+		      );
+
+		      $items = array();
+		      foreach ($labels as $key => $label)
+		      {
+		        $count = (int) ($usage[$key] ?? 0);
+		        if ($count > 0)
+		          $items[] = sprintf('%s: %d',$label,$count);
+		      }
+
+		      return $items ? implode(', ',$items) : 'žádné vazby';
+		    }
+
+
+		    /**
+		     * Formuláře pro mazání aktivity.
 	     *
 	     * @return Multiplier
 	     */
@@ -91,40 +120,67 @@
 		      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
 		      $activityLabel = $this->logActivityLabelById((int) $data->id);
 
-	      try
+		      try
+		      {
+	        $result = $this->activityManager->deleteAktivita($data);
+	      }
+	      catch (\Throwable $e)
 	      {
-        $this->activityManager->deleteAktivita($data);
-      }
-      catch (\Exception $e)
-      {
-	        $_msg = sprintf('Chyba! Aktivita %s nebyla smazána.',$activityLabel);
-        $this->eventlog('activity',$_msg);
-        $this->flashMessage($_msg,'danger');
-        $this->redirect('Activity:default');
-      }
+		        $_msg = sprintf('Chyba! Aktivita %s nebyla smazána. DB: %s',$activityLabel,$e->getMessage());
+	        $this->eventlog('activity',$_msg);
+	        $this->flashMessage(sprintf('Chyba! Aktivita %s nebyla smazána.',$activityLabel),'danger');
+	        $this->redirect('Activity:default');
+	      }
 
-	      $_msg = sprintf('Aktivita %s byla smazána.',$activityLabel);
-      $this->flashMessage($_msg);
-      $this->eventlog('activity',$_msg);
-      $this->redirect('Activity:default');
+	      if ($result === ActivityManager::DELETE_HAS_RELATIONS)
+	      {
+	        $usage = $this->activityManager->getAktivitaUsageCounts((int) $data->id);
+	        $_msg = sprintf('Aktivitu %s nelze smazat, protože je použita: %s.',$activityLabel,$this->formatActivityUsage($usage));
+	        $this->eventlog('activity',$_msg);
+	        $this->flashMessage($_msg,'danger');
+	        $this->redirect('Activity:default');
+	      }
+
+	      if ($result === ActivityManager::DELETE_NOT_FOUND)
+	      {
+	        $_msg = sprintf('Chyba! Aktivita %s nebyla nalezena nebo už byla smazána.',$activityLabel);
+	        $this->eventlog('activity',$_msg);
+	        $this->flashMessage($_msg,'danger');
+	        $this->redirect('Activity:default');
+	      }
+
+		      $_msg = sprintf('Aktivita %s byla smazána.',$activityLabel);
+	      $this->flashMessage($_msg);
+	      $this->eventlog('activity',$_msg);
+	      $this->redirect('Activity:default');
     }
 
 
     /**
-     * Editace permanentky
+     * Editace aktivity
      *
-     * @param int $id ID permanentky
+     * @param int $id ID aktivity
      * @return void
      */
-	    public function renderEdit(int $id = 0): void
-	    {
-	      $this->requireAdmin();
+		    public function renderEdit(int $id = 0): void
+		    {
+		      $this->requireAdmin();
 
-	      $params = self::array_to_object(array('id' => $id));
+		      if ($id === 0)
+		        return;
 
-      $data = $this->activityManager->getAktivita($params);
+		      $params = self::array_to_object(array('id' => $id));
 
-      $this->template->data = $data;
+	      $data = $this->activityManager->getAktivita($params);
+	      if (!$data)
+	      {
+	        $_msg = sprintf('Chyba! Aktivita ID=%d nebyla nalezena nebo už byla smazána.',$id);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('activity',$_msg);
+	        $this->redirect('Activity:default');
+	      }
+
+	      $this->template->data = $data;
 
 	      $this->eventlog('activity',sprintf('Zobrazena editace aktivity %s.',$this->logActivityLabel($data,$id)));
     }
@@ -143,49 +199,60 @@
 
       $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 
-      $form->addHidden('id')
-        ->setDefaultValue(0)
-        ->setHtmlAttribute('ID','frm-aktivitaForm-id');
+	      $form->addHidden('id')
+	        ->setDefaultValue(0)
+	        ->setHtmlAttribute('id','frm-aktivitaForm-id');
 
-      $form->addText('nazev','Název:')
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadováno!');
+	      $form->addText('nazev','Název:')
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('placeholder','')
+	        ->addRule($form::MAX_LENGTH,'%label může mít maximálně %d znaků!',255)
+	        ->setRequired('%label je vyžadováno!');
 
-      $form->addText('vstupy_min','Počet vstupů - min:')
-        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadována!');
+	      $form->addText('vstupy_min','Počet vstupů - min:')
+	        ->setHtmlType('number')
+	        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
+	        ->addRule($form::MIN,'%label nesmí být menší než %d!',0)
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('min',0)
+	        ->setHtmlAttribute('placeholder','')
+	        ->setRequired('%label je vyžadována!');
 
-      $form->addText('vstupy_max','Počet vstupů - max:')
-        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadována!');
+	      $form->addText('vstupy_max','Počet vstupů - max:')
+	        ->setHtmlType('number')
+	        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
+	        ->addRule($form::MIN,'%label musí být alespoň %d!',1)
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('min',1)
+	        ->setHtmlAttribute('placeholder','')
+	        ->setRequired('%label je vyžadována!');
 
-      $form->addText('zruseni_zdarma','Doba zrušení klientem zdarma [hod]:')
-        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadována!');
+	      $form->addText('zruseni_zdarma','Doba zrušení klientem zdarma [hod]:')
+	        ->setHtmlType('number')
+	        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
+	        ->addRule($form::MIN,'%label nesmí být menší než %d!',0)
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('min',0)
+	        ->setHtmlAttribute('placeholder','')
+	        ->setRequired('%label je vyžadována!');
 
-      $form->addText('zruseni_neucast','Doba zrušení pro neúčast [hod]:')
-        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadována!');
+	      $form->addText('zruseni_neucast','Doba zrušení pro neúčast [hod]:')
+	        ->setHtmlType('number')
+	        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
+	        ->addRule($form::MIN,'%label nesmí být menší než %d!',0)
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('min',0)
+	        ->setHtmlAttribute('placeholder','')
+	        ->setRequired('%label je vyžadována!');
 
-      $form->addText('registrace_konec','Konec registace před lekcí [hod]:')
-        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
-        ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','')
-        ->setRequired('%label je vyžadována!');
+	      $form->addText('registrace_konec','Konec registrace před lekcí [hod]:')
+	        ->setHtmlType('number')
+	        ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
+	        ->addRule($form::MIN,'%label nesmí být menší než %d!',0)
+	        ->setHtmlAttribute('class','form-control')
+	        ->setHtmlAttribute('min',0)
+	        ->setHtmlAttribute('placeholder','')
+	        ->setRequired('%label je vyžadována!');
 
       $form->addSubmit('send','Odeslat')
         ->setHtmlAttribute('class','btn btn-success');
@@ -204,12 +271,25 @@
      * @return void
      */
 	    public function formAktivitaSucceeded(Form $form,$data): void
-	    {
-	      $this->requireAdmin();
+		    {
+		      $this->requireAdmin();
 
-	      if ($data->id == 0)
-      {
-        $operace = 'insert';
+	      $data->id = (int) $data->id;
+	      $data->vstupy_min = (int) $data->vstupy_min;
+	      $data->vstupy_max = (int) $data->vstupy_max;
+	      $data->zruseni_zdarma = (int) $data->zruseni_zdarma;
+	      $data->zruseni_neucast = (int) $data->zruseni_neucast;
+	      $data->registrace_konec = (int) $data->registrace_konec;
+
+	      if ($data->vstupy_min > $data->vstupy_max)
+	      {
+	        $form['vstupy_max']->addError('Počet vstupů max musí být větší nebo roven minimu.');
+	        return;
+	      }
+
+		      if ($data->id == 0)
+	      {
+	        $operace = 'insert';
       }
       elseif ($data->id > 0)
       {
@@ -237,12 +317,12 @@
         {
           $this->activityManager->insertAktivita($data);
         }
-        catch (\Exception $e)
-        {
-	          $_msg = sprintf('Chyba! Nová aktivita %s nebyla uložena.',$this->logActivityLabel($data));
-          $this->flashMessage($_msg,'danger');
-          $this->eventlog('activity',$_msg);
-          $this->redirect('Activity:default');
+	      catch (\Throwable $e)
+	        {
+		          $_msg = sprintf('Chyba! Nová aktivita %s nebyla uložena. DB: %s',$this->logActivityLabel($data),$e->getMessage());
+	          $this->flashMessage(sprintf('Chyba! Nová aktivita %s nebyla uložena.',$this->logActivityLabel($data)),'danger');
+	          $this->eventlog('activity',$_msg);
+	          $this->redirect('Activity:default');
         }
 
 	        $_msg = sprintf('Nová aktivita %s byla uložena.',$this->logActivityLabel($data));
@@ -251,22 +331,40 @@
         $this->redirect('Activity:default');
       }
 
-      if ($operace == 'update')
-      {
-        $data->updated_by = $this->userName;
-        try
-        {
-          $this->activityManager->updateAktivita($data);
-        }
-        catch (\Exception $e)
-        {
-	          $_msg = sprintf('Chyba! Aktivita %s nebyla uložena.',$this->logActivityLabel($data,(int) $data->id));
-          $this->flashMessage($_msg,'danger');
-          $this->eventlog('activity',$_msg);
-          $this->redirect('Activity:default');
-        }
+	      if ($operace == 'update')
+	      {
+	        $data->updated_by = $this->userName;
+	        $activityLabel = $this->logActivityLabelById((int) $data->id);
 
-	        $_msg = sprintf('Aktivita %s byla uložena.',$this->logActivityLabel($data,(int) $data->id));
+	        if (!$this->activityManager->getAktivita($data))
+	        {
+	          $_msg = sprintf('Chyba! Aktivita %s nebyla nalezena nebo už byla smazána.',$activityLabel);
+	          $this->flashMessage($_msg,'danger');
+	          $this->eventlog('activity',$_msg);
+	          $this->redirect('Activity:default');
+	        }
+
+	        try
+	        {
+	          $updated = $this->activityManager->updateAktivita($data);
+	        }
+	        catch (\Throwable $e)
+	        {
+		          $_msg = sprintf('Chyba! Aktivita %s nebyla uložena. DB: %s',$this->logActivityLabel($data,(int) $data->id),$e->getMessage());
+	          $this->flashMessage(sprintf('Chyba! Aktivita %s nebyla uložena.',$this->logActivityLabel($data,(int) $data->id)),'danger');
+	          $this->eventlog('activity',$_msg);
+	          $this->redirect('Activity:default');
+	        }
+
+	        if (!$updated)
+	        {
+	          $_msg = sprintf('Chyba! Aktivita %s nebyla nalezena nebo už byla smazána.',$activityLabel);
+	          $this->flashMessage($_msg,'danger');
+	          $this->eventlog('activity',$_msg);
+	          $this->redirect('Activity:default');
+	        }
+
+		        $_msg = sprintf('Aktivita %s byla uložena.',$this->logActivityLabel($data,(int) $data->id));
         $this->flashMessage($_msg);
         $this->eventlog('activity',$_msg);
         $this->redirect('Activity:default');

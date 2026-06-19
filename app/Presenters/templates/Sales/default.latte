@@ -1,6 +1,6 @@
 {block content}
 <div id="banner">
-    {if $user->isLoggedIn() && ($user->identity->role == "admin" || $user->identity->role == "lektor")}
+    {if $user->isLoggedIn() && $user->identity->role == "admin"}
         <div class="text-warning text-center p-1 m-0" n:block=title style="font-size: 150%; letter-spacing: 2px">
             <strong>PRODEJ</strong></div>
     {/if}
@@ -90,7 +90,7 @@
 
 {* ZOBRAZENÍ MODÁLU PODLE ROLE PŘIHLÁŠENÉHO UŽIVATELE *}
 {if $user->isLoggedIn()}
-    {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+    {if $user->identity->role == "admin"}
         {include 'modalAdmin.latte'}
     {/if}
 {/if}

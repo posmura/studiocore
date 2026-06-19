@@ -99,10 +99,7 @@ final class SmsPresenter extends BasePresenter
     if ((!$sms_phone) || (!$sms_text))
       return false;
 
-    if (! $this->sender->send(new Sms($sms_phone,$sms_text)))
-      return false;
-
-    return true;
+    return $this->sendSmsSafely($this->sender,(string) $sms_phone,(string) $sms_text);
     }
 
 
@@ -293,15 +290,24 @@ final class SmsPresenter extends BasePresenter
       }
 
 	        // odeslání SMS
-	        if ($this->renderSend($sms_phone,$sms_text))
+	        $smsException = null;
+	        if ($this->sendSmsSafely($this->sender,$sms_phone,$sms_text,$smsException))
 	        {
           $this->flashMessage('SMS "'.$sms_phone.'" pro "'.$sms_name.'" byla předána k odeslání: '.$sms_text);
           $this->eventlog('sms',sprintf('SMS "%s" pro "%s" na termín %s %s byla předána k odeslání: %s',$sms_phone,$sms_name,$sms_date,$sms_time,$sms_text));
         }
         else
         {
-          $this->flashMessage('Chyba: Problém při předání SMS "'.$sms_phone.'" pro "'.$sms_name.'" k odeslání.','danger');
-	          $this->eventlog('sms',sprintf('Chyba: Problém při předání SMS "%s" pro "%s" na termín %s %s k odeslání.',$sms_phone,$sms_name,$sms_date,$sms_time));
+          if ($smsException)
+          {
+            $this->flashMessage('Chyba! SMS pro "'.$sms_name.'" nelze odeslat, protože telefonní číslo "'.$data[$i_phone].'" není validní.','danger');
+	            $this->eventlog('sms',sprintf('Chyba! SMS pro "%s" na termín %s %s nelze odeslat, protože telefonní číslo "%s" není validní. Výjimka: %s',$sms_name,$sms_date,$sms_time,$data[$i_phone],$smsException->getMessage()));
+          }
+          else
+          {
+            $this->flashMessage('Chyba: Problém při předání SMS "'.$sms_phone.'" pro "'.$sms_name.'" k odeslání.','danger');
+	            $this->eventlog('sms',sprintf('Chyba: Problém při předání SMS "%s" pro "%s" na termín %s %s k odeslání.',$sms_phone,$sms_name,$sms_date,$sms_time));
+          }
 	        }
 
 	    }

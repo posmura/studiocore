@@ -15,12 +15,8 @@
 	
 {if $user->isLoggedIn()}
     
-    {* hlavní blok *}
     <div class="row"> 
-        
-        {* levý sloupec *}
         <div class="col-md-4"> 
-            
             {* *** PERMANENTKA *** *}
             <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
                 <div style="font-size: 120%; font-weight: bold;">Permanentka</div>
@@ -35,47 +31,7 @@
                     <div class="text-center">{input send}</div>
                 {/form}
             </div> 
-                        
-        {* levý sloupec - konec*}
         </div> 
-        
-        {* prostřední sloupec *}
-        <div class="col-md-4"> 
-            {* *** TEST *** *}
-            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
-                <div style="font-size: 120%; font-weight: bold;">Prázdné pole</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-            </div>
-
-
-
-        {* prostřední sloupec - konec*}
-        </div> 
-        
-        {* pravý sloupec *}
-        <div class="col-md-4"> 
-            {* *** TEST *** *}
-            <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
-                <div style="font-size: 120%; font-weight: bold;">Prázdné pole</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-                <div>&nbsp;</div>
-            </div>
-
-        {* pravý sloupec - konec*}
-        </div> 
-    
-    {* hlavní blok - konec *}
     </div> 
         
 {/if}
@@ -83,15 +39,6 @@
 
 {if $user->isLoggedIn()}
     <script>
-        let dataTableContact = new DataTable('#tbl-users', {
-            language: {
-                url: 'https://cdn.datatables.net/plug-ins/1.13.7/i18n/cs.json',
-                "search": "Vyhledávání v tabulce:",
-                "searchPlaceholder": "zadejte hledaný text"
-            },
-            order: [[0, 'desc']]
-        });
-        
     {ifset $data}
         function setDataToForm() {
             // uživatel
@@ -102,11 +49,9 @@
             $('#frm-permanentkaForm-platnost').val({$data->platnost});
             $('#frm-permanentkaForm-aktivni').val({$data->aktivni});
             $('#frm-permanentkaForm-vstupy').val({$data->vstupy});
-        }       
-        
+        }
+
         setDataToForm();
     {/ifset}
     </script>
 {/if}
-
-            

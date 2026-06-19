@@ -642,34 +642,6 @@
 
 
     /**
-     * Vrací orderData pro jiná data
-     *
-     * Například předchozí datum, následující datum
-     *
-     * @param string $orderDate Datum ve tvaru YYYYMMDD
-     * @return array
-     */
-    public function otherDate(string $orderDate = null): array
-    {
-      if (!$orderDate)
-        $orderDate = $this->orderDateToday;
-
-      $_year = (int) substr($orderDate,0,4);
-      $_month = (int) substr($orderDate,4,2);
-      $_day = (int) substr($orderDate,6,2);
-
-      $_ts = mktime(0,0,0,$_month,$_day,$_year);
-      $_ts_next = $_ts + 86400;
-      $_ts_prev = $_ts - 86400;
-
-      $ret['next'] = date('Ymd',$_ts_next);
-      $ret['prev'] = date('Ymd',$_ts_prev);
-
-      return $ret;
-    }
-
-
-    /**
      * Převede datum ve formátu YYYYMMDD do timestamp
      *
      * @param string $orderDate Datum ve tvaru YYYYMMDD
@@ -704,6 +676,34 @@
         return null;
 
       return $sms_phone;
+    }
+
+
+    /**
+     * Bezpečně odešle SMS a zachytí výjimky z SMS brány.
+     *
+     * @param \BulkGate\Sdk\Sender $sender SMS sender
+     * @param string $smsPhone Telefonní číslo
+     * @param string $smsText Text SMS
+     * @param \Throwable|null $exception Zachycená výjimka
+     * @return bool
+     */
+    protected function sendSmsSafely(\BulkGate\Sdk\Sender $sender,string $smsPhone,string $smsText,?\Throwable &$exception = null): bool
+    {
+      $exception = null;
+
+      if (!$smsPhone || !$smsText)
+        return false;
+
+      try
+      {
+        return (bool) $sender->send(new \BulkGate\Sdk\Message\Sms($smsPhone,$smsText));
+      }
+      catch (\Throwable $e)
+      {
+        $exception = $e;
+        return false;
+      }
     }
 
 

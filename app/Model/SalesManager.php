@@ -11,6 +11,10 @@
    */
   class SalesManager extends DatabaseManager
   {
+    const DELETE_OK = 0;
+    const DELETE_NOT_FOUND = 1;
+    const DELETE_HAS_REGISTRATIONS = 2;
+    const DELETE_HAS_USED_CREDITS = 3;
 
 
     /**
@@ -44,7 +48,10 @@
      */
     public function insertProdej($data)
     {
-      return $this->database->query(SqlCommands::insertProdej(),
+      $this->database->beginTransaction();
+      try
+      {
+        $res = $this->database->query(SqlCommands::insertProdej(),
           $data->user_id,
           $data->username_full,
           $data->permanentka_id,
@@ -57,29 +64,36 @@
           $data->datum_konce,
           $data->desc,
           $data->created_by
-      );
-    }
+        );
 
+        if ($res->getRowCount() !== 1)
+        {
+          throw new \RuntimeException('Prodej nebyl uložen.');
+        }
 
-    /**
-     * PRODEJ: Vloží prodej
-     *
-     * @param object $data Data prodeje
-     * @return bool
-     */
-    public function updateProdej($data)
-    {
-      return $this->database->query(SqlCommands::updateProdej(),
-          $data->aktivita_id,
-          $data->nazev,
-          $data->cena,
-          $data->platnost,
-          $data->platnost_ts,
-          $data->aktivni,
-          $data->vstupy,
-          $data->updated_by,
-          $data->id
-      );
+        if (($data->reset_kredit ?? false) === true)
+        {
+          $reset = $this->database->query(SqlCommands::resetKredit(),
+            $data->kredit_zmena,
+            $data->created_by,
+            $data->user_id,
+            $data->aktivita_id
+          );
+
+          if ($reset->getRowCount() !== 1)
+          {
+            throw new \RuntimeException('Kredit klienta nebyl resetován.');
+          }
+        }
+
+        $this->database->commit();
+        return true;
+      }
+      catch (\Throwable $e)
+      {
+        $this->database->rollBack();
+        throw $e;
+      }
     }
 
 
@@ -87,14 +101,52 @@
      * PRODEJ: Smaže prodej podle ID
      *
      * @param object $data Data prodeje
-     * @return bool
+     * @return int
      */
 	    public function deleteProdej($data)
 	    {
-	      return $this->database->query(SqlCommands::deleteProdej(),
+	      $this->database->beginTransaction();
+	      try
+	      {
+	        $sale = $this->database->fetch(SqlCommands::getProdej(),$data->id);
+	        if (!$sale)
+	        {
+	          $this->database->rollBack();
+	          return self::DELETE_NOT_FOUND;
+	        }
+
+	        if ((int) $sale['vstupy_aktualni'] !== (int) $sale['vstupy_celkem'])
+	        {
+	          $this->database->rollBack();
+	          return self::DELETE_HAS_USED_CREDITS;
+	        }
+
+	        $registrations = $this->database->fetch(SqlCommands::getRegistrationCountBySalesId(),$data->id);
+	        if ((int) $registrations['total'] > 0)
+	        {
+	          $this->database->rollBack();
+	          return self::DELETE_HAS_REGISTRATIONS;
+	        }
+
+		      $res = $this->database->query(SqlCommands::deleteProdej(),
 	          $data->deleted_by,
 	          $data->id
-      );
+        );
+
+	        if ($res->getRowCount() !== 1)
+	        {
+	          $this->database->rollBack();
+	          return self::DELETE_NOT_FOUND;
+	        }
+
+	        $this->database->commit();
+	        return self::DELETE_OK;
+	      }
+	      catch (\Throwable $e)
+	      {
+	        $this->database->rollBack();
+	        throw $e;
+	      }
     }
 
 

@@ -1303,7 +1303,8 @@
         }
 
         // odeslání SMS
-        if ($this->sender->send(new Sms($sms_mobile_number,$sms_msg)))
+        $smsException = null;
+        if ($this->sendSmsSafely($this->sender,$sms_mobile_number,$sms_msg,$smsException))
         {
           $_msg = sprintf('SMS %s z diáře na termín %s byla předána k odeslání.',$sms_mobile_number,$diaryDateText);
           $this->flashMessage($_msg);
@@ -1311,9 +1312,11 @@
         }
         else
         {
-          $_msg = sprintf('Chyba: SMS %s z diáře na termín %s nemohla být předána k odeslání.',$sms_mobile_number,$diaryDateText);
+          $_msg = $smsException
+            ? sprintf('Chyba! SMS nelze odeslat, protože telefonní číslo %s není validní.',$sms_mobile_number)
+            : sprintf('Chyba: SMS %s z diáře na termín %s nemohla být předána k odeslání.',$sms_mobile_number,$diaryDateText);
           $this->flashMessage($_msg,'danger');
-          $this->eventlog('diary',$_msg);
+          $this->eventlog('diary',$smsException ? sprintf('%s Výjimka: %s',$_msg,$smsException->getMessage()) : $_msg);
         }
       }
 
@@ -1750,7 +1753,8 @@ TEXT;
         $substitute['lekce_cas']
       );
 
-      if ($this->sender->send(new Sms($smsPhone,$smsText)))
+      $smsException = null;
+      if ($this->sendSmsSafely($this->sender,$smsPhone,$smsText,$smsException))
       {
         $_msg = sprintf('SMS %s pro náhradníka "%s" byla předána k odeslání: %s',$smsPhone,$smsName,$smsText);
         $this->flashMessage($_msg);
@@ -1759,9 +1763,11 @@ TEXT;
         return true;
       }
 
-      $_msg = sprintf('Chyba: Problém při předání SMS %s pro náhradníka "%s" k odeslání.',$smsPhone,$smsName);
+      $_msg = $smsException
+        ? sprintf('Chyba! SMS pro náhradníka "%s" nelze odeslat, protože telefonní číslo %s není validní.',$smsName,$smsPhone)
+        : sprintf('Chyba: Problém při předání SMS %s pro náhradníka "%s" k odeslání.',$smsPhone,$smsName);
       $this->flashMessage($_msg,'danger');
-      $this->eventlog('diary',$_msg);
+      $this->eventlog('diary',$smsException ? sprintf('%s Výjimka: %s',$_msg,$smsException->getMessage()) : $_msg);
 
       return false;
     }

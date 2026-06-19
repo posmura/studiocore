@@ -478,7 +478,8 @@
       }
 
       // odeslání SMS
-      if ($this->sender->send(new Sms($_data->mobil_number,$pin_text)))
+      $smsException = null;
+      if ($this->sendSmsSafely($this->sender,$_data->mobil_number,$pin_text,$smsException))
       {
         $_msg = sprintf('SMS \'%s\' (%s) byla předána k odeslání.',
           $_data->mobil_number,
@@ -492,10 +493,16 @@
       else
       {
         $this->userManager->clearPasswordRecoveryPin($_data);
-        $_msg = sprintf('Chyba! SMS \'%s\' (%s) nemohla být předána k odeslání.',
-          $_data->mobil_number,
-	          $this->logUserLabel($user[0],(int) $user[0]['id']),
-        );
+        $_msg = $smsException
+          ? sprintf('Chyba! SMS \'%s\' (%s) nelze odeslat, protože telefonní číslo není validní. Výjimka: %s',
+            $_data->mobil_number,
+	            $this->logUserLabel($user[0],(int) $user[0]['id']),
+            $smsException->getMessage(),
+          )
+          : sprintf('Chyba! SMS \'%s\' (%s) nemohla být předána k odeslání.',
+            $_data->mobil_number,
+	            $this->logUserLabel($user[0],(int) $user[0]['id']),
+          );
 
 	        $this->flashMessage('Žádost o obnovu hesla se nepodařilo dokončit. Zkuste to prosím později.','danger');
 	        $this->eventlog('sign',$_msg);

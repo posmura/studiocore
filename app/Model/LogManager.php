@@ -63,16 +63,4 @@
       return $this->database->fetchAll(SqlCommands::getEventlogByPage($sql_limit));
     }
 
-
-    /**
-     * Vrací počet všech záznamů v tabulce eventlogu
-     *
-     * @return int
-     */
-    public function getEventlogCount()
-    {
-      $rst = $this->database->fetch(SqlCommands::getCountEventlog());
-
-      return (int) $rst['pocet'];
-    }
   }

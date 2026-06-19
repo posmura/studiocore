@@ -23,7 +23,7 @@
 	    {
 	      parent::startup();
 
-	      $this->requireStaff();
+	      $this->requireAdmin();
 	    }
 
 
@@ -102,39 +102,31 @@
 
 	      try
 	      {
-        // odstraním prodej
-        $this->salesManager->deleteProdej($data);
+        $rst = $this->salesManager->deleteProdej($data);
+        if ($rst !== \App\Model\SalesManager::DELETE_OK)
+        {
+          if ($rst === \App\Model\SalesManager::DELETE_HAS_REGISTRATIONS)
+            $_msg = sprintf('Chyba! %s nelze smazat, protože jsou na něj navázané registrace klienta.',$saleLabel);
+          elseif ($rst === \App\Model\SalesManager::DELETE_HAS_USED_CREDITS)
+            $_msg = sprintf('Chyba! %s nelze smazat, protože už má změněný počet aktuálních vstupů.',$saleLabel);
+          elseif ($rst === \App\Model\SalesManager::DELETE_NOT_FOUND)
+            $_msg = sprintf('Chyba! %s nebyl nalezen, nebo už byl smazán.',$saleLabel);
+          else
+            $_msg = sprintf('Chyba! %s nebyl smazán.',$saleLabel);
 
-        // aktualizuji kredity
-        //$this->factoryManager->updateKredityKlienta($data);
+          $this->eventlog('sale',$_msg);
+          $this->flashMessage($_msg,'danger');
+          $this->redirect('Sales:default');
+        }
 
       }
-      catch (\Exception $e)
+      catch (\Throwable $e)
       {
 	        $_msg = sprintf('Chyba! %s nebyl smazán.',$saleLabel);
-        $this->eventlog('sale',$_msg);
+        $this->eventlog('sale',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
         $this->flashMessage($_msg,'danger');
         $this->redirect('Sales:default');
       }
-
-      /*
-      // odečtu vstupy
-      $data = self::array_to_object(['id' => $user_id,'vstupy_minus' => $vstupy_aktualni,'updated_by' => $this->userName]);
-      try
-      {
-        $this->salesManager->updateUserVstupy($data);
-      }
-      catch (Exception $ex)
-      {
-        $_msg = sprintf('Chyba! Vstupy uživatele ID=%s nebyly aktualizováíny.',$data->user_id);
-        $this->eventlog('user',$_msg);
-        $this->flashMessage($_msg,'danger');
-      }
-      $_msg = sprintf('Vstupy uživatele ID=%s byly aktualizováíny.',$data->user_id);
-      $this->eventlog('user',$_msg);
-      $this->flashMessage($_msg);
-       *
-       */
 
 	      $_msg = sprintf('%s byl smazán.',$saleLabel);
       $this->flashMessage($_msg);
@@ -149,15 +141,9 @@
      * @param int $id ID permanentky
      * @return void
      */
-    public function renderEdit(int $id = 0): void
+    public function actionEdit(int $id = 0): void
     {
-      $params = self::array_to_object(array('id' => $id));
-
-      $data = $this->salesManager->getProdej($params);
-
-      $this->template->data = $data;
-
-	      $this->eventlog('sales',sprintf('Zobrazena editace %s.',$this->logSaleLabel($data,$id)));
+      $this->error('Editace prodeje není podporována.',404);
     }
 
 
@@ -168,10 +154,10 @@
      */
 	    protected function createComponentSalesForm(): Form
 	    {
-	      $this->requireStaff();
+	      $this->requireAdmin();
 
 	      // seznam permanentek
-      $_permanentky = $this->membershipCardManager->getListPermanentka();
+      $_permanentky = $this->membershipCardManager->getListAktivniPermanentka();
 
       // seznam klientů (uživatelů)
       $_users = $this->userManager->getListUsers();
@@ -182,17 +168,22 @@
 
       $form->addHidden('id')
         ->setDefaultValue(0)
-        ->setHtmlAttribute('ID','frm-salesForm-id');
+        ->setHtmlAttribute('id','frm-salesForm-id');
 
-      $form->addSelect('permanentka_id','Permanetka:',$_permanentky)
-        ->setHtmlAttribute('class','form-control');
+      $form->addSelect('permanentka_id','Permanentka:',$_permanentky)
+        ->setHtmlAttribute('class','form-control')
+        ->setRequired('Vyberte permanentku.')
+        ->addRule(Form::NotEqual,'Vyberte permanentku.',0);
 
       $form->addSelect('user_id','Klient:',$_users)
-        ->setHtmlAttribute('class','form-control');
+        ->setHtmlAttribute('class','form-control')
+        ->setRequired('Vyberte klienta.')
+        ->addRule(Form::NotEqual,'Vyberte klienta.',0);
 
       $form->addTextArea('desc','Poznámka:')
         ->setHtmlAttribute('class','form-control')
-        ->setHtmlAttribute('placeholder','');
+        ->setHtmlAttribute('placeholder','')
+        ->addRule(Form::MaxLength,'Poznámka může mít maximálně 255 znaků.',255);
 
       $form->addSubmit('send','Odeslat')
         ->setHtmlAttribute('class','btn btn-success');
@@ -212,11 +203,34 @@
      */
 	    public function formSalesSucceeded(Form $form,$data): void
 	    {
-	      $this->requireStaff();
+	      $this->requireAdmin();
+
+	      if ((int) $data->id !== 0)
+	      {
+	        $_msg = sprintf('Chyba! Neplatná operace pro prodej ID=%d.',(int) $data->id);
+	        $this->flashMessage($_msg,'danger');
+	        $this->eventlog('sale',$_msg);
+	        $this->redirect('Sales:default');
+	      }
 
 	      $rst_perm = $this->salesManager->getPermanentkaActivitaById($data);
       $rst_user = $this->salesManager->getUserById($data);
 
+      if (!$rst_perm)
+      {
+        $_msg = sprintf('Chyba! Vybraná permanentka ID=%d nebyla nalezena, nebo není aktivní.',(int) $data->permanentka_id);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('sale',$_msg);
+        $this->redirect('Sales:default');
+      }
+
+      if (!$rst_user)
+      {
+        $_msg = sprintf('Chyba! Vybraný klient ID=%d nebyl nalezen.',(int) $data->user_id);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('sale',$_msg);
+        $this->redirect('Sales:default');
+      }
 
       $data->user_id = $rst_user->id;
       $data->username_full = sprintf('%s %s (%s)',$rst_user->surname,$rst_user->firstname,$rst_user->username);
@@ -228,12 +242,21 @@
 
       // načtu kredity klienta
       $rst_kredit = $this->factoryManager->getKredityKlienta($data);
+      $kredit = $rst_kredit ? (int) $rst_kredit['kredity'] : 0;
 
       // pokud je klient s kredity v mínusu, odečtu mínusové kredity z aktualních vstupů na permanentce
-      if ($rst_kredit['kredity'] < 0)
-        $data->vstupy_aktualni = $rst_perm->vstupy + $rst_kredit['kredity'];
+      if ($kredit < 0)
+        $data->vstupy_aktualni = (int) $rst_perm->vstupy + $kredit;
       else
-        $data->vstupy_aktualni = $rst_perm->vstupy;
+        $data->vstupy_aktualni = (int) $rst_perm->vstupy;
+
+      if ($data->vstupy_aktualni < 0)
+      {
+        $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, by měl záporný počet vstupů.',$data->username_full,$data->aktivita_name);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('sale',$_msg);
+        $this->redirect('Sales:default');
+      }
 
       $data->datum_prodeje = time();
 
@@ -242,72 +265,24 @@
       $data->datum_konce = $ts_datum_konce;
 
       $data->created_by = $this->userName;
+      $data->reset_kredit = $kredit < 0;
+      $data->kredit_zmena = 0;
 
-      if ($data->id == 0)
+      try
       {
-        $operace = 'insert';
+        $this->salesManager->insertProdej($data);
       }
-      else
+      catch (\Throwable $e)
       {
-	        $_msg = sprintf('Chyba! Neplatná operace pro %s.',$this->logSaleLabel($data,(int) $data->id));
+	      $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, nebyl uložen.',$data->username_full,$data->aktivita_name);
         $this->flashMessage($_msg,'danger');
-        $this->eventlog('membership_card',$_msg);
-        $this->redirect('MembershipCard:default');
-        die();
-      }
-
-      if ($operace == 'insert')
-      {
-        try
-        {
-          $this->salesManager->insertProdej($data);
-
-          // pokud jsou kredity v mínusu, nastavím hodnotu kreditu na 0
-          // hodnota záporných kreditů byla použita pro ponížení aktuálních vstupů na nové permanentce
-          if ($rst_kredit['kredity'] < 0)
-          {
-            $data->updated_by = $this->userName;
-            $data->kredit_zmena = 0;
-            $this->factoryManager->resetKredit($data);
-          }
-
-        }
-        catch (\Exception $e)
-        {
-	          $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, nebyl uložen.',$data->username_full,$data->aktivita_name);
-          $this->flashMessage($_msg,'danger');
-          $this->eventlog('sale',$_msg);
-          $this->redirect('Sales:default');
-        }
-
-	        $_msg = sprintf('Nový prodej pro klienta %s, permanentka %s, byl uložen.',$data->username_full,$data->aktivita_name);
-        $this->flashMessage($_msg);
-        $this->eventlog('sale',$_msg);
+        $this->eventlog('sale',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
         $this->redirect('Sales:default');
       }
 
-      /*
-      if ($operace == 'update')
-      {
-        $data->updated_by = $this->userName;
-        try
-        {
-          $this->salesManager->updateProdej($data);
-        }
-        catch (\Exception $e)
-        {
-          $_msg = sprintf('Chyba! Prodej ID=%s nebyl uložen.',$data->id);
-          $this->flashMessage($_msg,'danger');
-          $this->eventlog('sale',$_msg);
-          $this->redirect('Sales:default');
-        }
-
-        $_msg = sprintf('Prodej ID=%s byl uložena.',$data->id);
-        $this->flashMessage($_msg);
-        $this->eventlog('sale',$_msg);
-        $this->redirect('Sales:default');
-      }
-       *
-       */
+	    $_msg = sprintf('Nový prodej pro klienta %s, permanentka %s, byl uložen.',$data->username_full,$data->aktivita_name);
+      $this->flashMessage($_msg);
+      $this->eventlog('sale',$_msg);
+      $this->redirect('Sales:default');
     }
   }

@@ -11,6 +11,135 @@
     {/if}
 </div>
 
+<style>
+    .lesson-info-panel {
+        margin: 1.5rem .25rem;
+        padding: 1rem 1.1rem;
+        color: #4f4f4f;
+        font: inherit;
+        background: #fffef4;
+        border: 1px solid #f1d56a;
+        border-left: 5px solid #ffc107;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, .08);
+    }
+
+    .lesson-info-head {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .75rem 1.25rem;
+        align-items: flex-start;
+        justify-content: space-between;
+        padding-bottom: .85rem;
+        margin-bottom: .75rem;
+        border-bottom: 1px solid rgba(133, 100, 4, .2);
+    }
+
+    .lesson-info-kicker {
+        display: block;
+        margin-bottom: .15rem;
+        color: #856404;
+        font-weight: 700;
+    }
+
+    .lesson-info-title {
+        margin: 0;
+        color: #2f2f2f;
+        font-weight: 700;
+    }
+
+    .lesson-info-meta {
+        display: flex;
+        flex-wrap: wrap;
+        gap: .45rem 1rem;
+        max-width: 100%;
+        color: #5d5d5d;
+    }
+
+    .lesson-info-meta span,
+    .lesson-info-rule,
+    .lesson-info-label {
+        display: inline-flex;
+        gap: .35rem;
+        align-items: center;
+        min-width: 0;
+    }
+
+    .lesson-info-grid {
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .8rem 1rem;
+    }
+
+    .lesson-info-metric,
+    .lesson-info-rule {
+        min-width: 0;
+        padding: .15rem 0;
+    }
+
+    .lesson-info-label,
+    .lesson-info-rule span {
+        color: #6f6f6f;
+        font-weight: 700;
+    }
+
+    .lesson-info-value {
+        display: block;
+        margin-top: .15rem;
+        color: #2f2f2f;
+        font-weight: 700;
+    }
+
+    .lesson-info-progress {
+        height: .45rem;
+        margin-top: .45rem;
+        overflow: hidden;
+        background: #ece7c3;
+        border-radius: 999px;
+    }
+
+    .lesson-info-progress span {
+        display: block;
+        height: 100%;
+        background: #198754;
+        border-radius: inherit;
+    }
+
+    .lesson-info-progress.is-warning span {
+        background: #ffc107;
+    }
+
+    .lesson-info-progress.is-full span {
+        background: #dc3545;
+    }
+
+    .lesson-info-rules {
+        grid-column: 1 / -1;
+        display: grid;
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: .35rem 1rem;
+        padding-top: .75rem;
+        border-top: 1px solid rgba(133, 100, 4, .16);
+    }
+
+    .lesson-info-rule strong {
+        display: block;
+        margin-top: .15rem;
+        color: #2f2f2f;
+        white-space: nowrap;
+    }
+
+    .lesson-info-rule {
+        display: block;
+    }
+
+    @media (max-width: 991.98px) {
+        .lesson-info-grid,
+        .lesson-info-rules {
+            grid-template-columns: 1fr;
+        }
+    }
+</style>
+
 {*
   b.`ID` as `diary_id`,
   b.`nazev` as `diary_nazev`,
@@ -50,25 +179,58 @@
         <div class="col-md-8" style="background-color: #FFFBBF;">
 
             {* lekce info blok *}
-            <div class="p-2 mx-1 my-4">
-                <div class="row">
-                    <div class="col-md-6">
-                        <ul style="color: #666; font-style: italic;">
-                            <li>Aktivita: <strong>{$info['aktivita_nazev']}</strong></li>
-                            <li>Název lekce: <strong>{$info['diary_nazev']}</strong></li>
-                            <li>Lektor: <strong>{$info['lektor_firstname']} {$info['lektor_surname']}</strong></li>
-                            <li>Datum a čas: <strong>{$info['lekce_datum']}</strong>, <strong>{$info['lekce_cas_od']} - {$info['lekce_cas_do']}</strong></li>
-                        </ul>
+            {var $capacityMin = (int) $info['aktivita_vstupy_min']}
+            {var $capacityMax = (int) $info['aktivita_vstupy_max']}
+            {var $participantPercent = $capacityMax > 0 ? min(100, (int) round($participantCount / $capacityMax * 100)) : 0}
+            {var $substitutePercent = $maxSubstitutes > 0 ? min(100, (int) round($substituteCount / $maxSubstitutes * 100)) : 0}
+            {var $participantProgressClass = $capacityMax > 0 && $participantCount >= $capacityMax ? 'is-full' : ($participantCount < $capacityMin ? 'is-warning' : '')}
+            {var $substituteProgressClass = $maxSubstitutes > 0 && $substituteCount >= $maxSubstitutes ? 'is-full' : ($substituteCount > 0 ? 'is-warning' : '')}
+            <div class="lesson-info-panel">
+                <div class="lesson-info-head">
+                    <div>
+                        <span class="lesson-info-kicker">{$info['aktivita_nazev']}</span>
+                        <h2 class="lesson-info-title">{$info['diary_nazev']}</h2>
                     </div>
-                    <div class="col-md-6">
-                        <ul style="color: #666; font-style: italic;">
-                            <li>Počet vstupů min/max: <strong>{$info['aktivita_vstupy_min']}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
-                            <li>Obsazenost: <strong>{$participantCount}</strong> / <strong>{$info['aktivita_vstupy_max']}</strong></li>
-                            <li>Náhradníci: <strong>{$substituteCount}</strong> / <strong>{$maxSubstitutes}</strong></li>
-                            <li>Zrušení klientem zdarma: <strong>{$info['aktivita_zruseni_zdarma']}</strong> hod před zahájením</li>
-                            <li>Zrušení pro neúčast: <strong>{$info['aktivita_zruseni_neucast']}</strong> hod před zahájením</li>
-                            <li>Konec registrace: <strong>{$info['aktivita_registrace_konec']}</strong> hod před zahájením</li>
-                        </ul>
+                    <div class="lesson-info-meta">
+                        <span><i class="bi bi-person-badge-fill"></i>{$info['lektor_firstname']} {$info['lektor_surname']}</span>
+                        <span><i class="bi bi-calendar-event-fill"></i>{$info['lekce_datum']}</span>
+                        <span><i class="bi bi-clock-fill"></i>{$info['lekce_cas_od']} - {$info['lekce_cas_do']}</span>
+                    </div>
+                </div>
+
+                <div class="lesson-info-grid">
+                    <div class="lesson-info-metric">
+                        <span class="lesson-info-label"><i class="bi bi-people-fill"></i>Obsazenost</span>
+                        <strong class="lesson-info-value">{$participantCount} / {$capacityMax}</strong>
+                        <div class="lesson-info-progress {$participantProgressClass}">
+                            <span style="width: {$participantPercent|noescape}%;"></span>
+                        </div>
+                    </div>
+                    <div class="lesson-info-metric">
+                        <span class="lesson-info-label"><i class="bi bi-person-plus-fill"></i>Náhradníci</span>
+                        <strong class="lesson-info-value">{$substituteCount} / {$maxSubstitutes}</strong>
+                        <div class="lesson-info-progress {$substituteProgressClass}">
+                            <span style="width: {$substitutePercent|noescape}%;"></span>
+                        </div>
+                    </div>
+                    <div class="lesson-info-metric">
+                        <span class="lesson-info-label"><i class="bi bi-ticket-perforated-fill"></i>Vstupy min/max</span>
+                        <strong class="lesson-info-value">{$capacityMin} / {$capacityMax}</strong>
+                    </div>
+
+                    <div class="lesson-info-rules">
+                        <div class="lesson-info-rule">
+                            <span><i class="bi bi-arrow-counterclockwise"></i>Storno zdarma</span>
+                            <strong>{$info['aktivita_zruseni_zdarma']} hod před lekcí</strong>
+                        </div>
+                        <div class="lesson-info-rule">
+                            <span><i class="bi bi-person-x-fill"></i>Zrušení pro neúčast</span>
+                            <strong>{$info['aktivita_zruseni_neucast']} hod před lekcí</strong>
+                        </div>
+                        <div class="lesson-info-rule">
+                            <span><i class="bi bi-lock-fill"></i>Konec registrace</span>
+                            <strong>{$info['aktivita_registrace_konec']} hod před lekcí</strong>
+                        </div>
                     </div>
                 </div>
             </div>

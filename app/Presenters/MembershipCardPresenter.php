@@ -52,7 +52,7 @@
      */
     public function renderPriceList(): void
     {
-      $this->template->data = $this->membershipCardManager->getAllPermanentkaOrderByActivity();
+      $this->template->data = $this->membershipCardManager->getAllAktivniPermanentkaOrderByActivity();
     }
 
 
@@ -111,12 +111,25 @@
 
 	      try
 	      {
-        $this->membershipCardManager->deletePermanentka($data);
+        $rst = $this->membershipCardManager->deletePermanentka($data);
+        if ($rst !== \App\Model\MembershipCardManager::DELETE_OK)
+        {
+          if ($rst === \App\Model\MembershipCardManager::DELETE_HAS_SALES)
+            $_msg = sprintf('Chyba! Permanentku %s nelze smazat, protože už byla použita v prodeji. Permanentku deaktivujte.',$cardLabel);
+          elseif ($rst === \App\Model\MembershipCardManager::DELETE_NOT_FOUND)
+            $_msg = sprintf('Chyba! Permanentka %s nebyla nalezena, nebo už byla smazána.',$cardLabel);
+          else
+            $_msg = sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel);
+
+          $this->eventlog('membership_card',$_msg);
+          $this->flashMessage($_msg,'danger');
+          $this->redirect('MembershipCard:default');
+        }
       }
-      catch (\Exception $e)
+      catch (\Throwable $e)
       {
 	        $_msg = sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel);
-        $this->eventlog('membership_card',$_msg);
+        $this->eventlog('membership_card',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
         $this->flashMessage($_msg,'danger');
         $this->redirect('MembershipCard:default');
       }
@@ -138,9 +151,19 @@
 	    {
 	      $this->requireAdmin();
 
+	      if ($id === 0)
+	        return;
+
 	      $params = self::array_to_object(array('id' => $id));
 
       $data = $this->membershipCardManager->getPermanentka($params);
+      if (!$data)
+      {
+        $_msg = sprintf('Chyba! Permanentka ID=%d nebyla nalezena, nebo je smazaná.',$id);
+        $this->flashMessage($_msg,'danger');
+        $this->eventlog('membership_card',$_msg);
+        $this->redirect('MembershipCard:default');
+      }
 
       $this->template->data = $data;
 
@@ -172,33 +195,36 @@
 
       $form->addHidden('id')
         ->setDefaultValue(0)
-        ->setHtmlAttribute('ID','frm-permanentkaForm-id');
+        ->setHtmlAttribute('id','frm-permanentkaForm-id');
 
       $form->addSelect('aktivita_id','Aktivita:',$this->aktivita)
-        ->setHtmlAttribute('class','form-control');
+        ->setHtmlAttribute('class','form-control')
+        ->setRequired('Vyberte aktivitu.')
+        ->addRule(Form::NotEqual,'Vyberte aktivitu.',0);
 
       $form->addText('nazev','Název:')
         ->setHtmlAttribute('class','form-control')
         ->setHtmlAttribute('placeholder','')
+        ->addRule(Form::MaxLength,'%label může mít maximálně %d znaků.',255)
         ->setRequired('%label je vyžadováno!');
 
       $form->addText('cena','Cena:')
         ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
+        ->addRule($form::MIN,'%label musí být alespoň %d!',1)
         ->setHtmlAttribute('class','form-control')
         ->setHtmlAttribute('placeholder','')
         ->setRequired('%label je vyžadována!');
 
       $form->addText('platnost','Platnost (dny):')
         ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
+        ->addRule($form::MIN,'%label musí být alespoň %d!',1)
         ->setHtmlAttribute('class','form-control')
         ->setHtmlAttribute('placeholder','')
         ->setRequired('%label je vyžadována!');
 
       $form->addText('vstupy','Počet vstupů:')
         ->addRule($form::INTEGER,'%label musí být číselná hodnota!')
-        ->addRule($form::MIN,'%label musí být větší než %d!',0)
+        ->addRule($form::MIN,'%label musí být alespoň %d!',1)
         ->setHtmlAttribute('class','form-control')
         ->setHtmlAttribute('placeholder','')
         ->setRequired('%label je vyžadován!');
@@ -254,11 +280,11 @@
         {
           $this->membershipCardManager->insertPermanentka($data);
         }
-        catch (\Exception $e)
+        catch (\Throwable $e)
         {
 	          $_msg = sprintf('Chyba! Nová permanentka %s nebyla uložena.',$this->logMembershipCardLabel($data));
           $this->flashMessage($_msg,'danger');
-          $this->eventlog('membership_card',$_msg);
+          $this->eventlog('membership_card',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
           $this->redirect('MembershipCard:default');
         }
 
@@ -270,16 +296,25 @@
 
       if ($operace == 'update')
       {
+        $oldData = $this->membershipCardManager->getPermanentka($data);
+        if (!$oldData)
+        {
+          $_msg = sprintf('Chyba! Permanentka ID=%d nebyla nalezena, nebo je smazaná.',(int) $data->id);
+          $this->flashMessage($_msg,'danger');
+          $this->eventlog('membership_card',$_msg);
+          $this->redirect('MembershipCard:default');
+        }
+
         $data->updated_by = $this->userName;
         try
         {
           $this->membershipCardManager->updatePermanentka($data);
         }
-        catch (\Exception $e)
+        catch (\Throwable $e)
         {
 	          $_msg = sprintf('Chyba! Permanentka %s nebyla uložena.',$this->logMembershipCardLabel($data,(int) $data->id));
           $this->flashMessage($_msg,'danger');
-          $this->eventlog('membership_card',$_msg);
+          $this->eventlog('membership_card',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
           $this->redirect('MembershipCard:default');
         }
 

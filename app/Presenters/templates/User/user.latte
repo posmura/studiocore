@@ -123,49 +123,48 @@
                     </div>
                 {/if}
 
-                {* *** PŘEHLED REGISTRACÍ *** *}
-                <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
-                    <div style="font-size: 120%; font-weight: bold;">Přehled registrací</div>
-                    <div>&nbsp;</div>
-                    {ifset $registrace_data}
-                        {foreach $registrace_data as $item}
-                            {if $iterator->first}
-                                <table class="table">
-                                    <tr class="small">
-                                        <td>Datum</td>
-                                        <td>Čas</td>
-                                        <td>Lekce</td>
-                                        <td>Stav</td>
-                                        <td>Lektor</td>
-                                    </tr>
-                                {/if}
+                {if $user->identity->role == "klient"}
+                    {* *** PŘEHLED REGISTRACÍ *** *}
+                    <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee; height: 420px; display: flex; flex-direction: column;">
+                        <div style="font-size: 120%; font-weight: bold;">Přehled registrací</div>
+                        <div class="mt-3" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: auto; padding-right: 4px;">
+                            {ifset $registrace_data}
+                                {foreach $registrace_data as $item}
+                                    {if $iterator->first}
+                                        <table class="table mb-0">
+                                            <tr class="small" style="position: sticky; top: 0; background-color: #eee; z-index: 1;">
+                                                <td>Datum</td>
+                                                <td>Čas</td>
+                                                <td>Lekce</td>
+                                                <td>Stav</td>
+                                                <td>Lektor</td>
+                                            </tr>
+                                        {/if}
 
-                                <tr class="small">
-                                    <td>
-                                        <a n:href="Diary:default $item->lekce_ts" style="color: #e67c2f !important;">
-                                            <strong>{$item->lekce_datum}</strong>
-                                        </a>
-                                    </td>
-                                    <td>{$item->lekce_cas}</td>
-                                    <td><strong>{$item->lekce_nazev}</strong></td>
-                                    <td>{if ($item->registration_status ?? 'ucastnik') == 'nahradnik'}Náhradník{else}Účastník{/if}</td>
-                                    <td>{$lektor[$item->lektor_id] ?? '—'}</td>
-                                </tr>
-                                {if $iterator->last}
-                                </table>
-                            {/if}
+                                        <tr class="small">
+                                            <td>
+                                                <a n:href="Diary:default $item->lekce_ts" style="color: #e67c2f !important;">
+                                                    <strong>{$item->lekce_datum}</strong>
+                                                </a>
+                                            </td>
+                                            <td>{$item->lekce_cas}</td>
+                                            <td><strong>{$item->lekce_nazev}</strong></td>
+                                            <td>{if ($item->registration_status ?? 'ucastnik') == 'nahradnik'}Náhradník{else}Účastník{/if}</td>
+                                            <td>{$lektor[$item->lektor_id] ?? '—'}</td>
+                                        </tr>
+                                        {if $iterator->last}
+                                        </table>
+                                    {/if}
 
-                            {else}
-                                <div>Nebyla nalezena žádná položka.</div>
-                                {/foreach}
                                     {else}
                                         <div>Nebyla nalezena žádná položka.</div>
-                                        {/ifset}
-                                            <div>&nbsp;</div>
-                                            <div>&nbsp;</div>
-                                            <div>&nbsp;</div>
-                                        </div>
-
+                                        {/foreach}
+                                            {else}
+                                                <div>Nebyla nalezena žádná položka.</div>
+                                                {/ifset}
+                                                    </div>
+                                                </div>
+                {/if}
 
                                         {* prostřední sloupec - konec*}
                                     </div> 
@@ -173,56 +172,96 @@
                                     {* pravý sloupec *}
                                     <div class="col-md-4"> 
                                         {* *** NÁKUPY *** *}
-                                        <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee;">
+                                        <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee; height: 420px; display: flex; flex-direction: column;">
                                             <div style="font-size: 120%; font-weight: bold;">Nákupy</div>
-                                            <div>&nbsp;</div>
-                                            {ifset $nakup_data}
-                                                {foreach $nakup_data as $item}
-                                                    {if $iterator->first}
-                                                        <table class="table">
+                                            <div class="mt-3" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: auto; padding-right: 4px;">
+                                                {ifset $nakup_data}
+                                                    {foreach $nakup_data as $item}
+                                                        {if $iterator->first}
+                                                            <table class="table mb-0">
+                                                                <tr class="small" style="position: sticky; top: 0; background-color: #eee; z-index: 1;">
+                                                                    <td>Název</td>
+                                                                    <td>Datum prodeje<br>Konec platnosti</td>
+                                                                    <td>Zbývá vstupů</td>
+                                                                    <td>Prodávající</td>
+                                                                </tr>
+                                                            {/if}
+
                                                             <tr class="small">
-                                                                <td>Název</td>
-                                                                <td>Datum prodeje<br>Konec platnosti</td>
-                                                                <td>Zbývá vstupů</td>
-                                                                <td>Prodávající</td>
+                                                                <td><strong>{$item->aktivita_name}</strong></td>
+                                                                <td>
+                                                                    {$item->datum_prodeje|date('d.m.Y')}
+                                                                    <br>
+                                                                    {var $style_datum_konce = time()}
+                                                                    {if $item->datum_konce < $style_datum_konce}
+                                                                        {var $style_datum_konce = "color: red;"}
+                                                                    {elseif $item->datum_konce == $style_datum_konce}
+                                                                        {var $style_datum_konce = "color: orange;"}
+                                                                    {else}
+                                                                        {var $style_datum_konce = "color: green;"}
+                                                                    {/if}
+                                                                    <span style="{$style_datum_konce|noescape}">
+                                                                        <strong>{$item->datum_konce|date('d.m.Y')}</strong>
+                                                                    </span>
+                                                                </td>
+                                                                <td class="text-right"><strong>{$item->vstupy_aktualni}</strong></td>
+                                                                <td><strong>{$item->created_by}</strong></td>
                                                             </tr>
+                                                            {if $iterator->last}
+                                                            </table>
                                                         {/if}
 
-                                                        <tr class="small">
-                                                            <td><strong>{$item->aktivita_name}</strong></td>
-                                                            <td>
-                                                                {$item->datum_prodeje|date('d.m.Y')}
-                                                                <br>
-                                                                {var $style_datum_konce = time()}
-                                                                {if $item->datum_konce < $style_datum_konce}
-                                                                    {var $style_datum_konce = "color: red;"}
-                                                                {elseif $item->datum_konce == $style_datum_konce}
-                                                                    {var $style_datum_konce = "color: orange;"}
+                                                        {else}
+                                                            <div>Nebyla nalezena žádná položka.</div>
+                                                            {/foreach}
                                                                 {else}
-                                                                    {var $style_datum_konce = "color: green;"}
+                                                                    <div>Nebyla nalezena žádná položka.</div>
+                                                                    {/ifset}
+                                                                        </div>
+                                                                    </div>
+
+                                                                {if $user->identity->role == "admin" || $user->identity->role == "lektor"}
+                                                                    {* *** PŘEHLED REGISTRACÍ *** *}
+                                                                    <div class="border border-1 p-2 mx-1 my-4" style="background-color: #eee; height: 420px; display: flex; flex-direction: column;">
+                                                                        <div style="font-size: 120%; font-weight: bold;">Přehled registrací</div>
+                                                                        <div class="mt-3" style="flex: 1 1 auto; min-height: 0; overflow-y: auto; overflow-x: auto; padding-right: 4px;">
+                                                                            {ifset $registrace_data}
+                                                                                {foreach $registrace_data as $item}
+                                                                                    {if $iterator->first}
+                                                                                        <table class="table mb-0">
+                                                                                            <tr class="small" style="position: sticky; top: 0; background-color: #eee; z-index: 1;">
+                                                                                                <td>Datum</td>
+                                                                                                <td>Čas</td>
+                                                                                                <td>Lekce</td>
+                                                                                                <td>Stav</td>
+                                                                                                <td>Lektor</td>
+                                                                                            </tr>
+                                                                                        {/if}
+
+                                                                                        <tr class="small">
+                                                                                            <td>
+                                                                                                <a n:href="Diary:default $item->lekce_ts" style="color: #e67c2f !important;">
+                                                                                                    <strong>{$item->lekce_datum}</strong>
+                                                                                                </a>
+                                                                                            </td>
+                                                                                            <td>{$item->lekce_cas}</td>
+                                                                                            <td><strong>{$item->lekce_nazev}</strong></td>
+                                                                                            <td>{if ($item->registration_status ?? 'ucastnik') == 'nahradnik'}Náhradník{else}Účastník{/if}</td>
+                                                                                            <td>{$lektor[$item->lektor_id] ?? '—'}</td>
+                                                                                        </tr>
+                                                                                        {if $iterator->last}
+                                                                                        </table>
+                                                                                    {/if}
+
+                                                                                    {else}
+                                                                                        <div>Nebyla nalezena žádná položka.</div>
+                                                                                        {/foreach}
+                                                                                            {else}
+                                                                                                <div>Nebyla nalezena žádná položka.</div>
+                                                                                                {/ifset}
+                                                                                                    </div>
+                                                                                                </div>
                                                                 {/if}
-                                                                <span style="{$style_datum_konce|noescape}">
-                                                                    <strong>{$item->datum_konce|date('d.m.Y')}</strong>
-                                                                </span>
-                                                            </td>
-                                                            <td class="text-right"><strong>{$item->vstupy_aktualni}</strong></td>
-                                                            <td><strong>{$item->created_by}</strong></td>
-                                                        </tr>
-                                                        {if $iterator->last}
-                                                        </table>
-                                                    {/if}
-
-                                                    {else}
-                                                        <div>Nebyla nalezena žádná položka.</div>
-                                                        {/foreach}
-                                                            {else}
-                                                                <div>Nebyla nalezena žádná položka.</div>
-                                                                {/ifset}
-
-                                                                    <div>&nbsp;</div>
-                                                                    <div>&nbsp;</div>
-                                                                    <div>&nbsp;</div>
-                                                                </div>
 
                                                                 {* pravý sloupec - konec*}
                                                             </div> 
