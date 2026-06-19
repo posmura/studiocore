@@ -786,14 +786,15 @@
 
 
 	    /**
-	     * Ukončí požadavek jako nepovolený.
+	     * Ukončí požadavek s hláškou o nepovoleném přístupu.
 	     */
 	    protected function denyAccess(): void
 	    {
 	      $username = $this->getUser()->isLoggedIn() ? $this->logUserLabel($this->getUser()->identity) : 'nepřihlášený uživatel';
 	      $this->eventlog($this->getName(),'Chyba! Pokus o neoprávněný přístup uživatelem '.$username.'.');
 
-	      throw new Nette\Application\ForbiddenRequestException('Nemáte oprávnění pro tuto akci.');
+	      $this->flashMessage('Nemáte oprávnění pro tuto akci.','danger');
+	      $this->redirect('Homepage:');
 	    }
 
 
