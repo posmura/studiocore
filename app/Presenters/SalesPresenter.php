@@ -23,7 +23,7 @@
 	    {
 	      parent::startup();
 
-	      $this->requireAdmin();
+	      $this->requireStaff();
 	    }
 
 
@@ -154,7 +154,7 @@
      */
 	    protected function createComponentSalesForm(): Form
 	    {
-	      $this->requireAdmin();
+	      $this->requireStaff();
 
 	      // seznam permanentek
       $_permanentky = $this->membershipCardManager->getListAktivniPermanentka();
@@ -203,7 +203,7 @@
      */
 	    public function formSalesSucceeded(Form $form,$data): void
 	    {
-	      $this->requireAdmin();
+	      $this->requireStaff();
 
 	      if ((int) $data->id !== 0)
 	      {
