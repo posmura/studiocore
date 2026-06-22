@@ -199,7 +199,7 @@ SQL;
     public static function getRegistrationCountBySalesId(): string
     {
       return <<<SQL
-SELECT COUNT(*) AS total FROM blog_registration WHERE sales_id=?
+SELECT COUNT(*) AS total FROM blog_registration WHERE sales_id=? AND deleted=0
 SQL;
     }
 
