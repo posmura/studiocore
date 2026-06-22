@@ -1752,6 +1752,7 @@ TEXT;
         $substitute['lekce_datum'],
         $substitute['lekce_cas']
       );
+      $smsText = $this->addSmsNoReplyNotice($smsText);
 
       $smsException = null;
       if ($this->sendSmsSafely($this->sender,$smsPhone,$smsText,$smsException))

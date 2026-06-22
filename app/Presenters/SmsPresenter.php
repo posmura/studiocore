@@ -277,6 +277,7 @@ final class SmsPresenter extends BasePresenter
 
       // sestavení textu sms zprávy
       $sms_text = sprintf($data_text_sms,$sms_date,$sms_time);
+      $sms_text = $this->addSmsNoReplyNotice($sms_text);
 
       // kontrola telefonního čísla
       $i_phone = 'phone_'.$i;

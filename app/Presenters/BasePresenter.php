@@ -41,6 +41,7 @@
     const ROLE_LECTOR = 'lektor';
     const ROLE_CLIENT = 'klient';
     const ROLES_STAFF = [self::ROLE_ADMIN,self::ROLE_LECTOR];
+    const SMS_NO_REPLY_NOTICE = 'Na tuto SMS prosim neodpovidejte.';
 
     #[\Nette\DI\Attributes\Inject]
     public Nette\Database\Connection $dbConnection;
@@ -680,6 +681,20 @@
 
 
     /**
+     * Přidá k SMS dovětek, aby příjemce neodpovídal na automatickou zprávu.
+     */
+    protected function addSmsNoReplyNotice(string $smsText): string
+    {
+      $smsText = trim($smsText);
+
+      if ($smsText === '' || strpos($smsText,self::SMS_NO_REPLY_NOTICE) !== false)
+        return $smsText;
+
+      return sprintf('%s %s',$smsText,self::SMS_NO_REPLY_NOTICE);
+    }
+
+
+    /**
      * Bezpečně odešle SMS a zachytí výjimky z SMS brány.
      *
      * @param \BulkGate\Sdk\Sender $sender SMS sender
@@ -691,6 +706,7 @@
     protected function sendSmsSafely(\BulkGate\Sdk\Sender $sender,string $smsPhone,string $smsText,?\Throwable &$exception = null): bool
     {
       $exception = null;
+      $smsText = $this->addSmsNoReplyNotice($smsText);
 
       if (!$smsPhone || !$smsText)
         return false;
