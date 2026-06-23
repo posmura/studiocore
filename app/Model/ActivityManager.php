@@ -89,11 +89,11 @@
      * AKTIVITA: Vloží aktivitu
      *
      * @param object $data Data aktivity
-     * @return bool
+     * @return int
      */
-    public function insertAktivita($data)
+    public function insertAktivita($data): int
     {
-      return $this->database->query(SqlCommands::insertAktivita(),
+      $this->database->query(SqlCommands::insertAktivita(),
           $data->nazev,
           $data->vstupy_min,
           $data->vstupy_max,
@@ -105,6 +105,8 @@
           $data->registrace_konec_ts,
           $data->created_by
       );
+
+      return (int) $this->database->getInsertId();
     }
 
 

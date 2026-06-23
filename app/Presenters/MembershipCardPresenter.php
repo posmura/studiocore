@@ -278,7 +278,7 @@
 
         try
         {
-          $this->membershipCardManager->insertPermanentka($data);
+          $data->id = $this->membershipCardManager->insertPermanentka($data);
         }
         catch (\Throwable $e)
         {

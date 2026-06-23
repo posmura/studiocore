@@ -327,11 +327,11 @@
      * Vloží uživatele
      *
      * @param object $data Data uživatele
-     * @return bool
+     * @return int
      */
-    public function insertUser($data)
+    public function insertUser($data): int
     {
-      return $this->database->query(SqlCommands::insertUser(),
+      $this->database->query(SqlCommands::insertUser(),
           $data->username,
           $data->surname,
           $data->firstname,
@@ -341,6 +341,8 @@
           $data->benefit_card,
           $data->role,
       );
+
+      return (int) $this->database->getInsertId();
     }
 
 

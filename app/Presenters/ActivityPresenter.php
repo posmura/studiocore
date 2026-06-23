@@ -315,7 +315,7 @@
 
         try
         {
-          $this->activityManager->insertAktivita($data);
+          $data->id = $this->activityManager->insertAktivita($data);
         }
 	      catch (\Throwable $e)
 	        {

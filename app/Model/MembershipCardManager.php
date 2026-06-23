@@ -99,11 +99,11 @@
      * PERMANENTKA: Vloží permannetku
      *
      * @param object $data Data permanentky
-     * @return bool
+     * @return int
      */
-    public function insertPermanentka($data)
+    public function insertPermanentka($data): int
     {
-      return $this->database->query(SqlCommands::insertPermanentka(),
+      $this->database->query(SqlCommands::insertPermanentka(),
         $data->aktivita_id,
         $data->nazev,
         $data->cena,
@@ -113,6 +113,8 @@
         $data->vstupy,
         $data->created_by
       );
+
+      return (int) $this->database->getInsertId();
     }
 
 

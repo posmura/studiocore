@@ -85,6 +85,9 @@
             },
             order: [[0, 'desc']]
         });
+        {if $eventlogSaleId}
+            dataTable.column(0).search('^{$eventlogSaleId}$', true, false).draw();
+        {/if}
     </script>
 {/if}
 

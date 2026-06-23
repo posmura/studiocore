@@ -40,6 +40,13 @@ a:hover, a:active, .blog_a {
     color: var(--color-link) !important;
 }
 
+.eventlog-link,
+.eventlog-link:visited,
+.eventlog-link:hover,
+.eventlog-link:active {
+    color: var(--color-link) !important;
+}
+
 /* navbar */
 
 .nav-rs {

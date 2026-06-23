@@ -418,6 +418,8 @@
       $details = array();
       if ($id > 0)
         $details[] = sprintf('ID=%d',$id);
+      if ($activityId > 0)
+        $details[] = sprintf('aktivita ID=%d',$activityId);
       if ($price !== null && $price !== '')
         $details[] = sprintf('cena=%s Kč',$price);
       if ($entries !== null && $entries !== '')
@@ -455,15 +457,20 @@
     {
       $id = (int) $this->logValue($sale,'ID',$this->logValue($sale,'id',$fallbackId));
       $client = trim((string) $this->logValue($sale,'username_full',''));
+      $clientId = (int) $this->logValue($sale,'user_id',0);
       $card = trim((string) $this->logValue($sale,'aktivita_name',''));
+      $cardId = (int) $this->logValue($sale,'permanentka_id',0);
+      $activityId = (int) $this->logValue($sale,'aktivita_id',0);
       $entries = $this->logValue($sale,'vstupy_aktualni',null);
 
       $label = $id > 0 ? sprintf('prodej ID=%d',$id) : 'neznámý prodej';
       $details = array();
       if ($client !== '')
-        $details[] = sprintf('klient: %s',$client);
+        $details[] = $clientId > 0 ? sprintf('klient: %s (ID=%d)',$client,$clientId) : sprintf('klient: %s',$client);
       if ($card !== '')
-        $details[] = sprintf('permanentka: %s',$card);
+        $details[] = $cardId > 0 ? sprintf('permanentka: %s (ID=%d)',$card,$cardId) : sprintf('permanentka: %s',$card);
+      if ($activityId > 0)
+        $details[] = sprintf('aktivita ID=%d',$activityId);
       if ($entries !== null && $entries !== '')
         $details[] = sprintf('zbývá vstupů: %s',$entries);
 
@@ -527,9 +534,15 @@
       if ($dateText !== '')
         $details[] = trim(sprintf('%s %s',$dateText,$timeText));
       if ($activity !== '')
-        $details[] = sprintf('aktivita: %s',$activity);
+      {
+        $activityId = (int) $this->logValue($lesson,'aktivita_id',0);
+        $details[] = $activityId > 0 ? sprintf('aktivita: %s (ID=%d)',$activity,$activityId) : sprintf('aktivita: %s',$activity);
+      }
       if ($lector !== '')
-        $details[] = sprintf('lektor: %s',$lector);
+      {
+        $lectorId = (int) $this->logValue($lesson,'lektor_id',0);
+        $details[] = $lectorId > 0 ? sprintf('lektor: %s (ID=%d)',$lector,$lectorId) : sprintf('lektor: %s',$lector);
+      }
 
       return $details ? sprintf('%s (%s)',$name,implode(', ',$details)) : $name;
     }

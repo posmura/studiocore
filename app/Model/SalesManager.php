@@ -44,9 +44,9 @@
      * PRODEJ: Vloží prodej
      *
      * @param object $data Data prodeje
-     * @return bool
+     * @return int
      */
-    public function insertProdej($data)
+    public function insertProdej($data): int
     {
       $this->database->beginTransaction();
       try
@@ -71,6 +71,8 @@
           throw new \RuntimeException('Prodej nebyl uložen.');
         }
 
+        $saleId = (int) $this->database->getInsertId();
+
         if (($data->reset_kredit ?? false) === true)
         {
           $reset = $this->database->query(SqlCommands::resetKredit(),
@@ -87,7 +89,7 @@
         }
 
         $this->database->commit();
-        return true;
+        return $saleId;
       }
       catch (\Throwable $e)
       {

@@ -359,7 +359,7 @@
 
       try
       {
-        $this->userManager->insertUser($data);
+        $data->id = $this->userManager->insertUser($data);
         //$this->flashMessage('Váš uživatelský účet \''.$data->username.'\' byl vytvořen. Můžete se přihlásit.');
       }
       catch (\Exception $e)

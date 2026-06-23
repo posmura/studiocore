@@ -829,17 +829,21 @@
           elseif ($opakovat > 1)
           {
             $i = 0;
+            $first_ID = null;
+            $last_ID = null;
             foreach ($period as $dt)
             {
               $data->date = $dt->format('Ymd');
               $last_ID = $this->factoryManager->insertDiary($data);
+              if ($first_ID === null)
+                $first_ID = $last_ID;
 
               $i++;
 
 	              $_msg = sprintf('Událost lekce %s byla uložena.',$this->logLessonLabel($data,(int) $last_ID));
               $this->eventlog('diary',$_msg);
             }
-	            $_msg = sprintf('Opakovaná lekce %s byla uložena %d x.',$this->logLessonLabel($data),$i);
+	            $_msg = sprintf('Opakovaná lekce %s byla uložena %d x (lekce ID=%d až lekce ID=%d).',$this->logLessonLabel($data),$i,(int) $first_ID,(int) $last_ID);
             $this->eventlog('diary',$_msg);
           }
         }
@@ -860,7 +864,7 @@
           {
             $this->factoryManager->updateDiaryByLekceId($data);
 
-	            $_msg = sprintf('Opakované události lekce %s byly upraveny od ID=%d výše.',$this->logLessonLabel($data,(int) $data->ID),$data->ID);
+	            $_msg = sprintf('Opakované události lekce %s byly upraveny od lekce ID=%d výše.',$this->logLessonLabel($data,(int) $data->ID),$data->ID);
             $this->eventlog('diary',$_msg);
           }
         }
@@ -1735,11 +1739,12 @@ TEXT;
     private function sendSubstitutePromotionSms($substitute): bool
     {
       $smsPhone = $this->checkSmsPhone($substitute['user_mobil_number'] ?? '');
-      $smsName = trim(sprintf('%s %s',$substitute['user_surname'] ?? '',$substitute['user_firstname'] ?? ''));
+      $userLabel = $this->logUserLabel($substitute,(int) ($substitute['user_id'] ?? 0));
+      $lessonLabel = $this->logLessonLabel($substitute,(int) ($substitute['diary_id'] ?? 0));
 
       if (!$smsPhone)
       {
-        $_msg = sprintf('Chyba! Chybný formát telefonního čísla náhradníka "%s". SMS pro "%s" nebyla odeslána.',$substitute['user_mobil_number'] ?? '',$smsName);
+        $_msg = sprintf('Chyba! Chybný formát telefonního čísla náhradníka %s. SMS pro lekci %s nebyla odeslána. Telefon: "%s".',$userLabel,$lessonLabel,$substitute['user_mobil_number'] ?? '');
         $this->flashMessage($_msg,'danger');
         $this->eventlog('diary',$_msg);
 
@@ -1757,7 +1762,7 @@ TEXT;
       $smsException = null;
       if ($this->sendSmsSafely($this->sender,$smsPhone,$smsText,$smsException))
       {
-        $_msg = sprintf('SMS %s pro náhradníka "%s" byla předána k odeslání: %s',$smsPhone,$smsName,$smsText);
+        $_msg = sprintf('SMS %s pro náhradníka %s na lekci %s byla předána k odeslání: %s',$smsPhone,$userLabel,$lessonLabel,$smsText);
         $this->flashMessage($_msg);
         $this->eventlog('diary',$_msg);
 
@@ -1765,8 +1770,8 @@ TEXT;
       }
 
       $_msg = $smsException
-        ? sprintf('Chyba! SMS pro náhradníka "%s" nelze odeslat, protože telefonní číslo %s není validní.',$smsName,$smsPhone)
-        : sprintf('Chyba: Problém při předání SMS %s pro náhradníka "%s" k odeslání.',$smsPhone,$smsName);
+        ? sprintf('Chyba! SMS pro náhradníka %s na lekci %s nelze odeslat, protože telefonní číslo %s není validní.',$userLabel,$lessonLabel,$smsPhone)
+        : sprintf('Chyba: Problém při předání SMS %s pro náhradníka %s na lekci %s k odeslání.',$smsPhone,$userLabel,$lessonLabel);
       $this->flashMessage($_msg,'danger');
       $this->eventlog('diary',$smsException ? sprintf('%s Výjimka: %s',$_msg,$smsException->getMessage()) : $_msg);
 

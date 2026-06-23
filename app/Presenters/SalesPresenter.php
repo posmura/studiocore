@@ -35,6 +35,8 @@
     public function renderDefault(): void
     {
       $this->template->data = $this->salesManager->getAllProdej();
+      $eventlogSaleId = (int) $this->getParameter('eventlogSaleId');
+      $this->template->eventlogSaleId = $eventlogSaleId > 0 ? $eventlogSaleId : 0;
     }
 
 
@@ -239,6 +241,9 @@
       $data->aktivita_name = sprintf('%s - %s', $rst_perm->nazev_aktivity,$rst_perm->nazev);
       $data->cena = $rst_perm->cena;
       $data->vstupy_celkem = $rst_perm->vstupy;
+      $userLabel = $this->logUserLabelById((int) $data->user_id);
+      $cardLabel = $this->logMembershipCardLabelById((int) $data->permanentka_id);
+      $activityLabel = $this->logActivityLabelById((int) $data->aktivita_id);
 
       // načtu kredity klienta
       $rst_kredit = $this->factoryManager->getKredityKlienta($data);
@@ -252,7 +257,7 @@
 
       if ($data->vstupy_aktualni < 0)
       {
-        $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, by měl záporný počet vstupů.',$data->username_full,$data->aktivita_name);
+        $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, aktivita %s, by měl záporný počet vstupů.',$userLabel,$cardLabel,$activityLabel);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('sale',$_msg);
         $this->redirect('Sales:default');
@@ -270,17 +275,17 @@
 
       try
       {
-        $this->salesManager->insertProdej($data);
+        $saleId = $this->salesManager->insertProdej($data);
       }
       catch (\Throwable $e)
       {
-	      $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, nebyl uložen.',$data->username_full,$data->aktivita_name);
+	      $_msg = sprintf('Chyba! Nový prodej pro klienta %s, permanentka %s, aktivita %s, nebyl uložen.',$userLabel,$cardLabel,$activityLabel);
         $this->flashMessage($_msg,'danger');
         $this->eventlog('sale',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
         $this->redirect('Sales:default');
       }
 
-	    $_msg = sprintf('Nový prodej pro klienta %s, permanentka %s, byl uložen.',$data->username_full,$data->aktivita_name);
+	    $_msg = sprintf('Nový %s byl uložen.',$this->logSaleLabelById($saleId));
       $this->flashMessage($_msg);
       $this->eventlog('sale',$_msg);
       $this->redirect('Sales:default');
