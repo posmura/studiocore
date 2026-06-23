@@ -31,8 +31,7 @@
 	    {
 	      parent::startup();
 
-	      // $this->requireAdmin();
-        $this->requireStaff();
+	      $this->requireAdmin();
 	    }
 
 

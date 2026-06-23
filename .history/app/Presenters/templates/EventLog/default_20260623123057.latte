@@ -10,7 +10,7 @@
 
 <div id="content">
 
-    {if $user->isLoggedIn() and ($user->identity->role == "admin" || $user->identity->role == "lektor")}
+    {if $user->isLoggedIn() and $user->identity->role == "staff"}
 
         <div class="mt-3 mb-5">
             <table id="tbl-eventlog" class="display" style="width:100%;">
