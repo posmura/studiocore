@@ -108,6 +108,7 @@
 
 		      $data = self::array_to_object(['id' => $data->id, 'deleted_by' => $this->userName]);
 		      $cardLabel = $this->logMembershipCardLabelById((int) $data->id);
+      $deleteUserLabel = $this->logUserLabelById((int) $this->userID);
 
 	      try
 	      {
@@ -115,11 +116,14 @@
         if ($rst !== \App\Model\MembershipCardManager::DELETE_OK)
         {
           if ($rst === \App\Model\MembershipCardManager::DELETE_HAS_SALES)
-            $_msg = sprintf('Chyba! Permanentku %s nelze smazat, protože už byla použita v prodeji. Permanentku deaktivujte.',$cardLabel);
+          {
+            $salesUsage = $this->formatPermanentkaSalesUsage((int) $data->id);
+            $_msg = sprintf('Chyba! Permanentku %s nelze smazat uživatelem %s, protože už byla použita v prodeji. %sPermanentku deaktivujte.',$cardLabel,$deleteUserLabel,$salesUsage);
+          }
           elseif ($rst === \App\Model\MembershipCardManager::DELETE_NOT_FOUND)
-            $_msg = sprintf('Chyba! Permanentka %s nebyla nalezena, nebo už byla smazána.',$cardLabel);
+            $_msg = sprintf('Chyba! Permanentka %s nebyla nalezena, nebo už byla smazána uživatelem %s.',$cardLabel,$deleteUserLabel);
           else
-            $_msg = sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel);
+            $_msg = sprintf('Chyba! Permanentka %s nebyla smazána uživatelem %s.',$cardLabel,$deleteUserLabel);
 
           $this->eventlog('membership_card',$_msg);
           $this->flashMessage($_msg,'danger');
@@ -128,13 +132,14 @@
       }
       catch (\Throwable $e)
       {
-	        $_msg = sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel);
-        $this->eventlog('membership_card',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
-        $this->flashMessage($_msg,'danger');
+        $dbError = trim($e->getMessage()) !== '' ? $e->getMessage() : 'neuvedena';
+	        $_msg = sprintf('Chyba! Permanentka %s nebyla smazána uživatelem %s. DB chyba: %s',$cardLabel,$deleteUserLabel,$dbError);
+        $this->eventlog('membership_card',$_msg);
+        $this->flashMessage(sprintf('Chyba! Permanentka %s nebyla smazána.',$cardLabel),'danger');
         $this->redirect('MembershipCard:default');
       }
 
-	      $_msg = sprintf('Permanentka %s byla smazána.',$cardLabel);
+	      $_msg = sprintf('Permanentka %s byla smazána uživatelem %s.',$cardLabel,$deleteUserLabel);
       $this->flashMessage($_msg);
       $this->eventlog('membership_card',$_msg);
       $this->redirect('MembershipCard:default');
@@ -323,5 +328,39 @@
         $this->eventlog('membership_card',$_msg);
         $this->redirect('MembershipCard:default');
       }
+    }
+
+
+    /**
+     * Popisek souvisejících prodejů pro chybu mazání permanentky.
+     */
+    private function formatPermanentkaSalesUsage(int $permanentkaId): string
+    {
+      try
+      {
+        $sales = $this->membershipCardManager->getSalesByPermanentkaId($permanentkaId);
+      }
+      catch (\Throwable $e)
+      {
+        return '';
+      }
+
+      if (!$sales)
+        return '';
+
+      $items = array();
+      foreach (array_slice($sales,0,3) as $sale)
+      {
+        $saleId = (int) $this->logValue($sale,'ID',$this->logValue($sale,'id',0));
+        $userId = (int) $this->logValue($sale,'user_id',0);
+        $saleLabel = $saleId > 0 ? sprintf('prodej ID=%d',$saleId) : 'neznámý prodej';
+        $items[] = sprintf('%s, klient %s',$saleLabel,$this->logUserLabelById($userId));
+      }
+
+      $remaining = count($sales) - count($items);
+      if ($remaining > 0)
+        $items[] = sprintf('další prodeje: %d',$remaining);
+
+      return sprintf('Související %s: %s. ',count($sales) === 1 ? 'prodej' : 'prodeje',implode('; ',$items));
     }
   }

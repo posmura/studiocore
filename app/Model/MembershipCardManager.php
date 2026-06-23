@@ -96,6 +96,18 @@
 
 
     /**
+     * PERMANENTKA: Vrací prodeje navázané na permanentku.
+     *
+     * @param int $permanentkaId ID permanentky
+     * @return array
+     */
+    public function getSalesByPermanentkaId(int $permanentkaId): array
+    {
+      return $this->database->fetchAll(SqlCommands::getSalesByPermanentkaId(),$permanentkaId);
+    }
+
+
+    /**
      * PERMANENTKA: Vloží permannetku
      *
      * @param object $data Data permanentky

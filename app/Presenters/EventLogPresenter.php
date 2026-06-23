@@ -165,7 +165,7 @@
 
       $patterns = [
         'user' => '~uživatel[\p{L}]*|klient[\p{L}]*|náhradník[\p{L}]*|lektor[\p{L}]*~u',
-        'lesson' => '~lekc[\p{L}]*|událost[\p{L}]*|termín[\p{L}]*~u',
+        'lesson' => '~\blekce\b|\blekci\b|událost[\p{L}]*|termín[\p{L}]*~u',
         'membership_card' => '~permanentk[\p{L}]*~u',
         'sale' => '~prodej[\p{L}]*~u',
         'activity' => '~aktivit[\p{L}]*~u',

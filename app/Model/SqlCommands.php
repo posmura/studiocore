@@ -287,6 +287,19 @@ SQL;
 
 
     /**
+     * PERMANENTKA: Vrací prodeje navázané na permanentku.
+     *
+     * @return string
+     */
+    public static function getSalesByPermanentkaId(): string
+    {
+      return <<<SQL
+SELECT * FROM blog_sales WHERE permanentka_id=? ORDER BY created_at DESC
+SQL;
+    }
+
+
+    /**
      * PERMANENTKA: Vybere všechny permanentky setříděné podle aktivity a ceny
      *
      * @return string

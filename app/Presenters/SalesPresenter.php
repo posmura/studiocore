@@ -285,7 +285,7 @@
         $this->redirect('Sales:default');
       }
 
-	    $_msg = sprintf('Nový %s byl uložen.',$this->logSaleLabelById($saleId));
+	    $_msg = sprintf('Nový prodej ID=%d pro klienta %s, permanentka %s, byl uložen.',$saleId,$userLabel,$cardLabel);
       $this->flashMessage($_msg);
       $this->eventlog('sale',$_msg);
       $this->redirect('Sales:default');
