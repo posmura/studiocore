@@ -651,19 +651,101 @@
 
 
     /**
-     * KREDITY: Ruční úprava kreditu klienta pro konkrétní aktivita_id
+     * KREDITY: Ruční změna kreditu klienta pro konkrétní aktivita_id
+     *
+     * Záporná změna nejdříve odečítá vstupy z aktivních permanentek, stejně jako
+     * registrace na lekci. Teprve zbytek změny se zapíše do ručních kreditů.
      *
      * @param object $data Data pro kredity
-     * @return bool
+     * @return array
      */
-    public function updateKredit($data)
+    public function updateKredit($data): array
     {
-      return $this->database->query(SqlCommands::updateKredit(),
-          $data->kredit,
-          $data->updated_by,
-          $data->user_id,
-          $data->aktivita_id
-      );
+      $kreditZmena = (int) $data->kredit;
+
+      if ($kreditZmena === 0)
+        return array(
+          'kredit_zmena' => 0,
+          'sources' => array(),
+        );
+
+      $userId = (int) $data->user_id;
+      $aktivitaId = (int) $data->aktivita_id;
+      $updatedBy = $data->updated_by;
+      $sources = array();
+
+      $this->database->beginTransaction();
+      try
+      {
+        if ($kreditZmena < 0)
+        {
+          $zbyvaOdecist = abs($kreditZmena);
+          $datumKonce = strtotime('today 23:59:59');
+          $permanentky = $this->database->fetchAll(SqlCommands::getAktivniPermanentkyID(),$userId,$aktivitaId,$datumKonce);
+
+          foreach ($permanentky as $permanentka)
+          {
+            if ($zbyvaOdecist <= 0)
+              break;
+
+            $dostupneVstupy = (int) $permanentka['vstupy_aktualni'];
+            if ($dostupneVstupy <= 0)
+              continue;
+
+            $odecist = min($dostupneVstupy,$zbyvaOdecist);
+            $res = $this->database->query(SqlCommands::updateKredityAktivniPermanentka(),-$odecist,$updatedBy,(int) $permanentka['ID'],-$odecist);
+            if ($res->getRowCount() !== 1)
+              throw new \RuntimeException('Vstupy aktivní permanentky nebyly změněny.');
+
+            $sources[] = array(
+              'type' => 'permanentka',
+              'zmena' => -$odecist,
+              'sales_id' => (int) $permanentka['ID'],
+              'permanentka_id' => (int) $permanentka['permanentka_id'],
+              'aktivita_name' => (string) $permanentka['aktivita_name'],
+              'vstupy_pred' => $dostupneVstupy,
+              'vstupy_po' => $dostupneVstupy - $odecist,
+              'datum_konce' => (int) $permanentka['datum_konce'],
+            );
+
+            $zbyvaOdecist -= $odecist;
+          }
+
+          if ($zbyvaOdecist > 0)
+          {
+            $res = $this->database->query(SqlCommands::updateKredityKlienta(),-$zbyvaOdecist,$updatedBy,$userId,$aktivitaId);
+            if ($res->getRowCount() !== 1)
+              throw new \RuntimeException('Kredity klienta nebyly změněny.');
+
+            $sources[] = array(
+              'type' => 'kredit',
+              'zmena' => -$zbyvaOdecist,
+            );
+          }
+        }
+        else
+        {
+          $res = $this->database->query(SqlCommands::updateKredityKlienta(),$kreditZmena,$updatedBy,$userId,$aktivitaId);
+          if ($res->getRowCount() !== 1)
+            throw new \RuntimeException('Kredity klienta nebyly změněny.');
+
+          $sources[] = array(
+            'type' => 'kredit',
+            'zmena' => $kreditZmena,
+          );
+        }
+
+        $this->database->commit();
+        return array(
+          'kredit_zmena' => $kreditZmena,
+          'sources' => $sources,
+        );
+      }
+      catch (\Throwable $e)
+      {
+        $this->database->rollBack();
+        throw $e;
+      }
     }
 
 

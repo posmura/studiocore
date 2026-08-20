@@ -431,9 +431,13 @@
       foreach ($this->_aktivity as $key => $items)
       {
         $form->addInteger('kredit_'.$key,$items.':')
+          ->addRule(Form::PATTERN,'Kredit pro aktivitu %label může obsahovat jen číslice a nepovinně znak + nebo - na začátku.','[+-]?[0-9]+')
           ->setValue(0)
           ->setHtmlAttribute('class','form-control form-control-sm')
           ->setHtmlAttribute('placeholder','')
+          ->setHtmlAttribute('inputmode','numeric')
+          ->setHtmlAttribute('pattern','[+-]?[0-9]+')
+          ->setHtmlAttribute('title','Zadejte celé číslo, například -1, 0 nebo +1.')
           ->setRequired("Kredit pro aktivitu %label je vyžadován!");
       }
 
@@ -479,6 +483,7 @@
       }
 
       // vlastní aktualizace kreditu
+      $_updates = array();
       foreach ($params as $key => $items)
       {
         if (!$items['kredit'] || $items['kredit'] == 0)
@@ -488,7 +493,7 @@
 
         try
         {
-          $this->factoryManager->updateKredit($_data);
+          $_updates[(int) $_data->aktivita_id] = $this->factoryManager->updateKredit($_data);
         }
         catch (\Exception $e)
         {
@@ -504,12 +509,90 @@
 	      {
 	        if (!$items['kredit'] || $items['kredit'] == 0)
 	          continue;
-	        $_changes[] = sprintf('%s: %+d',$this->logActivityLabelById((int) $items['aktivita_id']),(int) $items['kredit']);
+	        $_sources = $_updates[(int) $items['aktivita_id']]['sources'] ?? array();
+	        $_source_info = $this->formatKreditUpdateSources($_sources);
+	        $_changes[] = sprintf(
+	          '%s: %+d%s',
+	          $this->logActivityLabelById((int) $items['aktivita_id']),
+	          (int) $items['kredit'],
+	          $_source_info !== '' ? sprintf(' (%s)',$_source_info) : ''
+	        );
+	      }
+	      if (!$_changes)
+	      {
+	        $_msg = sprintf('Kredity pro uživatele %s nebyly změněny, nebyla zadána žádná nenulová hodnota.',$this->logUserLabelById((int) $data->user_id));
+	        $this->flashMessage($_msg,'info');
+	        $this->redirect('User:user',$data->user_id);
 	      }
 	      $_msg = sprintf('Kredity pro uživatele %s byly změněny (%s).',$this->logUserLabelById((int) $data->user_id),implode(', ',$_changes));
-      //$this->flashMessage($_msg);
+      $this->flashMessage($_msg);
       $this->eventlog('sign',$_msg);
       $this->redirect('User:user',$data->user_id);
+    }
+
+
+    /**
+     * Vrací textový popis zdrojů ruční změny kreditu.
+     */
+    private function formatKreditUpdateSources(array $sources): string
+    {
+      if (!$sources)
+        return '';
+
+      $_items = array();
+      foreach ($sources as $source)
+      {
+        $_zmena = (int) ($source['zmena'] ?? 0);
+        $_count = $this->formatKreditEntryCount(abs($_zmena));
+
+        if (($source['type'] ?? '') === 'permanentka')
+        {
+          $_sale_id = (int) ($source['sales_id'] ?? 0);
+          $_label = trim((string) ($source['aktivita_name'] ?? ''));
+          if ($_label === '')
+            $_label = $_sale_id > 0 ? sprintf('prodej ID=%d',$_sale_id) : 'aktivní permanentka';
+          elseif ($_sale_id > 0)
+            $_label = sprintf('%s, prodej ID=%d',$_label,$_sale_id);
+
+          $_details = array();
+          if (!empty($source['datum_konce']))
+            $_details[] = sprintf('platná do %s',date('d.m.Y',(int) $source['datum_konce']));
+          if (array_key_exists('vstupy_po',$source))
+            $_details[] = sprintf('zbývá %s',$this->formatKreditEntryCount((int) $source['vstupy_po']));
+
+          $_items[] = sprintf(
+            'odečteno %s z aktivní permanentky %s%s',
+            $_count,
+            $_label,
+            $_details ? sprintf(' [%s]',implode(', ',$_details)) : ''
+          );
+        }
+        elseif (($source['type'] ?? '') === 'kredit')
+        {
+          $_items[] = $_zmena < 0
+            ? sprintf('odečteno %s z ručního kreditu',$_count)
+            : sprintf('přidáno %s do ručního kreditu',$_count);
+        }
+      }
+
+      return implode('; ',$_items);
+    }
+
+
+    /**
+     * Vrací správný tvar textu pro počet vstupů.
+     */
+    private function formatKreditEntryCount(int $count): string
+    {
+      $count = abs($count);
+
+      if ($count === 1)
+        return '1 vstup';
+
+      if ($count >= 2 && $count <= 4)
+        return sprintf('%d vstupy',$count);
+
+      return sprintf('%d vstupů',$count);
     }
 
 
