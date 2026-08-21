@@ -72,8 +72,11 @@
 	        $form->setHtmlAttribute('style','display:inline;');
 	        $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
 	        $form->addHidden('id',$id);
-	        $form->addSubmit('send','Odstranit')
+	        $form->addSubmit('send',\Nette\Utils\Html::el('i')->setAttribute('class','bi bi-trash'))
+	          ->renderAsButton()
 	          ->setHtmlAttribute('class','btn btn-sm btn-danger')
+	          ->setHtmlAttribute('title','Smazat')
+	          ->setHtmlAttribute('aria-label','Smazat')
 	          ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
 	        $form->onSuccess[] = [$this,'deleteSalesFormSucceeded'];
 
@@ -101,36 +104,37 @@
 		        ]
 		      );
 		      $saleLabel = $this->logSaleLabelById((int) $data->id);
+		      $saleErrorLabel = ucfirst($saleLabel);
 
 	      try
 	      {
         $rst = $this->salesManager->deleteProdej($data);
-        if ($rst !== \App\Model\SalesManager::DELETE_OK)
-        {
-          if ($rst === \App\Model\SalesManager::DELETE_HAS_REGISTRATIONS)
-            $_msg = sprintf('Chyba! %s nelze smazat, protože jsou na něj navázané registrace klienta.',$saleLabel);
-          elseif ($rst === \App\Model\SalesManager::DELETE_HAS_USED_CREDITS)
-            $_msg = sprintf('Chyba! %s nelze smazat, protože už má změněný počet aktuálních vstupů.',$saleLabel);
-          elseif ($rst === \App\Model\SalesManager::DELETE_NOT_FOUND)
-            $_msg = sprintf('Chyba! %s nebyl nalezen, nebo už byl smazán.',$saleLabel);
-          else
-            $_msg = sprintf('Chyba! %s nebyl smazán.',$saleLabel);
-
-          $this->eventlog('sale',$_msg);
-          $this->flashMessage($_msg,'danger');
-          $this->redirect('Sales:default');
-        }
-
       }
       catch (\Throwable $e)
       {
-	        $_msg = sprintf('Chyba! %s nebyl smazán.',$saleLabel);
+	        $_msg = sprintf('Chyba! %s nebyl smazán.',$saleErrorLabel);
         $this->eventlog('sale',sprintf('%s DB chyba: %s',$_msg,$e->getMessage()));
         $this->flashMessage($_msg,'danger');
         $this->redirect('Sales:default');
       }
 
-	      $_msg = sprintf('%s byl smazán.',$saleLabel);
+      if ($rst !== \App\Model\SalesManager::DELETE_OK)
+      {
+        if ($rst === \App\Model\SalesManager::DELETE_HAS_REGISTRATIONS)
+          $_msg = sprintf('Chyba! %s nelze smazat, protože jsou na něj navázané registrace klienta.',$saleErrorLabel);
+        elseif ($rst === \App\Model\SalesManager::DELETE_HAS_USED_CREDITS)
+          $_msg = sprintf('Chyba! %s nelze smazat, protože už má změněný počet aktuálních vstupů.',$saleErrorLabel);
+        elseif ($rst === \App\Model\SalesManager::DELETE_NOT_FOUND)
+          $_msg = sprintf('Chyba! %s nebyl nalezen, nebo už byl smazán.',$saleErrorLabel);
+        else
+          $_msg = sprintf('Chyba! %s nebyl smazán.',$saleErrorLabel);
+
+        $this->eventlog('sale',$_msg);
+        $this->flashMessage($_msg,'danger');
+        $this->redirect('Sales:default');
+      }
+
+	      $_msg = sprintf('%s byl smazán.',$saleErrorLabel);
       $this->flashMessage($_msg);
       $this->eventlog('sale',$_msg);
       $this->redirect('Sales:default');

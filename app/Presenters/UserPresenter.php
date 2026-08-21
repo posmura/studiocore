@@ -149,8 +149,11 @@
         $form->setHtmlAttribute('style','display:inline;');
         $form->addProtection('Vypršela platnost formuláře, odešlete jej prosím znovu.');
         $form->addHidden('userId',$id);
-        $form->addSubmit('send','Odstranit')
+        $form->addSubmit('send',\Nette\Utils\Html::el('i')->setAttribute('class','bi bi-trash'))
+          ->renderAsButton()
           ->setHtmlAttribute('class','btn btn-sm btn-danger')
+          ->setHtmlAttribute('title','Smazat')
+          ->setHtmlAttribute('aria-label','Smazat')
           ->setHtmlAttribute('onclick',"return confirm('Opravdu chcete záznam odstranit?');");
         $form->onSuccess[] = [$this,'deleteUserFormSucceeded'];
 

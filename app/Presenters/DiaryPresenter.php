@@ -727,10 +727,13 @@
         ->setHtmlAttribute('class','btn btn-primary');
 
       // Tlačítko pro odeslání (DELETE)
-      $form->addSubmit('sendDelete','Odstranit')
+      $form->addSubmit('sendDelete',\Nette\Utils\Html::el('i')->setAttribute('class','bi bi-trash'))
+        ->renderAsButton()
         ->setHtmlAttribute('id','frm-diaryForm-send_delete')
         ->setHtmlAttribute('style','float:right;display:none;')
         ->setHtmlAttribute('onclick',"return confirm('Opravdu si přejete odstranit záznam?')")
+        ->setHtmlAttribute('title','Smazat')
+        ->setHtmlAttribute('aria-label','Smazat')
         ->setHtmlAttribute('class','btn btn-danger');
 
       // Definice akce
